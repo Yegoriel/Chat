@@ -16,7 +16,7 @@
             --sidebar-bg: #f7f7f8;
             --border-color: #e5e5e5;
             --user-msg-bg: #f0f2f5;
-            --ai-msg-bg: transparent;
+            --ai-msg-bg: #ffffff; /* AI messages will have a subtle background */
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
             --code-bg: #f0f2f5;
@@ -105,13 +105,13 @@
             body.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
             body.sidebar-open #chat-area { filter: brightness(0.9); }
             
-            /* --- NEW: Mobile-specific layout for wider text --- */
-            .message-container {
-                max-width: 100%;
-            }
+            /* --- NEW: More generous padding on mobile for a wider, cleaner look --- */
             #chat-messages {
-                padding-left: 0.5rem;
-                padding-right: 0.5rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .message-container {
+                max-width: 100%; /* Let the container use the full width provided by the parent's padding */
             }
         }
 
@@ -127,7 +127,7 @@
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
         .message-container.user { padding: 0.75rem 1.1rem; background-color: var(--user-msg-bg); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .message-container.ai { background-color: var(--ai-msg-bg); align-self: flex-start; border: none; padding: 0.75rem 1.1rem; }
+        .message-container.ai { background-color: var(--ai-msg-bg); align-self: flex-start; border: 1px solid var(--border-color); padding: 0.75rem 1.1rem; }
         .message-container.ai p:first-child { margin-top: 0; }
         .message-container.ai p:last-child { margin-bottom: 0; }
         .message-container.ai strong, .message-container.ai b { font-weight: 600; }
@@ -150,22 +150,31 @@
         .copy-btn:hover { background: #dcdce0; }
         .copy-btn:active { transform: scale(0.95); }
         
-        /* --- NEW: Responsive Table Wrapper --- */
         .table-wrapper {
+            position: relative; /* Needed for the gradient overlay */
             overflow-x: auto;
             margin: 1.5rem 0;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
+        /* --- NEW: Visual cue for scrollable tables --- */
+        .table-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 40px;
+            background: linear-gradient(to left, var(--ai-msg-bg), transparent);
+            pointer-events: none;
+        }
         .table-wrapper table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
             font-size: 0.95rem;
-            /* Give table a min-width to prevent ugly collapsing on mobile */
             min-width: 600px; 
-            /* Remove margin, border, shadow from table itself as wrapper has it */
             margin: 0;
             border: none;
             box-shadow: none;
@@ -286,9 +295,7 @@
                 return m;
             }
 
-            // RENAMED and UPGRADED to handle all post-render features
             function attachFeaturesToAiMessage(container) {
-                // Attach copy buttons to code blocks
                 container.querySelectorAll('pre').forEach(pre => {
                     if (pre.parentNode.classList.contains('code-block-wrapper')) {
                         hljs.highlightElement(pre.querySelector('code'));
@@ -301,7 +308,6 @@
                     wrapper.appendChild(btn); hljs.highlightElement(pre.querySelector('code'));
                 });
 
-                // NEW: Wrap tables for horizontal scrolling on mobile
                 container.querySelectorAll('table').forEach(table => {
                     if (table.parentNode.classList.contains('table-wrapper')) {
                         return;
@@ -332,7 +338,7 @@
                     } else if (msg.role === 'model') {
                         const renderedHtml = marked.parse(msg.text || "");
                         const aiMsgContainer = addMessageToUI('ai', renderedHtml, true);
-                        attachFeaturesToAiMessage(aiMsgContainer); // Use the new upgraded function
+                        attachFeaturesToAiMessage(aiMsgContainer);
                     }
                 });
                 
@@ -413,7 +419,7 @@
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
                                             aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
-                                            attachFeaturesToAiMessage(aiMsgContainer); // Use the new upgraded function
+                                            attachFeaturesToAiMessage(aiMsgContainer);
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }

@@ -104,25 +104,6 @@
             body.sidebar-open #sidebar { transform: translateX(0); }
             body.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
             body.sidebar-open #chat-area { filter: brightness(0.9); }
-            
-            #chat-messages {
-                padding: 0 1rem;
-            }
-            .message-container {
-                max-width: 95%; /* NEW: Increased wideness for mobile */
-            }
-            .message-container.ai {
-                padding: 0.75rem 1rem;
-            }
-            .message-container.ai pre, .message-container.ai code {
-                font-size: 14px;
-            }
-            .message-container.ai table {
-                font-size: 14.5px;
-            }
-            .message-container.ai th, .message-container.ai td {
-                padding: 0.6rem 0.75rem;
-            }
         }
 
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; }
@@ -130,9 +111,37 @@
         #chat-messages-container::before { top: 0; background: linear-gradient(to bottom, var(--background-color) 0%, transparent 100%); }
         #chat-messages-container::after { bottom: 0; background: linear-gradient(to top, var(--background-color) 0%, transparent 100%); }
         
-        #chat-messages { height: 100%; flex-grow: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; min-height: 0; width: 100%; max-width: 1160px; margin-left: auto; margin-right: auto; box-sizing: border-box; scrollbar-width: none; -ms-overflow-style: none; touch-action: pan-y; scroll-behavior: smooth; padding-bottom: 30vh; }
+        /* --- THE SOLUTION: Centered Content Column --- */
+        #chat-messages {
+            height: 100%;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            width: 100%;
+            /* 1. Constrained Content Width */
+            max-width: 900px; 
+            /* 2. True Centering */
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            touch-action: pan-y;
+            scroll-behavior: smooth;
+            padding-bottom: 30vh;
+        }
         #chat-messages::-webkit-scrollbar { display: none; }
-        .message-container { max-width: 85%; margin-bottom: 1rem; border-radius: 18px; line-height: 1.7; word-wrap: break-word; }
+        .message-container {
+            /* 3. Full-Width Bubbles (Within the Column) */
+            max-width: 100%; 
+            margin-bottom: 1rem;
+            border-radius: 18px;
+            line-height: 1.7;
+            word-wrap: break-word;
+        }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
@@ -167,7 +176,6 @@
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        /* REMOVED: The buggy ::after pseudo-element is gone. */
         .table-wrapper table {
             width: 100%;
             border-collapse: separate;

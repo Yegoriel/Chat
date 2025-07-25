@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AI Chat</title>
+    <!-- NEW: Re-importing the "Inter" font for a modern, sleek look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            /* NEW: Using a professional system font stack for performance and a modern feel */
+            /* NEW: Using Inter as the primary font */
             --system-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             --background-color: #ffffff;
-            --text-color: #333; /* Slightly softer black for better readability */
+            --text-color: #333;
             --primary-accent: #1a1a1a;
             --sidebar-bg: #f7f7f8;
             --border-color: #e5e5e5;
@@ -28,7 +32,7 @@
             margin: 0; padding: 0; font-family: var(--system-font); height: 100%; width: 100%; overflow: hidden; background-color: var(--background-color); color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-size: 16px; /* A slightly smaller base for better scaling */
+            font-size: 16px;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
         body.is-dragging #chat-messages { overflow-y: hidden; }
@@ -136,10 +140,10 @@
         
         /* --- NEW: Comprehensive Typographic & Cosmetic Overhaul --- */
         .message-container.ai {
-            font-size: 1.05rem; /* Slightly larger base font for AI responses */
+            font-size: 1.05rem;
         }
         .message-container.ai p {
-            line-height: 1.75;
+            line-height: 1.8; /* Increased line spacing */
             margin-bottom: 1.25em;
         }
         .message-container.ai p:first-child { margin-top: 0; }
@@ -184,13 +188,12 @@
             margin: 2.5rem 0;
         }
 
-        /* --- NEW: Restoring "Vastness" on Mobile --- */
         @media (max-width: 767px) {
             #chat-messages {
                 padding: 0 1rem;
             }
             .message-container {
-                max-width: 100%; /* Let messages use the full width of the padded container */
+                max-width: 100%;
             }
         }
 

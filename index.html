@@ -132,7 +132,9 @@
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
-            /* REMOVED max-width from here. The parent #chat-messages controls the width now. */
+            /* --- THE DEFINITIVE FIX --- */
+            /* This constrains the bubble itself, preventing overflow when aligned right. */
+            max-width: 85%; 
             margin-bottom: 1rem;
             border-radius: 18px;
             line-height: 1.7;

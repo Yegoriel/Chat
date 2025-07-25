@@ -16,7 +16,7 @@
             --sidebar-bg: #f7f7f8;
             --border-color: #e5e5e5;
             --user-msg-bg: #f0f2f5;
-            --ai-msg-bg: transparent; /* REMOVED FRAME: AI messages are clean */
+            --ai-msg-bg: transparent;
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
             --code-bg: #f0f2f5;
@@ -105,25 +105,23 @@
             body.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
             body.sidebar-open #chat-area { filter: brightness(0.9); }
             
-            /* --- NEW: Refined mobile layout --- */
             #chat-messages {
-                padding: 0 1rem; /* Clean horizontal padding for the whole chat log */
+                padding: 0 1rem;
             }
             .message-container {
-                max-width: 90%; /* Allow messages to be wider */
+                max-width: 95%; /* NEW: Increased wideness for mobile */
             }
             .message-container.ai {
-                padding: 0.75rem 1rem; /* Adjust padding for AI messages */
+                padding: 0.75rem 1rem;
             }
-            /* --- NEW: Refined mobile typography --- */
             .message-container.ai pre, .message-container.ai code {
-                font-size: 14px; /* Smaller font size for code on mobile */
+                font-size: 14px;
             }
             .message-container.ai table {
-                font-size: 14.5px; /* Smaller font size for tables on mobile */
+                font-size: 14.5px;
             }
             .message-container.ai th, .message-container.ai td {
-                padding: 0.6rem 0.75rem; /* Tighter padding for table cells */
+                padding: 0.6rem 0.75rem;
             }
         }
 
@@ -163,23 +161,13 @@
         .copy-btn:active { transform: scale(0.95); }
         
         .table-wrapper {
-            position: relative;
             overflow-x: auto;
             margin: 1.5rem 0;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .table-wrapper::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 40px;
-            background: linear-gradient(to left, var(--background-color), transparent);
-            pointer-events: none;
-        }
+        /* REMOVED: The buggy ::after pseudo-element is gone. */
         .table-wrapper table {
             width: 100%;
             border-collapse: separate;

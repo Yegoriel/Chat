@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AI Chat</title>
-    <!-- REMOVED: Google Fonts import is no longer needed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            /* NEW: Prioritizing Segoe UI for a unified, professional font stack */
-            --system-font: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            --system-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             --background-color: #ffffff;
             --text-color: #333;
             --primary-accent: #1a1a1a;
@@ -134,17 +135,16 @@
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
         .message-container.user { padding: 0.75rem 1.1rem; background-color: var(--user-msg-bg); align-self: flex-end; border-bottom-right-radius: 4px; }
         
-        /* --- NEW: Comprehensive Typographic & Cosmetic Overhaul --- */
         .message-container.ai {
             background-color: var(--ai-msg-bg);
             align-self: flex-start;
             border: none;
             padding: 0.75rem 1.1rem;
-            font-family: var(--system-font); /* Enforce unified font for all children */
+            font-family: var(--system-font);
             font-size: 1.05rem;
         }
         .message-container.ai p {
-            line-height: 1.75; /* Increased line spacing */
+            line-height: 1.75;
             margin-bottom: 1.25em;
         }
         .message-container.ai p:first-child { margin-top: 0; }
@@ -173,7 +173,7 @@
             margin-bottom: 1.25em;
         }
         .message-container.ai li {
-            line-height: 1.75; /* Apply line height to lists too */
+            line-height: 1.75;
             margin-bottom: 0.5em;
         }
         .message-container.ai a {
@@ -190,13 +190,13 @@
             margin: 2.5rem 0;
         }
 
+        /* --- THE DEFINITIVE MOBILE LAYOUT FIX --- */
         @media (max-width: 767px) {
             #chat-messages {
-                padding: 0 1rem;
+                padding: 0 1rem; /* This creates the outer "gutters" */
             }
-            .message-container {
-                max-width: 100%;
-            }
+            /* By NOT setting a max-width here, the .message-container correctly uses the 85% default,
+               ensuring it never touches the edges of the padded #chat-messages container. */
         }
 
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }

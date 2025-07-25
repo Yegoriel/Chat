@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AI Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -11,7 +14,7 @@
         :root {
             --system-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             --background-color: #ffffff;
-            --text-color: #302f30;
+            --text-color: #333;
             --primary-accent: #1a1a1a;
             --sidebar-bg: #f7f7f8;
             --border-color: #e5e5e5;
@@ -27,7 +30,7 @@
             margin: 0; padding: 0; font-family: var(--system-font); height: 100%; width: 100%; overflow: hidden; background-color: var(--background-color); color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-size: 17px;
+            font-size: 16px;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
         body.is-dragging #chat-messages { overflow-y: hidden; }
@@ -42,7 +45,7 @@
             z-index: 1000;
             will-change: transform, width;
             left: 0; top: 0;
-            overflow-x: hidden; /* This is the fix */
+            overflow-x: hidden;
         }
         .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .sidebar-header h2 { margin: 0; font-size: 1.1rem; user-select: none; -webkit-user-select: none; white-space: nowrap; }
@@ -78,26 +81,14 @@
 
         #chat-header, #menu-toggle, #sidebar-close-btn, #pin-sidebar-btn { display: none; }
 
-        /* --- Desktop Sidebar Behavior --- */
-        .is-desktop #sidebar {
-            width: var(--sidebar-width);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .is-desktop #sidebar { width: var(--sidebar-width); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .is-desktop #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); }
-        .is-desktop #sidebar.is-collapsed .chat-title-container, 
-        .is-desktop #sidebar.is-collapsed .sidebar-header h2, 
-        .is-desktop #sidebar.is-collapsed .chat-actions-btn, 
-        .is-desktop #sidebar.is-collapsed #logout-text {
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-        }
+        .is-desktop #sidebar.is-collapsed .chat-title-container, .is-desktop #sidebar.is-collapsed .sidebar-header h2, .is-desktop #sidebar.is-collapsed .chat-actions-btn, .is-desktop #sidebar.is-collapsed #logout-text { opacity: 0; width: 0; overflow: hidden; }
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #chat-area.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #pin-sidebar-btn { display: flex; }
 
-        /* --- Mobile Sidebar Behavior --- */
         .is-mobile #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
         .is-mobile #sidebar.no-transition { transition: none; }
         .is-mobile #sidebar-close-btn { display: flex; }
@@ -137,18 +128,77 @@
             max-width: 85%; 
             margin-bottom: 1rem;
             border-radius: 18px;
-            line-height: 1.7;
             word-wrap: break-word;
         }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
         .message-container.user { padding: 0.75rem 1.1rem; background-color: var(--user-msg-bg); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .message-container.ai { background-color: var(--ai-msg-bg); align-self: flex-start; border: none; padding: 0.75rem 1.1rem; }
+        
+        .message-container.ai {
+            background-color: var(--ai-msg-bg);
+            align-self: flex-start;
+            border: none;
+            padding: 0.75rem 1.1rem;
+            font-family: var(--system-font);
+            font-size: 1.05rem;
+        }
+        .message-container.ai p {
+            line-height: 1.75;
+            margin-bottom: 1.25em;
+        }
         .message-container.ai p:first-child { margin-top: 0; }
         .message-container.ai p:last-child { margin-bottom: 0; }
-        .message-container.ai strong, .message-container.ai b { font-weight: 600; }
-        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3 { margin-top: 1.2rem; margin-bottom: 0.5rem; line-height: 1.3; }
+        .message-container.ai strong, .message-container.ai b {
+            font-weight: 600;
+            color: #000;
+        }
+        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3 {
+            line-height: 1.2;
+            font-weight: 700;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #000;
+        }
+        .message-container.ai h1 {
+            font-size: 2.2em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.4em;
+        }
+        .message-container.ai h2 { font-size: 1.7em; }
+        .message-container.ai h3 { font-size: 1.3em; }
+        .message-container.ai ul, .message-container.ai ol {
+            padding-left: 1.5em;
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+        }
+        .message-container.ai li {
+            line-height: 1.75;
+            margin-bottom: 0.5em;
+        }
+        .message-container.ai a {
+            color: #0056b3;
+            text-decoration: none;
+        }
+        .message-container.ai a:hover {
+            text-decoration: underline;
+        }
+        .message-container.ai hr {
+            border: none;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 2.5rem 0;
+        }
+
+        @media (max-width: 767px) {
+            #chat-messages {
+                padding: 0 1rem;
+            }
+            .message-container {
+                max-width: 100%;
+            }
+        }
+
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         
@@ -159,7 +209,7 @@
         #send-btn { background: var(--primary-accent); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.1s ease; }
         #send-btn:active { transform: scale(0.9); }
         
-        .code-block-wrapper { position: relative; margin: 1rem 0; }
+        .code-block-wrapper { position: relative; margin: 1.25em 0; }
         .message-container.ai pre { background-color: var(--code-bg); color: var(--code-text-color); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; font-family: 'SF Mono', 'Fira Code', 'monospace'; font-size: 0.875rem; line-height: 1.6; margin: 0; }
         .message-container.ai pre code.hljs { padding: 0; background: transparent; }
         .copy-btn { position: absolute; top: 8px; right: 8px; background: #e9e9eb; color: #555; border: 1px solid var(--border-color); padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; opacity: 0; transition: opacity 0.2s ease; }
@@ -169,7 +219,7 @@
         
         .table-wrapper {
             overflow-x: auto;
-            margin: 1.5rem 0;
+            margin: 1.25em 0;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -194,6 +244,47 @@
         .thinking-indicator span:nth-child(2) { animation-delay: 0.1s; }
         .thinking-indicator span:nth-child(3) { animation-delay: 0.2s; }
         @keyframes sleekWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+        .blinking-cursor {
+            font-weight: 400;
+            color: var(--primary-accent);
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* --- NEW: The Cascading Fade-In Animation --- */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-container.ai > * {
+            animation: fadeInUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+            animation-fill-mode: both; /* Ensures element is hidden before animation starts */
+        }
+
+        /* --- NEW: The Staggered Delay Engine (Pure CSS) --- */
+        .message-container.ai > *:nth-child(1) { animation-delay: 0.05s; }
+        .message-container.ai > *:nth-child(2) { animation-delay: 0.1s; }
+        .message-container.ai > *:nth-child(3) { animation-delay: 0.15s; }
+        .message-container.ai > *:nth-child(4) { animation-delay: 0.2s; }
+        .message-container.ai > *:nth-child(5) { animation-delay: 0.25s; }
+        .message-container.ai > *:nth-child(6) { animation-delay: 0.3s; }
+        .message-container.ai > *:nth-child(7) { animation-delay: 0.35s; }
+        .message-container.ai > *:nth-child(8) { animation-delay: 0.4s; }
+        .message-container.ai > *:nth-child(9) { animation-delay: 0.45s; }
+        .message-container.ai > *:nth-child(10) { animation-delay: 0.5s; }
+        .message-container.ai > *:nth-child(n+11) { animation-delay: 0.5s; } /* All subsequent elements share the final delay */
+
 
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
         .is-desktop .scroll-controls { display: flex; }
@@ -405,6 +496,9 @@
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
+                                aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
+                                attachFeaturesToAiMessage(aiMsgContainer);
+                                
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                 saveChat();
                                 break;
@@ -421,7 +515,7 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
+                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText + '<span class="blinking-cursor">▍</span>');
                                             attachFeaturesToAiMessage(aiMsgContainer);
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
@@ -517,16 +611,13 @@
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             const closeSidebar = () => { document.body.classList.remove('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             
-            // --- ZOOM-PROOF SIDEBAR LOGIC ---
             function initializeSidebar() {
                 const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
                 
-                // Clean up previous state
                 document.body.classList.remove('is-mobile', 'is-desktop');
 
                 if (isTouchDevice) {
                     document.body.classList.add('is-mobile');
-                    // Mobile-specific listeners
                     document.getElementById('menu-toggle').onclick = openSidebar;
                     document.getElementById('sidebar-close-btn').onclick = closeSidebar;
                     sidebarOverlay.onclick = closeSidebar;

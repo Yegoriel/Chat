@@ -129,6 +129,7 @@
             margin-bottom: 1rem;
             border-radius: 18px;
             word-wrap: break-word;
+            position: relative; /* Needed for the streaming gradient */
         }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
@@ -190,14 +191,32 @@
             margin: 2.5rem 0;
         }
 
-        /* --- THE DEFINITIVE MOBILE LAYOUT FIX --- */
         @media (max-width: 767px) {
             #chat-messages {
-                padding: 0 1rem; /* This creates the outer "gutters" */
+                padding: 0 1rem;
             }
-            /* By NOT setting a max-width here, the .message-container correctly uses the 85% default,
-               ensuring it never touches the edges of the padded #chat-messages container. */
+            .message-container {
+                max-width: 100%;
+            }
         }
+
+        /* --- NEW: Sleek Gradient Effect for Streaming Text --- */
+        .message-container.ai.is-streaming::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4em; /* The height of the gradient fade */
+            background: linear-gradient(to bottom, transparent, var(--background-color));
+            pointer-events: none; /* Allows text selection through the gradient */
+            transition: opacity 0.3s ease;
+            opacity: 1;
+        }
+        .message-container.ai:not(.is-streaming)::after {
+            opacity: 0;
+        }
+
 
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
@@ -333,8 +352,6 @@
                 }
             });
 
-            // --- CORE LOGIC (No changes needed in JS) ---
-
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
@@ -438,6 +455,9 @@
                 const aiMsgContainer = addMessageToUI('ai', '<div class="thinking-indicator"><span></span><span></span><span></span></div>', true);
                 let accumulatedResponseText = '';
 
+                // NEW: Add the streaming class
+                aiMsgContainer.classList.add('is-streaming');
+
                 try {
                     const response = await fetch('/api/chat', {
                         method: 'POST',
@@ -455,6 +475,8 @@
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
+                                // NEW: Remove the streaming class when done
+                                aiMsgContainer.classList.remove('is-streaming');
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                 saveChat();
                                 break;
@@ -485,6 +507,8 @@
                     await processStream();
                 } catch (error) {
                     console.error("AI Streaming Error:", error);
+                    // NEW: Also remove the class on error
+                    aiMsgContainer.classList.remove('is-streaming');
                     aiMsgContainer.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                 }
             }

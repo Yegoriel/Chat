@@ -77,34 +77,35 @@
 
         #chat-header, #menu-toggle, #sidebar-close-btn, #pin-sidebar-btn { display: none; }
 
-        @media (min-width: 768px) {
-            #sidebar {
-                width: var(--sidebar-width);
-                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); }
-            #sidebar.is-collapsed .chat-title-container, #sidebar.is-collapsed .sidebar-header h2, #sidebar.is-collapsed .chat-actions-btn, #sidebar.is-collapsed #logout-text {
-                opacity: 0;
-                width: 0;
-                overflow: hidden;
-            }
-            #chat-area { margin-left: var(--sidebar-width); }
-            #chat-area.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
-            #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
-            #pin-sidebar-btn { display: flex; }
+        /* --- Desktop Sidebar Behavior --- */
+        .is-desktop #sidebar {
+            width: var(--sidebar-width);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .is-desktop #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); }
+        .is-desktop #sidebar.is-collapsed .chat-title-container, 
+        .is-desktop #sidebar.is-collapsed .sidebar-header h2, 
+        .is-desktop #sidebar.is-collapsed .chat-actions-btn, 
+        .is-desktop #sidebar.is-collapsed #logout-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        .is-desktop #chat-area { margin-left: var(--sidebar-width); }
+        .is-desktop #chat-area.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
+        .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
+        .is-desktop #pin-sidebar-btn { display: flex; }
 
-        @media (max-width: 767px) {
-            #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
-            #sidebar.no-transition { transition: none; }
-            #sidebar-close-btn { display: flex; }
-            #menu-toggle { position: fixed; top: 10px; left: 12px; z-index: 1001; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.7); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); font-size: 1.5rem; color: var(--text-color); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; padding: 0; transition: all 0.2s ease; }
-            #menu-toggle:hover { background: #fff; transform: scale(1.05); }
-            #sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); opacity: 0; z-index: 999; pointer-events: none; transition: opacity 0.4s ease; }
-            body.sidebar-open #sidebar { transform: translateX(0); }
-            body.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
-            body.sidebar-open #chat-area { filter: brightness(0.9); }
-        }
+        /* --- Mobile Sidebar Behavior --- */
+        .is-mobile #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
+        .is-mobile #sidebar.no-transition { transition: none; }
+        .is-mobile #sidebar-close-btn { display: flex; }
+        .is-mobile #menu-toggle { position: fixed; top: 10px; left: 12px; z-index: 1001; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.7); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); font-size: 1.5rem; color: var(--text-color); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; padding: 0; transition: all 0.2s ease; }
+        .is-mobile #menu-toggle:hover { background: #fff; transform: scale(1.05); }
+        .is-mobile #sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); opacity: 0; z-index: 999; pointer-events: none; transition: opacity 0.4s ease; }
+        .is-mobile.sidebar-open #sidebar { transform: translateX(0); }
+        .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
+        .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; }
         #chat-messages-container::before, #chat-messages-container::after { content: ''; position: absolute; left: 0; right: 0; height: 50px; z-index: 2; pointer-events: none; }
@@ -132,8 +133,6 @@
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
-            /* --- THE DEFINITIVE FIX --- */
-            /* This constrains the bubble itself, preventing overflow when aligned right. */
             max-width: 85%; 
             margin-bottom: 1rem;
             border-radius: 18px;
@@ -196,9 +195,9 @@
         @keyframes sleekWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
+        .is-desktop .scroll-controls { display: flex; }
         .scroll-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); font-size: 1.5rem; color: var(--text-color); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .scroll-btn:hover { background: #fff; transform: scale(1.05); }
-        @media (min-width: 768px) { .scroll-controls { display: flex; } }
     </style>
 </head>
 <body>
@@ -283,7 +282,7 @@
                 }
             });
 
-            // --- CORE LOGIC (No changes needed here, the fixes are purely CSS) ---
+            // --- CORE LOGIC (No changes needed in JS) ---
 
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
@@ -324,7 +323,7 @@
 
             async function loadChat(chatId) {
                 if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return;
-                if(window.innerWidth < 768) closeSidebar();
+                if(document.body.classList.contains('is-mobile')) closeSidebar();
                 cancelAllRenames();
                 const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
                 const snapshot = await chatRef.get();
@@ -438,8 +437,6 @@
                     aiMsgContainer.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                 }
             }
-
-            // --- All other UI and helper functions remain below (unchanged) ---
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
             newChatItem.addEventListener('click', () => startNewChat());
@@ -510,20 +507,76 @@
             function cancelAllRenames() { isRenaming = false; const input = document.querySelector('.rename-input'); if (!input) return; const titleContainer = input.parentElement; if (titleContainer) { titleContainer.textContent = input.dataset.originalTitle; } }
             function handleRenameChat(chatId, titleContainer) { if (!currentUser || !chatId || isRenaming) return; cancelAllRenames(); isRenaming = true; const originalTitle = titleContainer.textContent; titleContainer.innerHTML = ''; const input = document.createElement('input'); input.type = 'text'; input.className = 'rename-input'; input.value = originalTitle; input.dataset.originalTitle = originalTitle; const saveRename = () => { isRenaming = false; const newTitle = input.value.trim(); if (newTitle && newTitle !== originalTitle) { db.ref(`chats/${currentUser.uid}/${chatId}`).update({ title: newTitle }); } else { titleContainer.textContent = originalTitle; } input.removeEventListener('blur', saveRename); }; input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = originalTitle; input.blur(); } }); input.addEventListener('blur', saveRename); titleContainer.appendChild(input); input.select(); }
             
-            function startNewChat() { if(window.innerWidth < 768 && document.body.classList.contains('sidebar-open')) closeSidebar(); localChatHistory = []; currentChatId = null; chatMessages.innerHTML = ''; chatInput.value = ''; chatInput.style.height = 'auto'; chatInput.focus(); updateActiveChatSelection(null); }
+            function startNewChat() { 
+                if(document.body.classList.contains('is-mobile') && document.body.classList.contains('sidebar-open')) closeSidebar();
+                localChatHistory = []; currentChatId = null; chatMessages.innerHTML = ''; chatInput.value = ''; chatInput.style.height = 'auto'; chatInput.focus(); updateActiveChatSelection(null); 
+            }
             function updateActiveChatSelection(activeId) { currentChatId = activeId; document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); newChatItem.classList.toggle('active', activeId === null); }
             
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             const closeSidebar = () => { document.body.classList.remove('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
-            function initializeSidebar() { const pinBtn = document.getElementById('pin-sidebar-btn'); const menuToggleBtn = document.getElementById('menu-toggle'); const sidebarCloseBtn = document.getElementById('sidebar-close-btn'); const setPinnedState = (isPinned) => { localStorage.setItem('sidebarPinned', isPinned); sidebar.classList.toggle('is-pinned', isPinned); pinBtn.title = isPinned ? 'Unpin Sidebar' : 'Pin Sidebar'; if (isPinned) { sidebar.classList.remove('is-collapsed'); chatArea.classList.remove('sidebar-collapsed'); } }; if (window.innerWidth >= 768) { const isPinned = localStorage.getItem('sidebarPinned') === 'true'; setPinnedState(isPinned); if (!isPinned) { sidebar.classList.add('is-collapsed'); chatArea.classList.add('sidebar-collapsed'); } sidebar.addEventListener('mouseenter', () => { sidebar.classList.remove('is-collapsed'); chatArea.classList.remove('sidebar-collapsed'); }); sidebar.addEventListener('mouseleave', () => { if (activeDropdown || sidebar.classList.contains('is-pinned')) return; sidebar.classList.add('is-collapsed'); chatArea.classList.add('sidebar-collapsed'); }); pinBtn.addEventListener('click', (e) => { e.stopPropagation(); setPinnedState(!sidebar.classList.contains('is-pinned')); }); } else { menuToggleBtn.addEventListener('click', openSidebar); sidebarCloseBtn.addEventListener('click', closeSidebar); sidebarOverlay.addEventListener('click', closeSidebar); } }
+            
+            // --- ZOOM-PROOF SIDEBAR LOGIC ---
+            function initializeSidebar() {
+                const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+                
+                // Clean up previous state
+                document.body.classList.remove('is-mobile', 'is-desktop');
+
+                if (isTouchDevice) {
+                    document.body.classList.add('is-mobile');
+                    // Mobile-specific listeners
+                    document.getElementById('menu-toggle').onclick = openSidebar;
+                    document.getElementById('sidebar-close-btn').onclick = closeSidebar;
+                    sidebarOverlay.onclick = closeSidebar;
+                } else {
+                    document.body.classList.add('is-desktop');
+                    const pinBtn = document.getElementById('pin-sidebar-btn');
+                    
+                    const setPinnedState = (isPinned) => {
+                        localStorage.setItem('sidebarPinned', isPinned);
+                        sidebar.classList.toggle('is-pinned', isPinned);
+                        pinBtn.title = isPinned ? 'Unpin Sidebar' : 'Pin Sidebar';
+                        if (isPinned) {
+                            sidebar.classList.remove('is-collapsed');
+                            chatArea.classList.remove('sidebar-collapsed');
+                        }
+                    };
+
+                    const isPinned = localStorage.getItem('sidebarPinned') === 'true';
+                    setPinnedState(isPinned);
+                    if (!isPinned) {
+                        sidebar.classList.add('is-collapsed');
+                        chatArea.classList.add('sidebar-collapsed');
+                    }
+
+                    sidebar.onmouseenter = () => {
+                        sidebar.classList.remove('is-collapsed');
+                        chatArea.classList.remove('sidebar-collapsed');
+                    };
+                    sidebar.onmouseleave = () => {
+                        if (activeDropdown || sidebar.classList.contains('is-pinned')) return;
+                        sidebar.classList.add('is-collapsed');
+                        chatArea.classList.add('sidebar-collapsed');
+                    };
+                    pinBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        setPinnedState(!sidebar.classList.contains('is-pinned'));
+                    };
+                }
+            }
+            
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
-            const dragStart = (e) => { if (window.innerWidth >= 768) return; const t = e.type === 'touchstart' ? e.touches[0] : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
+            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches[0] : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
             const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
             const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
-            document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd); document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
+            document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
+            document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
+            
             function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 8; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
 
-            initializeSidebar(); initializeScrollButtons();
+            initializeSidebar(); 
+            initializeScrollButtons();
             window.addEventListener('resize', initializeSidebar);
             document.addEventListener('click', (e) => { if (activeDropdown && !e.target.closest('.actions-dropdown')) { activeDropdown.style.display = 'none'; activeDropdown = null; } if (!e.target.closest('.rename-input')) cancelAllRenames(); });
         });

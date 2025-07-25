@@ -143,8 +143,8 @@
             font-family: var(--system-font);
             font-size: 1.05rem;
             /* --- NEW: The Gradient Mask for smooth text appearance --- */
-            -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 50px), transparent 100%);
-            mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 50px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 60px), transparent 100%);
+            mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 60px), transparent 100%);
         }
         .message-container.ai p {
             line-height: 1.75;
@@ -248,6 +248,17 @@
         .thinking-indicator span:nth-child(3) { animation-delay: 0.2s; }
         @keyframes sleekWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
+        /* --- NEW: Blinking Cursor --- */
+        .blinking-cursor {
+            font-weight: 400;
+            color: var(--primary-accent);
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
         .is-desktop .scroll-controls { display: flex; }
         .scroll-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); font-size: 1.5rem; color: var(--text-color); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
@@ -336,7 +347,7 @@
                 }
             });
 
-            // --- CORE LOGIC (No changes needed in JS) ---
+            // --- CORE LOGIC ---
 
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
@@ -458,6 +469,10 @@
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
+                                // Final render without the cursor
+                                aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
+                                attachFeaturesToAiMessage(aiMsgContainer);
+                                
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                 saveChat();
                                 break;
@@ -474,7 +489,8 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
+                                            // Render with the blinking cursor for the "typing" illusion
+                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText + '<span class="blinking-cursor">▍</span>');
                                             attachFeaturesToAiMessage(aiMsgContainer);
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }

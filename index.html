@@ -113,14 +113,15 @@
         
         #chat-messages { height: 100%; flex-grow: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; min-height: 0; width: 100%; max-width: 1160px; margin-left: auto; margin-right: auto; box-sizing: border-box; scrollbar-width: none; -ms-overflow-style: none; touch-action: pan-y; scroll-behavior: smooth; padding-bottom: 30vh; }
         #chat-messages::-webkit-scrollbar { display: none; }
-        .message-container { max-width: 85%; margin-bottom: 1rem; border-radius: 18px; line-height: 1.7; word-wrap: break-word; opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
+        .message-container { max-width: 85%; margin-bottom: 1rem; border-radius: 18px; line-height: 1.7; word-wrap: break-word; }
+        /* The fade-in animation is now applied directly to the container */
+        .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
         .message-container.user { padding: 0.75rem 1.1rem; background-color: var(--user-msg-bg); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .message-container.ai { background-color: var(--ai-msg-bg); align-self: flex-start; border: none; padding: 0; opacity: 1; transform: none; animation: none; }
-        .ai-content-block { padding: 0.75rem 1.1rem; opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
-        .message-container.ai p:first-child, .ai-content-block p:first-child { margin-top: 0; }
-        .message-container.ai p:last-child, .ai-content-block p:last-child { margin-bottom: 0; }
+        .message-container.ai { background-color: var(--ai-msg-bg); align-self: flex-start; border: none; padding: 0.75rem 1.1rem; }
+        .message-container.ai p:first-child { margin-top: 0; }
+        .message-container.ai p:last-child { margin-bottom: 0; }
         .message-container.ai strong, .message-container.ai b { font-weight: 600; }
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3 { margin-top: 1.2rem; margin-bottom: 0.5rem; line-height: 1.3; }
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
@@ -145,7 +146,7 @@
         .message-container.ai th:first-child, .message-container.ai td:first-child { border-left: none; }
         .message-container.ai thead th { border-top: none; background-color: var(--sidebar-bg); font-weight: 600; }
         .message-container.ai tbody tr:nth-of-type(even) { background-color: var(--sidebar-bg); }
-        .thinking-indicator { display: flex; gap: 4px; align-items: center; padding: 0.75rem 1.1rem; height: 1.5rem; }
+        .thinking-indicator { display: flex; gap: 4px; align-items: center; justify-content: center; height: 1.5rem; }
         .thinking-indicator span { width: 7px; height: 7px; background-color: var(--primary-accent); border-radius: 50%; animation: sleekWave 1.2s ease-in-out infinite; }
         .thinking-indicator span:nth-child(2) { animation-delay: 0.1s; }
         .thinking-indicator span:nth-child(3) { animation-delay: 0.2s; }
@@ -226,7 +227,7 @@
                 langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
 
-            // --- Auth, History, Chat loading logic (largely unchanged, but refined) ---
+            // --- Auth logic (unchanged) ---
             auth.onAuthStateChanged(user => {
                 if (user) {
                     currentUser = user; document.body.classList.add('logged-in'); userAvatar.src = currentUser.photoURL || '';
@@ -240,78 +241,32 @@
                 }
             });
 
-            document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-            newChatItem.addEventListener('click', () => startNewChat());
-            
-            // --- All other functions like handleRenameChat, handleDeleteChat, etc. remain the same ---
-            // They are omitted here for brevity but are present in the final code block below.
-            
-            // --- THE CORE FIX: STATEFUL STREAMING PARSER AND RENDERER ---
+            // =======================================================================
+            // REFACTORED AND SIMPLIFIED LOGIC STARTS HERE
+            // =======================================================================
 
-            class StreamingMarkdownParser {
-                constructor() {
-                    this.buffer = '';
-                    this.completedBlocks = [];
-                    this.inCodeBlock = false;
+            // Helper to add a message container. It can handle raw text or pre-rendered HTML.
+            function addMessageToUI(sender, content = '', isHtml = false) {
+                const m = document.createElement('div');
+                m.className = `message-container ${sender}`;
+                if (isHtml) {
+                    m.innerHTML = content;
+                } else {
+                    m.textContent = content;
                 }
-
-                // Processes a new chunk of text from the stream
-                update(chunk) {
-                    this.buffer += chunk.replace(/\r\n/g, '\n');
-
-                    let searchFrom = 0;
-                    while (searchFrom < this.buffer.length) {
-                        if (this.inCodeBlock) {
-                            const endFence = this.buffer.indexOf('```', searchFrom);
-                            if (endFence !== -1) {
-                                const blockEnd = endFence + 3;
-                                const codeBlock = this.buffer.substring(0, blockEnd);
-                                this.completedBlocks.push(codeBlock);
-                                this.buffer = this.buffer.substring(blockEnd);
-                                this.inCodeBlock = false;
-                                searchFrom = 0;
-                            } else {
-                                break; // Incomplete code block, wait for more chunks
-                            }
-                        } else {
-                            const startFence = this.buffer.indexOf('```', searchFrom);
-                            const paragraphEnd = this.buffer.indexOf('\n\n', searchFrom);
-
-                            // Determine which comes first: a new code block or a paragraph break
-                            if (startFence !== -1 && (paragraphEnd === -1 || startFence < paragraphEnd)) {
-                                const textBeforeCode = this.buffer.substring(0, startFence).trim();
-                                if (textBeforeCode) {
-                                    this.completedBlocks.push(textBeforeCode);
-                                }
-                                this.buffer = this.buffer.substring(startFence);
-                                this.inCodeBlock = true;
-                                searchFrom = 0;
-                            } else if (paragraphEnd !== -1) {
-                                const paragraph = this.buffer.substring(0, paragraphEnd).trim();
-                                if (paragraph) {
-                                    this.completedBlocks.push(paragraph);
-                                }
-                                this.buffer = this.buffer.substring(paragraphEnd + 2);
-                                searchFrom = 0;
-                            } else {
-                                break; // No complete block found, wait for more chunks
-                            }
-                        }
-                    }
-                }
-
-                // Returns the current state for rendering
-                getBlocks() {
-                    return {
-                        completed: this.completedBlocks,
-                        active: this.buffer // The remaining, actively streaming part
-                    };
-                }
+                chatMessages.appendChild(m);
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                return m;
             }
-            
+
+            // This function is now idempotent (safe to run multiple times on the same content).
             function attachCopyButtonsAndHighlight(container) {
-                container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
-                    if (pre.parentNode.classList.contains('code-block-wrapper')) return;
+                container.querySelectorAll('pre').forEach(pre => {
+                    if (pre.parentNode.classList.contains('code-block-wrapper')) {
+                        // If wrapper exists, just ensure code is highlighted.
+                        hljs.highlightElement(pre.querySelector('code'));
+                        return; 
+                    }
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
                     const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
@@ -320,51 +275,59 @@
                 });
             }
 
-            // The new, robust rendering function
-            function updateAiMessageContent(container, parser) {
-                if (container.querySelector('.thinking-indicator')) { container.innerHTML = ''; }
+            // CRITICAL FIX: loadChat now renders raw Markdown from the DB.
+            async function loadChat(chatId) {
+                if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return;
+                if(window.innerWidth < 768) closeSidebar();
+                cancelAllRenames();
+                const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
+                const snapshot = await chatRef.get();
+                if (!snapshot.exists()) { startNewChat(); return; }
+                
+                const chat = snapshot.val();
+                localChatHistory = chat.messages || [];
+                chatMessages.innerHTML = ''; // Clear view
+                chatMessages.classList.add('is-loading-history');
 
-                const { completed, active } = parser.getBlocks();
-
-                // Render all completed blocks, but only if they haven't been rendered before
-                completed.forEach((blockContent, i) => {
-                    let blockElement = container.children[i];
-                    if (blockElement && blockElement.dataset.finalized === 'true') {
-                        return; // Skip already finalized blocks
+                localChatHistory.forEach(msg => {
+                    if (msg.role === 'user') {
+                        addMessageToUI('user', msg.text);
+                    } else if (msg.role === 'model') {
+                        // Render the stored Markdown into HTML
+                        const renderedHtml = marked.parse(msg.text || "");
+                        const aiMsgContainer = addMessageToUI('ai', renderedHtml, true); // Pass true for isHtml
+                        attachCopyButtonsAndHighlight(aiMsgContainer);
                     }
-                    if (!blockElement) {
-                        blockElement = document.createElement('div');
-                        blockElement.className = 'ai-content-block';
-                        container.appendChild(blockElement);
-                    }
-                    blockElement.innerHTML = marked.parse(blockContent);
-                    attachCopyButtonsAndHighlight(blockElement);
-                    blockElement.dataset.finalized = 'true'; // Mark as complete to prevent re-rendering
                 });
-
-                // Always render the active, streaming block in the last position
-                let activeBlockElement = container.children[completed.length];
-                if (active.trim()) {
-                    if (!activeBlockElement) {
-                        activeBlockElement = document.createElement('div');
-                        activeBlockElement.className = 'ai-content-block';
-                        container.appendChild(activeBlockElement);
-                    }
-                    activeBlockElement.innerHTML = marked.parse(active + '▍'); // Add a blinking cursor for effect
-                } else if (activeBlockElement) {
-                    // If active block becomes empty, remove it
-                    activeBlockElement.remove();
-                }
+                
+                requestAnimationFrame(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    chatMessages.classList.remove('is-loading-history');
+                });
+                updateActiveChatSelection(chatId);
             }
 
+            // CRITICAL FIX: saveChat is now simpler and only saves the clean local history.
+            function saveChat() {
+                if (!currentUser || !currentChatId) return;
+                // The localChatHistory is the single source of truth. Just save it.
+                db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
+                    messages: localChatHistory,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
 
+            // CRITICAL FIX: The new, robust, and simple handleSendMessage function.
             async function handleSendMessage(e) {
                 e.preventDefault();
                 if (!currentUser) return;
                 const userMessage = chatInput.value.trim();
                 if (!userMessage) return;
-                chatInput.value = ''; chatInput.style.height = 'auto';
+
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
                 addMessageToUI('user', userMessage);
+
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
                     currentChatId = newChatRef.key;
@@ -374,16 +337,15 @@
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     });
-                     updateActiveChatSelection(currentChatId);
+                    updateActiveChatSelection(currentChatId);
                 } else {
                     localChatHistory.push({ role: 'user', text: userMessage });
+                    // Optimistically update the DB with the user message
                     db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
-                const aiMsgContainer = addMessageToUI('ai');
-                aiMsgContainer.dataset.chatId = currentChatId;
-                aiMsgContainer.innerHTML = `<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>`;
-                
-                const parser = new StreamingMarkdownParser(); // Instantiate the new parser
+
+                const aiMsgContainer = addMessageToUI('ai', '<div class="thinking-indicator"><span></span><span></span><span></span></div>', true);
+                let accumulatedResponseText = '';
 
                 try {
                     const response = await fetch('/api/chat', {
@@ -391,26 +353,26 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
                     });
+
                     if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
+                    
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     let sseBuffer = '';
-                    
+
                     const processStream = async () => {
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
-                                // Final render without the cursor
-                                let finalElement = aiMsgContainer.children[parser.getBlocks().completed.length];
-                                if(finalElement) finalElement.innerHTML = marked.parse(parser.getBlocks().active);
-                                
-                                localChatHistory.push({ role: 'model', text: aiMsgContainer.innerHTML });
+                                // Save the final, clean, raw Markdown text.
+                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                 saveChat();
                                 break;
                             }
                             sseBuffer += decoder.decode(value, { stream: true });
                             const lines = sseBuffer.split('\n');
                             sseBuffer = lines.pop() || '';
+
                             for (const line of lines) {
                                 if (line.trim().startsWith('data:')) {
                                     try {
@@ -418,53 +380,37 @@
                                         const parsed = JSON.parse(jsonStr);
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
-                                            parser.update(textPart); // Feed chunk to the stateful parser
-                                            updateAiMessageContent(aiMsgContainer, parser);
+                                            accumulatedResponseText += textPart;
+                                            // Re-render the entire accumulated text. This is fast and bug-free.
+                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
+                                            // Re-attach features to the newly rendered content.
+                                            attachCopyButtonsAndHighlight(aiMsgContainer);
                                         }
-                                    } catch (parseError) {}
+                                    } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
+                            // Auto-scroll logic
                             if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
                                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                             }
                         }
                     };
-                    processStream();
+                    await processStream();
                 } catch (error) {
                     console.error("AI Streaming Error:", error);
-                    aiMsgContainer.innerHTML = "<div class='ai-content-block'><p>Sorry, an error occurred while getting a response.</p></div>";
+                    aiMsgContainer.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                 }
             }
+
+            // --- All other UI and helper functions remain below ---
+            // They are unchanged from the previous version and are included for completeness.
             
-            // --- All setup, UI, and helper functions below this line are included... ---
-            // (The full code for sidebar, scrolling, chat history management, etc. is here)
-            
+            document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+            newChatItem.addEventListener('click', () => startNewChat());
             chatForm.addEventListener('submit', handleSendMessage);
             chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = `${chatInput.scrollHeight}px`; });
             chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.requestSubmit(); } });
-
-            function addMessageToUI(sender, text = '') {
-                const m = document.createElement('div');
-                m.className = `message-container ${sender}`;
-                if (sender === 'user') { m.textContent = text; }
-                chatMessages.appendChild(m);
-                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                return m;
-            }
             
-            function saveChat() {
-                if (!currentUser || !currentChatId || localChatHistory.length < 2) return;
-                const aiMessageContainer = document.querySelector(`.message-container.ai[data-chat-id="${currentChatId}"]`);
-                if (!aiMessageContainer) return;
-                const finalContent = aiMessageContainer.innerHTML;
-                const lastMessage = localChatHistory[localChatHistory.length - 1];
-                if (lastMessage && lastMessage.role === 'model') { lastMessage.text = finalContent; }
-                db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
-                    messages: localChatHistory,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-            }
-
             function attachChatHistoryListener() {
                 if (chatHistoryListener) chatHistoryListener.off();
                 if (!currentUser) return;
@@ -499,7 +445,7 @@
                             itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
                             itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
                         }
-                        const elementAfter = chatHistoryList.children[index + 1]; // +1 to account for new-chat-item
+                        const elementAfter = chatHistoryList.children[index + 1];
                         chatHistoryList.insertBefore(itemEl, elementAfter);
                         existingItemsMap.delete(chat.id);
                     });
@@ -528,32 +474,6 @@
             function cancelAllRenames() { isRenaming = false; const input = document.querySelector('.rename-input'); if (!input) return; const titleContainer = input.parentElement; if (titleContainer) { titleContainer.textContent = input.dataset.originalTitle; } }
             function handleRenameChat(chatId, titleContainer) { if (!currentUser || !chatId || isRenaming) return; cancelAllRenames(); isRenaming = true; const originalTitle = titleContainer.textContent; titleContainer.innerHTML = ''; const input = document.createElement('input'); input.type = 'text'; input.className = 'rename-input'; input.value = originalTitle; input.dataset.originalTitle = originalTitle; const saveRename = () => { isRenaming = false; const newTitle = input.value.trim(); if (newTitle && newTitle !== originalTitle) { db.ref(`chats/${currentUser.uid}/${chatId}`).update({ title: newTitle }); } else { titleContainer.textContent = originalTitle; } input.removeEventListener('blur', saveRename); }; input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = originalTitle; input.blur(); } }); input.addEventListener('blur', saveRename); titleContainer.appendChild(input); input.select(); }
             
-            async function loadChat(chatId) {
-                if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return;
-                if(window.innerWidth < 768) closeSidebar();
-                cancelAllRenames();
-                const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
-                const snapshot = await chatRef.get();
-                if (!snapshot.exists()) { startNewChat(); return; }
-                const chat = snapshot.val();
-                localChatHistory = chat.messages || [];
-                chatMessages.innerHTML = '';
-                chatMessages.classList.add('is-loading-history');
-                localChatHistory.forEach(msg => {
-                    const el = addMessageToUI(msg.role === 'model' ? 'ai' : 'user');
-                    if(msg.role === 'user') { el.textContent = msg.text; } 
-                    else {
-                        el.innerHTML = msg.text;
-                        el.querySelectorAll('.ai-content-block, .message-container.ai table').forEach(b => {
-                            b.style.opacity = 1; b.style.transform = 'none'; b.style.animation = 'none';
-                        });
-                        attachCopyButtonsAndHighlight(el);
-                    }
-                });
-                requestAnimationFrame(() => { chatMessages.scrollTop = chatMessages.scrollHeight; chatMessages.classList.remove('is-loading-history'); });
-                updateActiveChatSelection(chatId);
-            }
-
             function startNewChat() { if(window.innerWidth < 768 && document.body.classList.contains('sidebar-open')) closeSidebar(); localChatHistory = []; currentChatId = null; chatMessages.innerHTML = ''; chatInput.value = ''; chatInput.style.height = 'auto'; chatInput.focus(); updateActiveChatSelection(null); }
             function updateActiveChatSelection(activeId) { currentChatId = activeId; document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); newChatItem.classList.toggle('active', activeId === null); }
             

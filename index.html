@@ -16,7 +16,7 @@
             --sidebar-bg: #f7f7f8;
             --border-color: #e5e5e5;
             --user-msg-bg: #f0f2f5;
-            --ai-msg-bg: #ffffff; /* AI messages will have a subtle background */
+            --ai-msg-bg: transparent; /* REMOVED FRAME: AI messages are clean */
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
             --code-bg: #f0f2f5;
@@ -105,13 +105,25 @@
             body.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
             body.sidebar-open #chat-area { filter: brightness(0.9); }
             
-            /* --- NEW: More generous padding on mobile for a wider, cleaner look --- */
+            /* --- NEW: Refined mobile layout --- */
             #chat-messages {
-                padding-left: 1rem;
-                padding-right: 1rem;
+                padding: 0 1rem; /* Clean horizontal padding for the whole chat log */
             }
             .message-container {
-                max-width: 100%; /* Let the container use the full width provided by the parent's padding */
+                max-width: 90%; /* Allow messages to be wider */
+            }
+            .message-container.ai {
+                padding: 0.75rem 1rem; /* Adjust padding for AI messages */
+            }
+            /* --- NEW: Refined mobile typography --- */
+            .message-container.ai pre, .message-container.ai code {
+                font-size: 14px; /* Smaller font size for code on mobile */
+            }
+            .message-container.ai table {
+                font-size: 14.5px; /* Smaller font size for tables on mobile */
+            }
+            .message-container.ai th, .message-container.ai td {
+                padding: 0.6rem 0.75rem; /* Tighter padding for table cells */
             }
         }
 
@@ -127,7 +139,7 @@
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
         .message-container.user { padding: 0.75rem 1.1rem; background-color: var(--user-msg-bg); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .message-container.ai { background-color: var(--ai-msg-bg); align-self: flex-start; border: 1px solid var(--border-color); padding: 0.75rem 1.1rem; }
+        .message-container.ai { background-color: var(--ai-msg-bg); align-self: flex-start; border: none; padding: 0.75rem 1.1rem; }
         .message-container.ai p:first-child { margin-top: 0; }
         .message-container.ai p:last-child { margin-bottom: 0; }
         .message-container.ai strong, .message-container.ai b { font-weight: 600; }
@@ -151,14 +163,13 @@
         .copy-btn:active { transform: scale(0.95); }
         
         .table-wrapper {
-            position: relative; /* Needed for the gradient overlay */
+            position: relative;
             overflow-x: auto;
             margin: 1.5rem 0;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        /* --- NEW: Visual cue for scrollable tables --- */
         .table-wrapper::after {
             content: '';
             position: absolute;
@@ -166,7 +177,7 @@
             right: 0;
             bottom: 0;
             width: 40px;
-            background: linear-gradient(to left, var(--ai-msg-bg), transparent);
+            background: linear-gradient(to left, var(--background-color), transparent);
             pointer-events: none;
         }
         .table-wrapper table {
@@ -174,7 +185,7 @@
             border-collapse: separate;
             border-spacing: 0;
             font-size: 0.95rem;
-            min-width: 600px; 
+            min-width: 500px; 
             margin: 0;
             border: none;
             box-shadow: none;
@@ -278,9 +289,7 @@
                 }
             });
 
-            // =======================================================================
-            // CORE LOGIC (Refactored for mobile presentation)
-            // =======================================================================
+            // --- CORE LOGIC (No changes needed here, the fixes are purely CSS) ---
 
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');

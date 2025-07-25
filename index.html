@@ -111,7 +111,6 @@
         #chat-messages-container::before { top: 0; background: linear-gradient(to bottom, var(--background-color) 0%, transparent 100%); }
         #chat-messages-container::after { bottom: 0; background: linear-gradient(to top, var(--background-color) 0%, transparent 100%); }
         
-        /* --- THE SOLUTION: Centered Content Column --- */
         #chat-messages {
             height: 100%;
             flex-grow: 1;
@@ -121,9 +120,7 @@
             flex-direction: column;
             min-height: 0;
             width: 100%;
-            /* 1. Constrained Content Width */
             max-width: 900px; 
-            /* 2. True Centering */
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
@@ -135,8 +132,7 @@
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
-            /* 3. Full-Width Bubbles (Within the Column) */
-            max-width: 100%; 
+            /* REMOVED max-width from here. The parent #chat-messages controls the width now. */
             margin-bottom: 1rem;
             border-radius: 18px;
             line-height: 1.7;

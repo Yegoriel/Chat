@@ -33,7 +33,6 @@
         body.is-dragging #chat-messages { overflow-y: hidden; }
         #app-container { display: flex; height: 100dvh; width: 100vw; position: relative; }
         
-        /* --- NEW: PC Sidebar Styles --- */
         #sidebar {
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--border-color);
@@ -76,10 +75,8 @@
         
         #chat-area { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow: hidden; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* --- UI CLEANUP: Hide header and mobile toggle on PC --- */
         #chat-header, #menu-toggle, #sidebar-close-btn, #pin-sidebar-btn { display: none; }
 
-        /* --- PC Sidebar Behavior --- */
         @media (min-width: 768px) {
             #sidebar {
                 width: var(--sidebar-width);
@@ -97,7 +94,6 @@
             #pin-sidebar-btn { display: flex; }
         }
 
-        /* --- Mobile Sidebar Behavior --- */
         @media (max-width: 767px) {
             #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
             #sidebar.no-transition { transition: none; }
@@ -130,7 +126,6 @@
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         
-        /* --- UI CLEANUP: Remove top border from input container --- */
         #chat-input-container { padding: 0.75rem 1rem; background-color: var(--background-color); border-top: none; }
         #chat-form { display: flex; align-items: flex-end; gap: 0.75rem; }
         #chat-input { flex-grow: 1; border: 1px solid #ddd; background-color: #f0f0f0; border-radius: 20px; padding: 0.6rem 1rem; font-size: 1rem; font-family: var(--system-font); resize: none; max-height: 120px; overflow-y: auto; line-height: 1.4; transition: background-color 0.2s ease, border-color 0.2s ease; }
@@ -156,7 +151,6 @@
         .thinking-indicator span:nth-child(3) { animation-delay: 0.2s; }
         @keyframes sleekWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-        /* --- NEW: Scroll Button Styles --- */
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
         .scroll-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); font-size: 1.5rem; color: var(--text-color); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .scroll-btn:hover { background: #fff; transform: scale(1.05); }
@@ -170,7 +164,6 @@
             <div class="sidebar-header">
                 <h2>Chat History</h2>
                 <div class="sidebar-header-actions">
-                    <!-- NEW: Pin button for PC, Close for mobile -->
                     <button id="pin-sidebar-btn" class="sidebar-action-btn" title="Pin Sidebar">
                          <span class="pin-icon">📌</span>
                          <span class="unpin-icon">📍</span>
@@ -179,7 +172,6 @@
                 </div>
             </div>
             <div id="chat-history-list">
-                 <!-- NEW: Static New Chat button -->
                 <div id="new-chat-item" class="chat-history-item">
                     <span class="item-icon">+</span>
                     <div class="chat-title-container">New Chat</div>
@@ -194,7 +186,6 @@
         </aside>
         
         <main id="chat-area">
-            <!-- REMOVED: chat-header is gone for a cleaner look -->
              <button id="menu-toggle">☰</button>
             <div id="chat-messages-container">
                 <div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
@@ -202,7 +193,6 @@
             <footer id="chat-input-container"><form id="chat-form"><textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea><button type="submit" id="send-btn" title="Send Message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></form></footer>
         </main>
         
-        <!-- NEW: Scroll control buttons -->
         <div class="scroll-controls">
             <button id="scroll-up-btn" class="scroll-btn" title="Scroll Up (Double-click for Top)">▲</button>
             <button id="scroll-down-btn" class="scroll-btn" title="Scroll Down (Double-click for Bottom)">▼</button>
@@ -213,6 +203,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- Firebase and variable setup (unchanged) ---
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
                 authDomain: "ai-chatbot-b38da.firebaseapp.com",
@@ -226,43 +217,24 @@
             const auth = firebase.auth();
             const db = firebase.database();
             
-            let currentUser = null;
-            let currentChatId = null;
-            let localChatHistory = [];
-            let chatHistoryListener = null;
-            let isRenaming = false;
-            let activeDropdown = null;
+            let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null, isRenaming = false, activeDropdown = null;
 
-            const chatHistoryList = document.getElementById('chat-history-list');
-            const chatForm = document.getElementById('chat-form');
-            const chatInput = document.getElementById('chat-input');
-            const chatMessages = document.getElementById('chat-messages');
-            const userAvatar = document.getElementById('user-avatar');
-            const sidebar = document.getElementById('sidebar');
-            const chatArea = document.getElementById('chat-area');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const newChatItem = document.getElementById('new-chat-item');
+            const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item');
 
             marked.setOptions({
                 highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
-                langPrefix: 'hljs language-',
-                gfm: true,
-                breaks: true,
+                langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
 
+            // --- Auth, History, Chat loading logic (largely unchanged, but refined) ---
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    currentUser = user;
-                    document.body.classList.add('logged-in');
-                    userAvatar.src = currentUser.photoURL || '';
-                    attachChatHistoryListener();
-                    startNewChat();
+                    currentUser = user; document.body.classList.add('logged-in'); userAvatar.src = currentUser.photoURL || '';
+                    attachChatHistoryListener(); startNewChat();
                 } else {
-                    currentUser = null;
-                    if (chatHistoryListener) chatHistoryListener.off();
+                    currentUser = null; if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
-                    chatHistoryList.innerHTML = '';
-                    chatHistoryList.appendChild(newChatItem);
+                    chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
                     chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
                     document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
@@ -270,77 +242,229 @@
 
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
             newChatItem.addEventListener('click', () => startNewChat());
+            
+            // --- All other functions like handleRenameChat, handleDeleteChat, etc. remain the same ---
+            // They are omitted here for brevity but are present in the final code block below.
+            
+            // --- THE CORE FIX: STATEFUL STREAMING PARSER AND RENDERER ---
 
-            // --- EVENT DELEGATION FOR DYNAMIC CONTENT ---
-            chatHistoryList.addEventListener('click', (e) => {
-                const item = e.target.closest('.chat-history-item:not(#new-chat-item)');
-                if (!item) return;
-
-                const actionsBtn = e.target.closest('.chat-actions-btn');
-                if (actionsBtn) {
-                    e.stopPropagation();
-                    const chatId = actionsBtn.dataset.chatId;
-                    const dropdown = item.querySelector('.actions-dropdown');
-                    if (activeDropdown && activeDropdown !== dropdown) activeDropdown.style.display = 'none';
-                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                    activeDropdown = dropdown.style.display === 'block' ? dropdown : null;
-                    return;
+            class StreamingMarkdownParser {
+                constructor() {
+                    this.buffer = '';
+                    this.completedBlocks = [];
+                    this.inCodeBlock = false;
                 }
 
-                if (isRenaming) return;
-                loadChat(item.dataset.chatId);
-            });
+                // Processes a new chunk of text from the stream
+                update(chunk) {
+                    this.buffer += chunk.replace(/\r\n/g, '\n');
 
-            function handleDeleteChat(chatId) {
-                if (!currentUser || !chatId) return;
-                if (confirm('Are you sure you want to delete this chat forever?')) {
-                    db.ref(`chats/${currentUser.uid}/${chatId}`).remove().then(() => {
-                        if (chatId === currentChatId) startNewChat();
-                    }).catch(error => console.error("Error deleting chat:", error));
-                }
-            }
+                    let searchFrom = 0;
+                    while (searchFrom < this.buffer.length) {
+                        if (this.inCodeBlock) {
+                            const endFence = this.buffer.indexOf('```', searchFrom);
+                            if (endFence !== -1) {
+                                const blockEnd = endFence + 3;
+                                const codeBlock = this.buffer.substring(0, blockEnd);
+                                this.completedBlocks.push(codeBlock);
+                                this.buffer = this.buffer.substring(blockEnd);
+                                this.inCodeBlock = false;
+                                searchFrom = 0;
+                            } else {
+                                break; // Incomplete code block, wait for more chunks
+                            }
+                        } else {
+                            const startFence = this.buffer.indexOf('```', searchFrom);
+                            const paragraphEnd = this.buffer.indexOf('\n\n', searchFrom);
 
-            function cancelAllRenames() {
-                isRenaming = false;
-                const input = document.querySelector('.rename-input');
-                if (!input) return;
-                const titleContainer = input.parentElement;
-                if (titleContainer) {
-                    titleContainer.textContent = input.dataset.originalTitle;
-                }
-            }
-
-            function handleRenameChat(chatId, titleContainer) {
-                if (!currentUser || !chatId || isRenaming) return;
-                cancelAllRenames();
-                isRenaming = true;
-                const originalTitle = titleContainer.textContent;
-                titleContainer.innerHTML = '';
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'rename-input';
-                input.value = originalTitle;
-                input.dataset.originalTitle = originalTitle;
-                const saveRename = () => {
-                    isRenaming = false;
-                    const newTitle = input.value.trim();
-                    if (newTitle && newTitle !== originalTitle) {
-                        db.ref(`chats/${currentUser.uid}/${chatId}`).update({ title: newTitle });
-                    } else {
-                        titleContainer.textContent = originalTitle;
+                            // Determine which comes first: a new code block or a paragraph break
+                            if (startFence !== -1 && (paragraphEnd === -1 || startFence < paragraphEnd)) {
+                                const textBeforeCode = this.buffer.substring(0, startFence).trim();
+                                if (textBeforeCode) {
+                                    this.completedBlocks.push(textBeforeCode);
+                                }
+                                this.buffer = this.buffer.substring(startFence);
+                                this.inCodeBlock = true;
+                                searchFrom = 0;
+                            } else if (paragraphEnd !== -1) {
+                                const paragraph = this.buffer.substring(0, paragraphEnd).trim();
+                                if (paragraph) {
+                                    this.completedBlocks.push(paragraph);
+                                }
+                                this.buffer = this.buffer.substring(paragraphEnd + 2);
+                                searchFrom = 0;
+                            } else {
+                                break; // No complete block found, wait for more chunks
+                            }
+                        }
                     }
-                    input.removeEventListener('blur', saveRename);
-                };
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') input.blur();
-                    if (e.key === 'Escape') { input.value = originalTitle; input.blur(); }
+                }
+
+                // Returns the current state for rendering
+                getBlocks() {
+                    return {
+                        completed: this.completedBlocks,
+                        active: this.buffer // The remaining, actively streaming part
+                    };
+                }
+            }
+            
+            function attachCopyButtonsAndHighlight(container) {
+                container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
+                    if (pre.parentNode.classList.contains('code-block-wrapper')) return;
+                    const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
+                    pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
+                    const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
+                    btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
+                    wrapper.appendChild(btn); hljs.highlightElement(pre.querySelector('code'));
                 });
-                input.addEventListener('blur', saveRename);
-                titleContainer.appendChild(input);
-                input.select();
             }
 
-            // --- NEW: Non-destructive renderer for chat history ---
+            // The new, robust rendering function
+            function updateAiMessageContent(container, parser) {
+                if (container.querySelector('.thinking-indicator')) { container.innerHTML = ''; }
+
+                const { completed, active } = parser.getBlocks();
+
+                // Render all completed blocks, but only if they haven't been rendered before
+                completed.forEach((blockContent, i) => {
+                    let blockElement = container.children[i];
+                    if (blockElement && blockElement.dataset.finalized === 'true') {
+                        return; // Skip already finalized blocks
+                    }
+                    if (!blockElement) {
+                        blockElement = document.createElement('div');
+                        blockElement.className = 'ai-content-block';
+                        container.appendChild(blockElement);
+                    }
+                    blockElement.innerHTML = marked.parse(blockContent);
+                    attachCopyButtonsAndHighlight(blockElement);
+                    blockElement.dataset.finalized = 'true'; // Mark as complete to prevent re-rendering
+                });
+
+                // Always render the active, streaming block in the last position
+                let activeBlockElement = container.children[completed.length];
+                if (active.trim()) {
+                    if (!activeBlockElement) {
+                        activeBlockElement = document.createElement('div');
+                        activeBlockElement.className = 'ai-content-block';
+                        container.appendChild(activeBlockElement);
+                    }
+                    activeBlockElement.innerHTML = marked.parse(active + '▍'); // Add a blinking cursor for effect
+                } else if (activeBlockElement) {
+                    // If active block becomes empty, remove it
+                    activeBlockElement.remove();
+                }
+            }
+
+
+            async function handleSendMessage(e) {
+                e.preventDefault();
+                if (!currentUser) return;
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
+                chatInput.value = ''; chatInput.style.height = 'auto';
+                addMessageToUI('user', userMessage);
+                if (!currentChatId) {
+                    const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
+                    currentChatId = newChatRef.key;
+                    localChatHistory.push({ role: 'user', text: userMessage });
+                    await newChatRef.set({
+                        title: userMessage.substring(0, 35),
+                        messages: localChatHistory,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                     updateActiveChatSelection(currentChatId);
+                } else {
+                    localChatHistory.push({ role: 'user', text: userMessage });
+                    db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
+                }
+                const aiMsgContainer = addMessageToUI('ai');
+                aiMsgContainer.dataset.chatId = currentChatId;
+                aiMsgContainer.innerHTML = `<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>`;
+                
+                const parser = new StreamingMarkdownParser(); // Instantiate the new parser
+
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
+                    });
+                    if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let sseBuffer = '';
+                    
+                    const processStream = async () => {
+                        while (true) {
+                            const { value, done } = await reader.read();
+                            if (done) {
+                                // Final render without the cursor
+                                let finalElement = aiMsgContainer.children[parser.getBlocks().completed.length];
+                                if(finalElement) finalElement.innerHTML = marked.parse(parser.getBlocks().active);
+                                
+                                localChatHistory.push({ role: 'model', text: aiMsgContainer.innerHTML });
+                                saveChat();
+                                break;
+                            }
+                            sseBuffer += decoder.decode(value, { stream: true });
+                            const lines = sseBuffer.split('\n');
+                            sseBuffer = lines.pop() || '';
+                            for (const line of lines) {
+                                if (line.trim().startsWith('data:')) {
+                                    try {
+                                        const jsonStr = line.substring(5).trim();
+                                        const parsed = JSON.parse(jsonStr);
+                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                        if (textPart) {
+                                            parser.update(textPart); // Feed chunk to the stateful parser
+                                            updateAiMessageContent(aiMsgContainer, parser);
+                                        }
+                                    } catch (parseError) {}
+                                }
+                            }
+                            if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
+                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                            }
+                        }
+                    };
+                    processStream();
+                } catch (error) {
+                    console.error("AI Streaming Error:", error);
+                    aiMsgContainer.innerHTML = "<div class='ai-content-block'><p>Sorry, an error occurred while getting a response.</p></div>";
+                }
+            }
+            
+            // --- All setup, UI, and helper functions below this line are included... ---
+            // (The full code for sidebar, scrolling, chat history management, etc. is here)
+            
+            chatForm.addEventListener('submit', handleSendMessage);
+            chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = `${chatInput.scrollHeight}px`; });
+            chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.requestSubmit(); } });
+
+            function addMessageToUI(sender, text = '') {
+                const m = document.createElement('div');
+                m.className = `message-container ${sender}`;
+                if (sender === 'user') { m.textContent = text; }
+                chatMessages.appendChild(m);
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                return m;
+            }
+            
+            function saveChat() {
+                if (!currentUser || !currentChatId || localChatHistory.length < 2) return;
+                const aiMessageContainer = document.querySelector(`.message-container.ai[data-chat-id="${currentChatId}"]`);
+                if (!aiMessageContainer) return;
+                const finalContent = aiMessageContainer.innerHTML;
+                const lastMessage = localChatHistory[localChatHistory.length - 1];
+                if (lastMessage && lastMessage.role === 'model') { lastMessage.text = finalContent; }
+                db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
+                    messages: localChatHistory,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+
             function attachChatHistoryListener() {
                 if (chatHistoryListener) chatHistoryListener.off();
                 if (!currentUser) return;
@@ -375,7 +499,7 @@
                             itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
                             itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
                         }
-                        const elementAfter = chatHistoryList.children[index + 1];
+                        const elementAfter = chatHistoryList.children[index + 1]; // +1 to account for new-chat-item
                         chatHistoryList.insertBefore(itemEl, elementAfter);
                         existingItemsMap.delete(chat.id);
                     });
@@ -383,9 +507,29 @@
                     updateActiveChatSelection(currentChatId);
                 });
             }
+            
+            chatHistoryList.addEventListener('click', (e) => {
+                const item = e.target.closest('.chat-history-item:not(#new-chat-item)');
+                if (!item) return;
+                const actionsBtn = e.target.closest('.chat-actions-btn');
+                if (actionsBtn) {
+                    e.stopPropagation();
+                    const dropdown = item.querySelector('.actions-dropdown');
+                    if (activeDropdown && activeDropdown !== dropdown) activeDropdown.style.display = 'none';
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                    activeDropdown = dropdown.style.display === 'block' ? dropdown : null;
+                    return;
+                }
+                if (isRenaming) return;
+                loadChat(item.dataset.chatId);
+            });
 
+            function handleDeleteChat(chatId) { if (!currentUser || !chatId) return; if (confirm('Are you sure you want to delete this chat forever?')) { db.ref(`chats/${currentUser.uid}/${chatId}`).remove().then(() => { if (chatId === currentChatId) startNewChat(); }).catch(error => console.error("Error deleting chat:", error)); } }
+            function cancelAllRenames() { isRenaming = false; const input = document.querySelector('.rename-input'); if (!input) return; const titleContainer = input.parentElement; if (titleContainer) { titleContainer.textContent = input.dataset.originalTitle; } }
+            function handleRenameChat(chatId, titleContainer) { if (!currentUser || !chatId || isRenaming) return; cancelAllRenames(); isRenaming = true; const originalTitle = titleContainer.textContent; titleContainer.innerHTML = ''; const input = document.createElement('input'); input.type = 'text'; input.className = 'rename-input'; input.value = originalTitle; input.dataset.originalTitle = originalTitle; const saveRename = () => { isRenaming = false; const newTitle = input.value.trim(); if (newTitle && newTitle !== originalTitle) { db.ref(`chats/${currentUser.uid}/${chatId}`).update({ title: newTitle }); } else { titleContainer.textContent = originalTitle; } input.removeEventListener('blur', saveRename); }; input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = originalTitle; input.blur(); } }); input.addEventListener('blur', saveRename); titleContainer.appendChild(input); input.select(); }
+            
             async function loadChat(chatId) {
-                if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return; // Don't reload if already active
+                if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return;
                 if(window.innerWidth < 768) closeSidebar();
                 cancelAllRenames();
                 const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
@@ -406,290 +550,26 @@
                         attachCopyButtonsAndHighlight(el);
                     }
                 });
-                requestAnimationFrame(() => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                    chatMessages.classList.remove('is-loading-history');
-                });
+                requestAnimationFrame(() => { chatMessages.scrollTop = chatMessages.scrollHeight; chatMessages.classList.remove('is-loading-history'); });
                 updateActiveChatSelection(chatId);
             }
 
-            function startNewChat() {
-                if(window.innerWidth < 768 && document.body.classList.contains('sidebar-open')) closeSidebar();
-                localChatHistory = [];
-                chatMessages.innerHTML = '';
-                chatInput.value = '';
-                chatInput.style.height = 'auto';
-                chatInput.focus();
-                updateActiveChatSelection(null);
-            }
-
-            function updateActiveChatSelection(activeId) {
-                currentChatId = activeId;
-                document.querySelectorAll('.chat-history-item').forEach(item => {
-                    item.classList.toggle('active', item.dataset.chatId === activeId);
-                });
-                newChatItem.classList.toggle('active', activeId === null);
-            }
-
-            function parseTextIntoBlocks(text) {
-                const normalizedText = text.replace(/\r\n/g, '\n');
-                const blocks = []; let currentBlock = ''; let inCodeBlock = false;
-                const parts = normalizedText.split(/(```)/);
-                for (const part of parts) {
-                    if (part === '```') {
-                        if (!inCodeBlock) {
-                            if (currentBlock.trim()) blocks.push(currentBlock);
-                            currentBlock = '```'; inCodeBlock = true;
-                        } else {
-                            currentBlock += '```'; blocks.push(currentBlock);
-                            currentBlock = ''; inCodeBlock = false;
-                        }
-                    } else if (inCodeBlock) {
-                        currentBlock += part;
-                    } else {
-                        const textBlocks = part.split(/\n\n/g);
-                        textBlocks.forEach((tb, index) => {
-                            if (tb.trim()) {
-                                currentBlock += tb;
-                                if (index < textBlocks.length - 1) {
-                                    blocks.push(currentBlock); currentBlock = '';
-                                }
-                            }
-                        });
-                    }
-                }
-                if (currentBlock.trim()) blocks.push(currentBlock);
-                return blocks;
-            }
-
-            async function handleSendMessage(e) {
-                e.preventDefault();
-                if (!currentUser) return;
-                const userMessage = chatInput.value.trim();
-                if (!userMessage) return;
-                chatInput.value = ''; chatInput.style.height = 'auto';
-                addMessageToUI('user', userMessage);
-                if (!currentChatId) {
-                    const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
-                    currentChatId = newChatRef.key;
-                    localChatHistory.push({ role: 'user', text: userMessage });
-                    await newChatRef.set({
-                        title: userMessage.substring(0, 35),
-                        messages: localChatHistory,
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    });
-                     updateActiveChatSelection(currentChatId);
-                } else {
-                    localChatHistory.push({ role: 'user', text: userMessage });
-                    db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
-                }
-                const aiMsgContainer = addMessageToUI('ai');
-                aiMsgContainer.dataset.chatId = currentChatId;
-                aiMsgContainer.innerHTML = `<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>`;
-                let accumulatedResponseText = '';
-                const updateAiMessageContent = (container, text) => {
-                    if (text.length > 0 && container.querySelector('.thinking-indicator')) { container.innerHTML = ''; }
-                    const blocks = parseTextIntoBlocks(text);
-                    blocks.forEach((blockContent, i) => {
-                        let blockElement = container.children[i];
-                        if (!blockElement) {
-                            blockElement = document.createElement('div');
-                            blockElement.className = 'ai-content-block';
-                            container.appendChild(blockElement);
-                        }
-                        if (i === blocks.length - 1) {
-                            blockElement.innerHTML = marked.parse(blockContent);
-                            attachCopyButtonsAndHighlight(blockElement);
-                        } else {
-                            if(blockElement.dataset.finalized !== 'true') {
-                                blockElement.innerHTML = marked.parse(blockContent);
-                                attachCopyButtonsAndHighlight(blockElement);
-                                blockElement.dataset.finalized = 'true';
-                            }
-                        }
-                    });
-                };
-                try {
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
-                    });
-                    if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let sseBuffer = '';
-                    const processStream = async () => {
-                        while (true) {
-                            const { value, done } = await reader.read();
-                            if (done) {
-                                localChatHistory.push({ role: 'model', text: aiMsgContainer.innerHTML });
-                                saveChat();
-                                break;
-                            }
-                            sseBuffer += decoder.decode(value, { stream: true });
-                            const lines = sseBuffer.split('\n');
-                            sseBuffer = lines.pop() || '';
-                            for (const line of lines) {
-                                if (line.trim().startsWith('data:')) {
-                                    try {
-                                        const jsonStr = line.substring(5).trim();
-                                        const parsed = JSON.parse(jsonStr);
-                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                        if (textPart) {
-                                            accumulatedResponseText += textPart;
-                                            updateAiMessageContent(aiMsgContainer, accumulatedResponseText);
-                                        }
-                                    } catch (parseError) {}
-                                }
-                            }
-                            if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 100) {
-                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                            }
-                        }
-                    };
-                    processStream();
-                } catch (error) {
-                    console.error("AI Streaming Error:", error);
-                    aiMsgContainer.innerHTML = "<div class='ai-content-block'><p>Sorry, an error occurred while getting a response.</p></div>";
-                }
-            }
+            function startNewChat() { if(window.innerWidth < 768 && document.body.classList.contains('sidebar-open')) closeSidebar(); localChatHistory = []; currentChatId = null; chatMessages.innerHTML = ''; chatInput.value = ''; chatInput.style.height = 'auto'; chatInput.focus(); updateActiveChatSelection(null); }
+            function updateActiveChatSelection(activeId) { currentChatId = activeId; document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); newChatItem.classList.toggle('active', activeId === null); }
             
-            chatForm.addEventListener('submit', handleSendMessage);
-            chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = `${chatInput.scrollHeight}px`; });
-            chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.requestSubmit(); } });
-
-            function addMessageToUI(sender, text = '') {
-                const m = document.createElement('div');
-                m.className = `message-container ${sender}`;
-                if (sender === 'user') { m.textContent = text; }
-                chatMessages.appendChild(m);
-                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                return m;
-            }
-
-            function attachCopyButtonsAndHighlight(container) {
-                container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
-                    const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
-                    pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
-                    const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
-                    btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
-                    wrapper.appendChild(btn); hljs.highlightElement(pre.querySelector('code'));
-                });
-            }
-            
-            function saveChat() {
-                if (!currentUser || !currentChatId || localChatHistory.length < 2) return;
-                const aiMessageContainer = document.querySelector(`.message-container.ai[data-chat-id="${currentChatId}"]`);
-                if (!aiMessageContainer) return;
-                const finalContent = aiMessageContainer.innerHTML;
-                const lastMessage = localChatHistory[localChatHistory.length - 1];
-                if (lastMessage && lastMessage.role === 'model') { lastMessage.text = finalContent; }
-                db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
-                    messages: localChatHistory,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-            }
-
-            // --- NEW: Sidebar, Drag, and Scroll Logic ---
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             const closeSidebar = () => { document.body.classList.remove('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
-            
-            function initializeSidebar() {
-                const pinBtn = document.getElementById('pin-sidebar-btn');
-                const menuToggleBtn = document.getElementById('menu-toggle');
-                const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
-                const setPinnedState = (isPinned) => {
-                    localStorage.setItem('sidebarPinned', isPinned);
-                    sidebar.classList.toggle('is-pinned', isPinned);
-                    pinBtn.title = isPinned ? 'Unpin Sidebar' : 'Pin Sidebar';
-                    if (isPinned) {
-                        sidebar.classList.remove('is-collapsed');
-                        chatArea.classList.remove('sidebar-collapsed');
-                    }
-                };
-                if (window.innerWidth >= 768) {
-                    const isPinned = localStorage.getItem('sidebarPinned') === 'true';
-                    setPinnedState(isPinned);
-                    if (!isPinned) {
-                        sidebar.classList.add('is-collapsed'); chatArea.classList.add('sidebar-collapsed');
-                    }
-                    sidebar.addEventListener('mouseenter', () => { sidebar.classList.remove('is-collapsed'); chatArea.classList.remove('sidebar-collapsed'); });
-                    sidebar.addEventListener('mouseleave', () => {
-                        if (activeDropdown || sidebar.classList.contains('is-pinned')) return;
-                        sidebar.classList.add('is-collapsed'); chatArea.classList.add('sidebar-collapsed');
-                    });
-                    pinBtn.addEventListener('click', (e) => { e.stopPropagation(); setPinnedState(!sidebar.classList.contains('is-pinned')); });
-                } else {
-                    menuToggleBtn.addEventListener('click', openSidebar);
-                    sidebarCloseBtn.addEventListener('click', closeSidebar);
-                    sidebarOverlay.addEventListener('click', closeSidebar);
-                }
-            }
-            
+            function initializeSidebar() { const pinBtn = document.getElementById('pin-sidebar-btn'); const menuToggleBtn = document.getElementById('menu-toggle'); const sidebarCloseBtn = document.getElementById('sidebar-close-btn'); const setPinnedState = (isPinned) => { localStorage.setItem('sidebarPinned', isPinned); sidebar.classList.toggle('is-pinned', isPinned); pinBtn.title = isPinned ? 'Unpin Sidebar' : 'Pin Sidebar'; if (isPinned) { sidebar.classList.remove('is-collapsed'); chatArea.classList.remove('sidebar-collapsed'); } }; if (window.innerWidth >= 768) { const isPinned = localStorage.getItem('sidebarPinned') === 'true'; setPinnedState(isPinned); if (!isPinned) { sidebar.classList.add('is-collapsed'); chatArea.classList.add('sidebar-collapsed'); } sidebar.addEventListener('mouseenter', () => { sidebar.classList.remove('is-collapsed'); chatArea.classList.remove('sidebar-collapsed'); }); sidebar.addEventListener('mouseleave', () => { if (activeDropdown || sidebar.classList.contains('is-pinned')) return; sidebar.classList.add('is-collapsed'); chatArea.classList.add('sidebar-collapsed'); }); pinBtn.addEventListener('click', (e) => { e.stopPropagation(); setPinnedState(!sidebar.classList.contains('is-pinned')); }); } else { menuToggleBtn.addEventListener('click', openSidebar); sidebarCloseBtn.addEventListener('click', closeSidebar); sidebarOverlay.addEventListener('click', closeSidebar); } }
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
-            const dragStart = (e) => {
-                if (window.innerWidth >= 768) return;
-                const t = e.type === 'touchstart' ? e.touches[0] : e;
-                const isOpen = document.body.classList.contains('sidebar-open');
-                if (!isOpen && t.clientX > 50) return;
-                isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null;
-                sidebar.classList.add('no-transition');
-                currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
-            };
-            const dragMove = (e) => {
-                if (!isDragging) return;
-                const t = e.type === 'touchmove' ? e.touches[0] : e;
-                const deltaX = t.clientX - startX; const deltaY = t.clientY - startY;
-                if (dragDirection === null) {
-                    if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } 
-                    else { dragDirection = 'vertical'; }
-                }
-                if (dragDirection === 'horizontal') {
-                    e.preventDefault();
-                    const newTranslate = currentTranslate + deltaX;
-                    const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
-                    sidebar.style.transform = `translateX(${s}px)`;
-                    sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
-                }
-            };
-            const dragEnd = () => {
-                if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; }
-                isDragging = false; dragDirection = null;
-                sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging');
-                const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
-                t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar();
-            };
-            document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
-            document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
+            const dragStart = (e) => { if (window.innerWidth >= 768) return; const t = e.type === 'touchstart' ? e.touches[0] : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
+            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
+            const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
+            document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd); document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
+            function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 8; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
 
-            function initializeScrollButtons() {
-                const scrollUpBtn = document.getElementById('scroll-up-btn');
-                const scrollDownBtn = document.getElementById('scroll-down-btn');
-                let isScrolling = false; let scrollId;
-                const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 8; scrollId = requestAnimationFrame(() => scrollLoop(direction)); };
-                const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); };
-                const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); };
-                scrollUpBtn.addEventListener('mousedown', () => startScroll(-1));
-                scrollDownBtn.addEventListener('mousedown', () => startScroll(1));
-                scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' }));
-                scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' }));
-                document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll);
-                scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false });
-                scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false });
-                document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); });
-            }
-
-            // --- Initial Calls ---
-            initializeSidebar();
-            initializeScrollButtons();
+            initializeSidebar(); initializeScrollButtons();
             window.addEventListener('resize', initializeSidebar);
-            document.addEventListener('click', (e) => {
-                if (activeDropdown && !e.target.closest('.actions-dropdown')) {
-                    activeDropdown.style.display = 'none'; activeDropdown = null;
-                }
-                if (!e.target.closest('.rename-input')) cancelAllRenames();
-            });
+            document.addEventListener('click', (e) => { if (activeDropdown && !e.target.closest('.actions-dropdown')) { activeDropdown.style.display = 'none'; activeDropdown = null; } if (!e.target.closest('.rename-input')) cancelAllRenames(); });
         });
     </script>
 </body>

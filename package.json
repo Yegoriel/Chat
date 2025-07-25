@@ -1,8 +1,5 @@
 {
-  "name": "ai-chat-bot",
+  "name": "ai-chatbot-project",
   "version": "1.0.0",
-  "description": "A simple AI chatbot for Vercel",
-  "dependencies": {
-    "@google/generative-ai": "^0.2.0" 
-  }
+  "private": true
 }

@@ -143,8 +143,10 @@
             font-family: var(--system-font);
             font-size: 1.05rem;
             /* --- NEW: The Gradient Mask for smooth text appearance --- */
-            -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 60px), transparent 100%);
-            mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 60px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 80px), transparent 100%);
+            mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 80px), transparent 100%);
+            /* --- NEW: The subtle fade-in animation for new text --- */
+            animation: fadeInAndRise 0.4s ease forwards, gentleTextFlow 0.5s ease-out forwards;
         }
         .message-container.ai p {
             line-height: 1.75;
@@ -248,7 +250,6 @@
         .thinking-indicator span:nth-child(3) { animation-delay: 0.2s; }
         @keyframes sleekWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-        /* --- NEW: Blinking Cursor --- */
         .blinking-cursor {
             font-weight: 400;
             color: var(--primary-accent);
@@ -257,6 +258,16 @@
         @keyframes blink {
             from, to { opacity: 1; }
             50% { opacity: 0; }
+        }
+
+        /* --- NEW: The "Hyper-Fast Typing" Animation --- */
+        @keyframes gentleTextFlow {
+            from {
+                opacity: 0.7;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
@@ -347,7 +358,7 @@
                 }
             });
 
-            // --- CORE LOGIC ---
+            // --- CORE LOGIC (No changes needed in JS) ---
 
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
@@ -469,7 +480,6 @@
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
-                                // Final render without the cursor
                                 aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
                                 attachFeaturesToAiMessage(aiMsgContainer);
                                 
@@ -489,7 +499,6 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            // Render with the blinking cursor for the "typing" illusion
                                             aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText + '<span class="blinking-cursor">▍</span>');
                                             attachFeaturesToAiMessage(aiMsgContainer);
                                         }

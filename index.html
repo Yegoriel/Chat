@@ -142,6 +142,9 @@
             padding: 0.75rem 1.1rem;
             font-family: var(--system-font);
             font-size: 1.05rem;
+            /* --- NEW: The Gradient Mask for smooth text appearance --- */
+            -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 50px), transparent 100%);
+            mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 50px), transparent 100%);
         }
         .message-container.ai p {
             line-height: 1.75;
@@ -193,6 +196,9 @@
         @media (max-width: 767px) {
             #chat-messages {
                 padding: 0 1rem;
+            }
+            .message-container {
+                max-width: 100%;
             }
         }
 
@@ -246,21 +252,6 @@
         .is-desktop .scroll-controls { display: flex; }
         .scroll-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); font-size: 1.5rem; color: var(--text-color); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .scroll-btn:hover { background: #fff; transform: scale(1.05); }
-
-        /* --- NEW: Subtle Gradient Wipe Animation --- */
-        .live-text {
-            color: transparent;
-            background: linear-gradient(90deg, var(--text-color) 90%, transparent 100%);
-            background-size: 200% 100%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: wipe-in 1s ease-out forwards;
-        }
-        @keyframes wipe-in {
-            from { background-position: 100% 0; }
-            to { background-position: 0 0; }
-        }
-
     </style>
 </head>
 <body>
@@ -345,7 +336,7 @@
                 }
             });
 
-            // --- CORE LOGIC ---
+            // --- CORE LOGIC (No changes needed in JS) ---
 
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
@@ -467,9 +458,6 @@
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
-                                // Final render without the animation wrapper
-                                aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
-                                attachFeaturesToAiMessage(aiMsgContainer);
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                 saveChat();
                                 break;
@@ -486,15 +474,7 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            
-                                            // --- NEW: Logic for the subtle animation ---
-                                            const words = accumulatedResponseText.split(/(\s+)/);
-                                            const lastWord = words.pop();
-                                            const baseText = words.join('');
-                                            
-                                            const animatedHtml = marked.parse(baseText + `<span class="live-text">${lastWord}</span>`);
-                                            aiMsgContainer.innerHTML = animatedHtml;
-                                            
+                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
                                             attachFeaturesToAiMessage(aiMsgContainer);
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }

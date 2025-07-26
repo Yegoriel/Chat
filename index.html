@@ -743,38 +743,64 @@
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
             
            function initializeScrollButtons() {
-            const scrollUpBtn = document.getElementById('scroll-up-btn');
-            const scrollDownBtn = document.getElementById('scroll-down-btn');
-            let scrollInterval = null;
+    const scrollUpBtn = document.getElementById('scroll-up-btn');
+    const scrollDownBtn = document.getElementById('scroll-down-btn');
+    
+    let animationFrameId = null;
+    let startY = 0;
+    const sensitivity = 0.1; // Controls how much mouse movement affects speed
 
-            // --- NEW: setInterval-based scrolling ---
-            const startScroll = (direction) => {
-            if (scrollInterval) return; // Prevent multiple intervals
+    const scrollLoop = (direction, currentY) => {
+        // Calculate the distance from the initial click point
+        const deltaY = Math.abs(currentY - startY);
         
-            // This is where you control the speed
-            const scrollAmount = 15; // Pixels to jump each time
-            const scrollSpeed = 10;  // Milliseconds between jumps (lower is faster)
-
-            scrollInterval = setInterval(() => {
-            chatMessages.scrollTop += direction * scrollAmount;
-        }, scrollSpeed);
+        // Calculate speed based on distance. The further you drag, the faster it goes.
+        const speed = 1 + (deltaY * sensitivity);
+        
+        chatMessages.scrollTop += direction * speed;
+        
+        // Continue the loop as long as the mouse button is held down
+        animationFrameId = requestAnimationFrame(() => scrollLoop(direction, currentY));
     };
 
-            const stopScroll = () => {
-        clearInterval(scrollInterval);
-        scrollInterval = null;
+    const onMouseMove = (e, direction) => {
+        // We need to update the currentY within the loop's scope on each mouse move
+        const currentY = e.clientY;
+        
+        // If the loop isn't running, start it
+        if (!animationFrameId) {
+            animationFrameId = requestAnimationFrame(() => scrollLoop(direction, currentY));
+        } else {
+            // If it is running, we just need to update the Y-position for the next frame's calculation
+            // This is done by re-calling the loop, which will use the new currentY
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(() => scrollLoop(direction, currentY));
+        }
     };
 
-    // Desktop events
-    scrollUpBtn.addEventListener('mousedown', () => startScroll(-1));
-    scrollDownBtn.addEventListener('mousedown', () => startScroll(1));
-    document.body.addEventListener('mouseup', stopScroll);
-    document.body.addEventListener('mouseleave', stopScroll);
+    const startScroll = (e, direction) => {
+        startY = e.clientY; // Record the starting mouse position
+        
+        // We need a wrapper function to pass the direction to the mousemove handler
+        const moveHandler = (moveEvent) => onMouseMove(moveEvent, direction);
+        
+        const stopScroll = () => {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+            document.body.removeEventListener('mousemove', moveHandler);
+            document.body.removeEventListener('mouseup', stopScroll);
+            document.body.removeEventListener('mouseleave', stopScroll);
+        };
+        
+        document.body.addEventListener('mousemove', moveHandler);
+        document.body.addEventListener('mouseup', stopScroll);
+        document.body.addEventListener('mouseleave', stopScroll);
+    };
 
-    // Mobile events
-    scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false });
-    scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false });
-    document.body.addEventListener('touchend', stopScroll);
+    // --- Event Listeners ---
+    // We pass the initial event 'e' to capture the starting mouse position
+    scrollUpBtn.addEventListener('mousedown', (e) => startScroll(e, -1));
+    scrollDownBtn.addEventListener('mousedown', (e) => startScroll(e, 1));
 
     // Double-click to jump to top/bottom (unchanged)
     scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' }));

@@ -138,11 +138,6 @@
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
         
-        /* --- NEW: Sleek Animation for new content blocks --- */
-        .ai-content-block {
-             opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards;
-        }
-
         .message-container.user { 
             padding: 0.75rem 1.1rem; 
             background-color: var(--user-msg-bg); 
@@ -155,14 +150,10 @@
             background-color: var(--ai-msg-bg); 
             align-self: flex-start; 
             border: none; 
-            padding: 0; /* Padding is now on the inner blocks */
-            width: 100%;
-        }
-        .ai-content-block {
-            padding: 0.75rem 1.1rem;
+            padding: 0.75rem 1.1rem; 
         }
         
-        .message-container.ai p {
+        .message-container.ai {
             line-height: 1.75;
         }
         .message-container.ai > *:not(:last-child) {
@@ -195,6 +186,8 @@
         }
         .message-container.ai ul, .message-container.ai ol {
             padding-left: 1.5em;
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
         }
         .message-container.ai li {
             margin-bottom: 0.75em;
@@ -239,7 +232,6 @@
             box-sizing: border-box; 
             transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
         #chat-input { 
             flex-grow: 1; 
             border: none; 
@@ -338,17 +330,6 @@
         }
         #chat-history-list::-webkit-scrollbar-thumb:hover {
             background-color: #aaa;
-        }
-
-        /* --- NEW: Typing Animation --- */
-        .typing-effect {
-            overflow: hidden;
-            white-space: pre-wrap; /* Allows wrapping but respects spaces */
-            animation: typing 1s steps(var(--char-index)) forwards;
-        }
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
         }
     </style>
 </head>
@@ -524,7 +505,6 @@
                 });
             }
 
-            // --- NEW: Upgraded handleSendMessage with Typing Animation ---
             async function handleSendMessage(e) {
                 e.preventDefault();
                 if (!currentUser) return;
@@ -550,39 +530,8 @@
                     db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                const aiMsgContainer = addMessageToUI('ai');
-                aiMsgContainer.innerHTML = '<div class="thinking-indicator"><span></span><span></span><span></span></div>';
-                
+                const aiMsgContainer = addMessageToUI('ai', '<div class="thinking-indicator"><span></span><span></span><span></span></div>', true);
                 let accumulatedResponseText = '';
-                let buffer = '';
-                let inCodeBlock = false;
-                let currentBlockElement = null;
-
-                const renderOrUpdateBlock = (blockContent, isFinal) => {
-                    if (!blockContent.trim()) return;
-
-                    if (aiMsgContainer.querySelector('.thinking-indicator')) {
-                        aiMsgContainer.innerHTML = '';
-                    }
-
-                    if (!currentBlockElement) {
-                        currentBlockElement = document.createElement('div');
-                        aiMsgContainer.appendChild(currentBlockElement);
-                    }
-                    
-                    currentBlockElement.innerHTML = marked.parse(blockContent);
-                    attachFeaturesToAiMessage(currentBlockElement);
-
-                    const lastP = currentBlockElement.querySelector('p:last-of-type');
-                    if (lastP && !isFinal && !inCodeBlock) {
-                        const text = lastP.textContent;
-                        lastP.innerHTML = `<span class="typing-effect" style="--char-index: ${text.length}">${text}</span>`;
-                    }
-                    
-                    if (isFinal) {
-                        currentBlockElement = null; // Reset for the next block
-                    }
-                };
 
                 try {
                     const response = await fetch('/api/chat', {
@@ -595,53 +544,34 @@
                     
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
-                    
+                    let sseBuffer = '';
+
                     const processStream = async () => {
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
-                                renderOrUpdateBlock(buffer, true);
-                                localChatHistory.push({ role: 'model', text: aiMsgContainer.innerHTML });
+                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                 saveChat();
                                 break;
                             }
-                            
-                            buffer += decoder.decode(value, { stream: true });
-                            let lastRenderPosition = 0;
-                            
-                            while (true) {
-                                const fenceIndex = buffer.indexOf('```', lastRenderPosition);
-                                const newlineIndex = buffer.indexOf('\n\n', lastRenderPosition);
+                            sseBuffer += decoder.decode(value, { stream: true });
+                            const lines = sseBuffer.split('\n');
+                            sseBuffer = lines.pop() || '';
 
-                                if (inCodeBlock) {
-                                    if (fenceIndex !== -1) {
-                                        const block = buffer.substring(0, fenceIndex + 3);
-                                        renderOrUpdateBlock(block, true);
-                                        buffer = buffer.substring(fenceIndex + 3);
-                                        lastRenderPosition = 0;
-                                        inCodeBlock = false;
-                                    } else {
-                                        break;
-                                    }
-                                } else {
-                                    if (fenceIndex !== -1 && (fenceIndex < newlineIndex || newlineIndex === -1)) {
-                                        const block = buffer.substring(0, fenceIndex);
-                                        renderOrUpdateBlock(block, true);
-                                        buffer = buffer.substring(fenceIndex);
-                                        inCodeBlock = true;
-                                        lastRenderPosition = 3;
-                                    } else if (newlineIndex !== -1) {
-                                        const block = buffer.substring(0, newlineIndex);
-                                        renderOrUpdateBlock(block, true);
-                                        buffer = buffer.substring(newlineIndex + 2);
-                                        lastRenderPosition = 0;
-                                    } else {
-                                        break;
-                                    }
+                            for (const line of lines) {
+                                if (line.trim().startsWith('data:')) {
+                                    try {
+                                        const jsonStr = line.substring(5).trim();
+                                        const parsed = JSON.parse(jsonStr);
+                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                        if (textPart) {
+                                            accumulatedResponseText += textPart;
+                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
+                                            attachFeaturesToAiMessage(aiMsgContainer);
+                                        }
+                                    } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
-                            renderOrUpdateBlock(buffer, false);
-
                             if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
                                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                             }
@@ -650,7 +580,7 @@
                     await processStream();
                 } catch (error) {
                     console.error("AI Streaming Error:", error);
-                    aiMsgContainer.innerHTML = "<div class='ai-content-block'><p>Sorry, an error occurred while getting a response.</p></div>";
+                    aiMsgContainer.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                 }
             }
             
@@ -672,7 +602,7 @@
                     const existingItemsMap = new Map();
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => existingItemsMap.set(el.dataset.chatId, el));
                     chatsData.forEach((chat, index) => {
-                        const titleText = chat.title || chat.messages?.?.text.substring(0, 35) || 'New Chat';
+                        const titleText = chat.title || chat.messages?.[0]?.text.substring(0, 35) || 'New Chat';
                         let itemEl = existingItemsMap.get(chat.id);
                         if (itemEl) {
                             itemEl.querySelector('.chat-title-container').textContent = titleText;
@@ -780,8 +710,8 @@
             }
             
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
-            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
-            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
+            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches[0] : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
+            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
             const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);

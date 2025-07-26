@@ -742,68 +742,46 @@
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
             
-           function initializeScrollButtons() {
+          function initializeScrollButtons() {
     const scrollUpBtn = document.getElementById('scroll-up-btn');
     const scrollDownBtn = document.getElementById('scroll-down-btn');
-    
-    let animationFrameId = null;
-    let isScrolling = false;
-    let startY = 0;
-    let currentY = 0;
-    let direction = 0;
-    const sensitivity = 0.15; // Controls how much mouse movement affects speed
-    const baseSpeed = 2;      // The minimum speed when holding the button
 
-    // The single, continuous animation loop
-    const scrollLoop = () => {
-        if (!isScrolling) {
-            animationFrameId = null;
-            return; // Stop the loop if the flag is false
-        }
+    const startDragScroll = (e) => {
+        // 1. Record the starting state
+        const startY = e.clientY;
+        const startScrollTop = chatMessages.scrollTop;
+        
+        // Add a class to the body to prevent text selection during drag
+        document.body.classList.add('is-dragging');
 
-        // Calculate the distance from the initial click point
-        const deltaY = Math.abs(currentY - startY);
-        
-        // Calculate speed based on distance
-        const speed = baseSpeed + (deltaY * sensitivity);
-        
-        chatMessages.scrollTop += direction * speed;
-        
-        // Continue the loop
-        animationFrameId = requestAnimationFrame(scrollLoop);
-    };
+        // 2. This function runs every time the mouse moves
+        const onMouseMove = (moveEvent) => {
+            moveEvent.preventDefault(); // Prevent unwanted text selection
+            // Calculate the distance the mouse has moved
+            const deltaY = moveEvent.clientY - startY;
+            // Apply the scroll. The movement is directly proportional to the drag.
+            chatMessages.scrollTop = startScrollTop - deltaY;
+        };
 
-    const startScroll = (e, scrollDirection) => {
-        if (isScrolling) return;
-        
-        isScrolling = true;
-        direction = scrollDirection;
-        startY = e.clientY;
-        currentY = e.clientY;
-        
-        // Start the single animation loop
-        animationFrameId = requestAnimationFrame(scrollLoop);
-    };
+        // 3. This function runs when the mouse is released
+        const onMouseUp = () => {
+            // Remove the class and the listeners to stop everything
+            document.body.classList.remove('is-dragging');
+            document.body.removeEventListener('mousemove', onMouseMove);
+            document.body.removeEventListener('mouseup', onMouseUp);
+            document.body.removeEventListener('mouseleave', onMouseUp);
+        };
 
-    const stopScroll = () => {
-        isScrolling = false; // The loop will see this and stop itself
-    };
-
-    const onMouseMove = (e) => {
-        if (isScrolling) {
-            // Simply update the current mouse position
-            currentY = e.clientY;
-        }
+        // 4. Attach the listeners
+        document.body.addEventListener('mousemove', onMouseMove);
+        document.body.addEventListener('mouseup', onMouseUp);
+        document.body.addEventListener('mouseleave', onMouseUp); // Also stop if mouse leaves the window
     };
 
     // --- Event Listeners ---
-    scrollUpBtn.addEventListener('mousedown', (e) => startScroll(e, -1));
-    scrollDownBtn.addEventListener('mousedown', (e) => startScroll(e, 1));
-    
-    // Listen for mouse movements and release on the entire body for a smooth experience
-    document.body.addEventListener('mousemove', onMouseMove);
-    document.body.addEventListener('mouseup', stopScroll);
-    document.body.addEventListener('mouseleave', stopScroll);
+    // We only need a mousedown listener on the buttons to initiate the drag
+    scrollUpBtn.addEventListener('mousedown', startDragScroll);
+    scrollDownBtn.addEventListener('mousedown', startDragScroll);
 
     // Double-click to jump to top/bottom (unchanged)
     scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' }));

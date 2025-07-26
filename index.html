@@ -56,7 +56,7 @@
         #sidebar.is-pinned #pin-sidebar-btn .unpin-icon, #sidebar:not(.is-pinned) #pin-sidebar-btn .pin-icon { display: block; }
 
         #chat-history-list { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 0.5rem 0; user-select: none; -webkit-user-select: none; }
-        .chat-history-item { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; cursor: pointer; white-space: nowrap; }
+        .chat-history-item { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; cursor: pointer; white-space: nowrap; font-size: 0.9rem; }
         .chat-history-item:hover { background-color: #e9e9eb; }
         .chat-history-item .item-icon { margin-right: 1rem; flex-shrink: 0; }
         .chat-title-container { flex-grow: 1; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
@@ -87,6 +87,11 @@
         .is-desktop #chat-area.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #pin-sidebar-btn { display: flex; }
+        
+        .is-desktop #chat-area.sidebar-collapsed #chat-messages,
+        .is-desktop #chat-area.sidebar-collapsed #chat-form {
+            max-width: 1100px;
+        }
 
         .is-mobile #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
         .is-mobile #sidebar.no-transition { transition: none; }
@@ -111,7 +116,7 @@
             flex-direction: column;
             min-height: 0;
             width: 100%;
-            max-width: 920px; 
+            max-width: 900px; 
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
@@ -119,12 +124,12 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            /* NEW: Proportional padding */
-            padding: 70px 1.5% 30vh 1.5%;
+            padding: 50px 2% 30vh 2%;
+            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
-            max-width: 97%; 
+            max-width: 90%; 
             margin-bottom: 1rem;
             border-radius: 18px;
             word-wrap: break-word;
@@ -132,21 +137,38 @@
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
-        .message-container.user { padding: 0.75rem 1.1rem; background-color: var(--user-msg-bg); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .message-container.ai { background-color: var(--ai-msg-bg); align-self: flex-start; border: none; padding: 0.75rem 1.1rem; }
         
-        .message-container.ai {
-        /* The font-size rule is GONE. All text now inherits from the body. */
-        /* The line-height is MOVED here to apply to ALL text, not just paragraphs. */
-        line-height: 1.75;
+        /* --- NEW: Sleek Animation for new content blocks --- */
+        .ai-content-block {
+             opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards;
         }
 
+        .message-container.user { 
+            padding: 0.75rem 1.1rem; 
+            background-color: var(--user-msg-bg); 
+            align-self: flex-end; 
+            border-bottom-right-radius: 4px;
+            max-width: 70%;
+            font-size: 1.05rem;
+        }
+        .message-container.ai { 
+            background-color: var(--ai-msg-bg); 
+            align-self: flex-start; 
+            border: none; 
+            padding: 0; /* Padding is now on the inner blocks */
+            width: 100%;
+        }
+        .ai-content-block {
+            padding: 0.75rem 1.1rem;
+        }
+        
         .message-container.ai p {
-            /* The line-height is GONE from here. */
-        margin-bottom: 1.25em;
+            line-height: 1.75;
+        }
+        .message-container.ai > *:not(:last-child) {
+            margin-bottom: 1.25em !important;
         }
         .message-container.ai p:first-child { margin-top: 0; }
-        .message-container.ai p:last-child { margin-bottom: 0; }
         .message-container.ai strong, .message-container.ai b {
             font-weight: 700;
             color: #000;
@@ -173,8 +195,6 @@
         }
         .message-container.ai ul, .message-container.ai ol {
             padding-left: 1.5em;
-            margin-top: 1.25em;
-            margin-bottom: 1.25em;
         }
         .message-container.ai li {
             margin-bottom: 0.75em;
@@ -198,17 +218,72 @@
             body, html {
                 font-size: 15px;
             }
+            .message-container {
+                align-self: center !important;
+                max-width: 96%;
+            }
         }
 
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         
-        #chat-input-container { padding: 0.75rem 1rem; background-color: var(--background-color); border-top: none; }
-        #chat-form { display: flex; align-items: flex-end; gap: 0.75rem; }
-        #chat-input { flex-grow: 1; border: 1px solid #ddd; background-color: #f0f0f0; border-radius: 20px; padding: 0.6rem 1rem; font-size: 1rem; font-family: var(--system-font); resize: none; max-height: 120px; overflow-y: auto; line-height: 1.4; transition: background-color 0.2s ease, border-color 0.2s ease; }
-        #chat-input:focus { outline: none; border-color: var(--primary-accent); background-color: var(--background-color); }
-        #send-btn { background: var(--primary-accent); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.1s ease; }
-        #send-btn:active { transform: scale(0.9); }
+        #chat-input-container { background-color: var(--background-color); border-top: none; }
+        #chat-form { 
+            display: flex; 
+            align-items: flex-end; 
+            gap: 0.75rem; 
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0.75rem 2%;
+            box-sizing: border-box; 
+            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #chat-input { 
+            flex-grow: 1; 
+            border: none; 
+            background-color: transparent; 
+            border-radius: 0; 
+            padding: 0.6rem 1rem; 
+            font-size: 1rem; 
+            font-family: var(--system-font); 
+            resize: none; 
+            max-height: 120px; 
+            overflow-y: auto; 
+            line-height: 1.4; 
+        }
+        #chat-input:focus { outline: none; }
+        #send-btn { 
+            background: var(--primary-accent); 
+            border: none; 
+            border-radius: 50%; 
+            width: 48px; 
+            height: 48px; 
+            cursor: pointer; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0; 
+            transition: transform 0.1s ease; 
+        }
+        #send-btn:active { transform: scale(0.95); }
+        
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            border-radius: 28px;
+            padding: 8px 8px 8px 4px;
+            min-height: 48px;
+            box-sizing: border-box;
+        }
+        .input-wrapper:focus-within {
+            border-color: var(--primary-accent);
+        }
         
         .code-block-wrapper { position: relative; margin: 1.25em 0; }
         .message-container.ai pre { background-color: var(--code-bg); color: var(--code-text-color); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; font-family: 'SF Mono', 'Fira Code', 'monospace'; font-size: 0.875rem; line-height: 1.6; margin: 0; }
@@ -224,12 +299,12 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-size: 15px;
         }
         .table-wrapper table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            font-size: 0.95rem;
             min-width: 500px; 
             margin: 0;
             border: none;
@@ -250,6 +325,31 @@
         .is-desktop .scroll-controls { display: flex; }
         .scroll-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); font-size: 1.5rem; color: var(--text-color); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .scroll-btn:hover { background: #fff; transform: scale(1.05); }
+        
+        #chat-history-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        #chat-history-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #chat-history-list::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 10px;
+        }
+        #chat-history-list::-webkit-scrollbar-thumb:hover {
+            background-color: #aaa;
+        }
+
+        /* --- NEW: Typing Animation --- */
+        .typing-effect {
+            overflow: hidden;
+            white-space: pre-wrap; /* Allows wrapping but respects spaces */
+            animation: typing 1s steps(var(--char-index)) forwards;
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -260,8 +360,12 @@
                 <h2>Chat History</h2>
                 <div class="sidebar-header-actions">
                     <button id="pin-sidebar-btn" class="sidebar-action-btn" title="Pin Sidebar">
-                         <span class="pin-icon">📌</span>
-                         <span class="unpin-icon">📍</span>
+                        <span class="pin-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 3H8C6.34315 3 5 4.34315 5 6V14C5 15.6569 6.34315 17 8 17H16C17.6569 17 19 15.6569 19 14V6C19 4.34315 17.6569 3 16 3ZM12 17V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </span>
+                        <span class="unpin-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 3H8C6.34315 3 5 4.34315 5 6V14C5 15.6569 6.34315 17 8 17H16C17.6569 17 19 15.6569 19 14V6C19 4.34315 17.6569 3 16 3ZM12 17V21M19 6L21 4M3 4L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </span>
                     </button>
                     <button id="sidebar-close-btn" class="sidebar-action-btn" title="Close Menu">×</button>
                 </div>
@@ -285,7 +389,16 @@
             <div id="chat-messages-container">
                 <div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
             </div>
-            <footer id="chat-input-container"><form id="chat-form"><textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea><button type="submit" id="send-btn" title="Send Message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></form></footer>
+            <footer id="chat-input-container">
+                <form id="chat-form">
+                    <div class="input-wrapper">
+                        <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
+                        <button type="submit" id="send-btn" title="Send Message">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
+                        </button>
+                    </div>
+                </form>
+            </footer>
         </main>
         
         <div class="scroll-controls">
@@ -411,6 +524,7 @@
                 });
             }
 
+            // --- NEW: Upgraded handleSendMessage with Typing Animation ---
             async function handleSendMessage(e) {
                 e.preventDefault();
                 if (!currentUser) return;
@@ -436,8 +550,39 @@
                     db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                const aiMsgContainer = addMessageToUI('ai', '<div class="thinking-indicator"><span></span><span></span><span></span></div>', true);
+                const aiMsgContainer = addMessageToUI('ai');
+                aiMsgContainer.innerHTML = '<div class="thinking-indicator"><span></span><span></span><span></span></div>';
+                
                 let accumulatedResponseText = '';
+                let buffer = '';
+                let inCodeBlock = false;
+                let currentBlockElement = null;
+
+                const renderOrUpdateBlock = (blockContent, isFinal) => {
+                    if (!blockContent.trim()) return;
+
+                    if (aiMsgContainer.querySelector('.thinking-indicator')) {
+                        aiMsgContainer.innerHTML = '';
+                    }
+
+                    if (!currentBlockElement) {
+                        currentBlockElement = document.createElement('div');
+                        aiMsgContainer.appendChild(currentBlockElement);
+                    }
+                    
+                    currentBlockElement.innerHTML = marked.parse(blockContent);
+                    attachFeaturesToAiMessage(currentBlockElement);
+
+                    const lastP = currentBlockElement.querySelector('p:last-of-type');
+                    if (lastP && !isFinal && !inCodeBlock) {
+                        const text = lastP.textContent;
+                        lastP.innerHTML = `<span class="typing-effect" style="--char-index: ${text.length}">${text}</span>`;
+                    }
+                    
+                    if (isFinal) {
+                        currentBlockElement = null; // Reset for the next block
+                    }
+                };
 
                 try {
                     const response = await fetch('/api/chat', {
@@ -450,34 +595,53 @@
                     
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
-                    let sseBuffer = '';
-
+                    
                     const processStream = async () => {
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
-                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                                renderOrUpdateBlock(buffer, true);
+                                localChatHistory.push({ role: 'model', text: aiMsgContainer.innerHTML });
                                 saveChat();
                                 break;
                             }
-                            sseBuffer += decoder.decode(value, { stream: true });
-                            const lines = sseBuffer.split('\n');
-                            sseBuffer = lines.pop() || '';
+                            
+                            buffer += decoder.decode(value, { stream: true });
+                            let lastRenderPosition = 0;
+                            
+                            while (true) {
+                                const fenceIndex = buffer.indexOf('```', lastRenderPosition);
+                                const newlineIndex = buffer.indexOf('\n\n', lastRenderPosition);
 
-                            for (const line of lines) {
-                                if (line.trim().startsWith('data:')) {
-                                    try {
-                                        const jsonStr = line.substring(5).trim();
-                                        const parsed = JSON.parse(jsonStr);
-                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                        if (textPart) {
-                                            accumulatedResponseText += textPart;
-                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
-                                            attachFeaturesToAiMessage(aiMsgContainer);
-                                        }
-                                    } catch (parseError) { /* Ignore incomplete JSON */ }
+                                if (inCodeBlock) {
+                                    if (fenceIndex !== -1) {
+                                        const block = buffer.substring(0, fenceIndex + 3);
+                                        renderOrUpdateBlock(block, true);
+                                        buffer = buffer.substring(fenceIndex + 3);
+                                        lastRenderPosition = 0;
+                                        inCodeBlock = false;
+                                    } else {
+                                        break;
+                                    }
+                                } else {
+                                    if (fenceIndex !== -1 && (fenceIndex < newlineIndex || newlineIndex === -1)) {
+                                        const block = buffer.substring(0, fenceIndex);
+                                        renderOrUpdateBlock(block, true);
+                                        buffer = buffer.substring(fenceIndex);
+                                        inCodeBlock = true;
+                                        lastRenderPosition = 3;
+                                    } else if (newlineIndex !== -1) {
+                                        const block = buffer.substring(0, newlineIndex);
+                                        renderOrUpdateBlock(block, true);
+                                        buffer = buffer.substring(newlineIndex + 2);
+                                        lastRenderPosition = 0;
+                                    } else {
+                                        break;
+                                    }
                                 }
                             }
+                            renderOrUpdateBlock(buffer, false);
+
                             if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
                                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                             }
@@ -486,7 +650,7 @@
                     await processStream();
                 } catch (error) {
                     console.error("AI Streaming Error:", error);
-                    aiMsgContainer.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                    aiMsgContainer.innerHTML = "<div class='ai-content-block'><p>Sorry, an error occurred while getting a response.</p></div>";
                 }
             }
             
@@ -508,7 +672,7 @@
                     const existingItemsMap = new Map();
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => existingItemsMap.set(el.dataset.chatId, el));
                     chatsData.forEach((chat, index) => {
-                        const titleText = chat.title || chat.messages?.[0]?.text.substring(0, 35) || 'New Chat';
+                        const titleText = chat.title || chat.messages?.?.text.substring(0, 35) || 'New Chat';
                         let itemEl = existingItemsMap.get(chat.id);
                         if (itemEl) {
                             itemEl.querySelector('.chat-title-container').textContent = titleText;
@@ -616,8 +780,8 @@
             }
             
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
-            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches[0] : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
-            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
+            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
+            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
             const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
@@ -632,3 +796,4 @@
     </script>
 </body>
 </html>
+and also the user's bubble is not on the right side of the screen on mobile, and the ai's bubble is not centered, fix that please

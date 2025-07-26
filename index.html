@@ -28,7 +28,7 @@
             margin: 0; padding: 0; font-family: var(--system-font); height: 100%; width: 100%; overflow: hidden; background-color: var(--background-color); color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-size: 20px;
+            font-size: 17px;
             letter-spacing: 0.01em;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
@@ -129,7 +129,6 @@
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
-            max-width: 90%; 
             margin-bottom: 1rem;
             border-radius: 18px;
             word-wrap: break-word;
@@ -150,10 +149,15 @@
             background-color: var(--ai-msg-bg); 
             align-self: flex-start; 
             border: none; 
-            padding: 0.75rem 1.1rem; 
+            padding: 0;
+            width: 100%;
+        }
+        .ai-content-block {
+            padding: 0.75rem 1.1rem;
+            opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards;
         }
         
-        .message-container.ai {
+        .message-container.ai p {
             line-height: 1.75;
         }
         .message-container.ai > *:not(:last-child) {
@@ -186,8 +190,6 @@
         }
         .message-container.ai ul, .message-container.ai ol {
             padding-left: 1.5em;
-            margin-top: 1.25em;
-            margin-bottom: 1.25em;
         }
         .message-container.ai li {
             margin-bottom: 0.75em;
@@ -232,6 +234,7 @@
             box-sizing: border-box; 
             transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
         #chat-input { 
             flex-grow: 1; 
             border: none; 
@@ -330,6 +333,17 @@
         }
         #chat-history-list::-webkit-scrollbar-thumb:hover {
             background-color: #aaa;
+        }
+
+        /* --- NEW: Typing Animation --- */
+        .typing-effect {
+            overflow: hidden;
+            white-space: pre-wrap;
+            animation: typing 1s steps(var(--char-index, 1)) forwards;
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
         }
     </style>
 </head>

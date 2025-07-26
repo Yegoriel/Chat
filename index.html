@@ -28,7 +28,7 @@
             margin: 0; padding: 0; font-family: var(--system-font); height: 100%; width: 100%; overflow: hidden; background-color: var(--background-color); color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-size: 17px;
+            font-size: 20px;
             letter-spacing: 0.01em;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
@@ -211,7 +211,7 @@
 
         @media (max-width: 767px) {
             body, html {
-                font-size: 15px;
+                font-size: 16px;
             }
             .message-container {
                 align-self: center !important;
@@ -334,17 +334,6 @@
         #chat-history-list::-webkit-scrollbar-thumb:hover {
             background-color: #aaa;
         }
-
-        /* --- NEW: Typing Animation --- */
-        .typing-effect {
-            overflow: hidden;
-            white-space: pre-wrap;
-            animation: typing 1s steps(var(--char-index, 1)) forwards;
-        }
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
-        }
     </style>
 </head>
 <body>
@@ -442,8 +431,6 @@
                 }
             });
 
-            // --- CORE LOGIC (No changes needed in JS) ---
-
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
@@ -519,6 +506,7 @@
                 });
             }
 
+            // --- NEW: Upgraded handleSendMessage with Stable Typing Animation ---
             async function handleSendMessage(e) {
                 e.preventDefault();
                 if (!currentUser) return;
@@ -544,8 +532,34 @@
                     db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                const aiMsgContainer = addMessageToUI('ai', '<div class="thinking-indicator"><span></span><span></span><span></span></div>', true);
+                const aiMsgContainer = addMessageToUI('ai');
+                aiMsgContainer.innerHTML = '<div class="thinking-indicator"><span></span><span></span><span></span></div>';
+                
                 let accumulatedResponseText = '';
+                let buffer = '';
+                let currentBlockElement = null;
+                let inCodeBlock = false;
+
+                const renderBlock = (blockContent, isFinalBlock) => {
+                    if (!blockContent.trim()) return;
+
+                    const newBlock = document.createElement('div');
+                    newBlock.className = 'ai-content-block';
+                    newBlock.innerHTML = marked.parse(blockContent);
+                    attachFeaturesToAiMessage(newBlock);
+                    aiMsgContainer.appendChild(newBlock);
+                    
+                    currentBlockElement = null; // This block is done, reset for the next one
+                };
+
+                const updateTypingBlock = (content) => {
+                    if (!currentBlockElement) {
+                        currentBlockElement = document.createElement('div');
+                        currentBlockElement.className = 'ai-content-block';
+                        aiMsgContainer.appendChild(currentBlockElement);
+                    }
+                    currentBlockElement.innerHTML = marked.parse(content);
+                };
 
                 try {
                     const response = await fetch('/api/chat', {
@@ -558,34 +572,55 @@
                     
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
-                    let sseBuffer = '';
-
+                    
                     const processStream = async () => {
+                        if (aiMsgContainer.querySelector('.thinking-indicator')) {
+                            aiMsgContainer.innerHTML = '';
+                        }
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
-                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                                if (buffer.trim()) renderBlock(buffer, true);
+                                localChatHistory.push({ role: 'model', text: aiMsgContainer.innerHTML });
                                 saveChat();
                                 break;
                             }
-                            sseBuffer += decoder.decode(value, { stream: true });
-                            const lines = sseBuffer.split('\n');
-                            sseBuffer = lines.pop() || '';
+                            
+                            buffer += decoder.decode(value, { stream: true });
+                            let lastRenderPosition = 0;
+                            
+                            while (true) {
+                                const fenceIndex = buffer.indexOf('```', lastRenderPosition);
+                                const newlineIndex = buffer.indexOf('\n\n', lastRenderPosition);
 
-                            for (const line of lines) {
-                                if (line.trim().startsWith('data:')) {
-                                    try {
-                                        const jsonStr = line.substring(5).trim();
-                                        const parsed = JSON.parse(jsonStr);
-                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                        if (textPart) {
-                                            accumulatedResponseText += textPart;
-                                            aiMsgContainer.innerHTML = marked.parse(accumulatedResponseText);
-                                            attachFeaturesToAiMessage(aiMsgContainer);
-                                        }
-                                    } catch (parseError) { /* Ignore incomplete JSON */ }
+                                if (inCodeBlock) {
+                                    if (fenceIndex !== -1) {
+                                        const block = buffer.substring(0, fenceIndex + 3);
+                                        renderBlock(block, true);
+                                        buffer = buffer.substring(fenceIndex + 3);
+                                        lastRenderPosition = 0;
+                                        inCodeBlock = false;
+                                    } else { break; }
+                                } else {
+                                    if (fenceIndex !== -1 && (fenceIndex < newlineIndex || newlineIndex === -1)) {
+                                        const block = buffer.substring(0, fenceIndex);
+                                        renderBlock(block, true);
+                                        buffer = buffer.substring(fenceIndex);
+                                        inCodeBlock = true;
+                                        lastRenderPosition = 3;
+                                    } else if (newlineIndex !== -1) {
+                                        const block = buffer.substring(0, newlineIndex);
+                                        renderBlock(block, true);
+                                        buffer = buffer.substring(newlineIndex + 2);
+                                        lastRenderPosition = 0;
+                                    } else { break; }
                                 }
                             }
+                            
+                            if (!inCodeBlock) {
+                                updateTypingBlock(buffer);
+                            }
+
                             if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
                                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                             }
@@ -594,7 +629,7 @@
                     await processStream();
                 } catch (error) {
                     console.error("AI Streaming Error:", error);
-                    aiMsgContainer.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                    aiMsgContainer.innerHTML = "<div class='ai-content-block'><p>Sorry, an error occurred while getting a response.</p></div>";
                 }
             }
             
@@ -616,7 +651,7 @@
                     const existingItemsMap = new Map();
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => existingItemsMap.set(el.dataset.chatId, el));
                     chatsData.forEach((chat, index) => {
-                        const titleText = chat.title || chat.messages?.[0]?.text.substring(0, 35) || 'New Chat';
+                        const titleText = chat.title || chat.messages?.?.text.substring(0, 35) || 'New Chat';
                         let itemEl = existingItemsMap.get(chat.id);
                         if (itemEl) {
                             itemEl.querySelector('.chat-title-container').textContent = titleText;
@@ -724,8 +759,8 @@
             }
             
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
-            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches[0] : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
-            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
+            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
+            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
             const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
@@ -740,4 +775,3 @@
     </script>
 </body>
 </html>
-and also the user's bubble is not on the right side of the screen on mobile, and the ai's bubble is not centered, fix that please

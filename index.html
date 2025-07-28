@@ -21,7 +21,6 @@
             --sidebar-collapsed-width: 80px;
             --code-bg: #f0f2f5;
             --code-text-color: #383a42;
-            /* Animation timing for perfect sync */
             --sidebar-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         html { scroll-behavior: smooth; }
@@ -106,7 +105,6 @@
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #pin-sidebar-btn { display: flex; }
         
-        /* --- REFINED SMOOTH RESIZING (NO JUMP) --- */
         .is-desktop #chat-area.sidebar-collapsed .chat-content-wrapper,
         .is-desktop #chat-area.sidebar-collapsed .chat-form-wrapper {
             max-width: 51rem;
@@ -122,39 +120,37 @@
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
-        #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; }
+        #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; }
         #chat-messages-container::before, #chat-messages-container::after { content: ''; position: absolute; left: 0; right: 0; height: 50px; z-index: 2; pointer-events: none; }
         #chat-messages-container::before { top: 0; background: linear-gradient(to bottom, var(--background-color) 0%, transparent 100%); }
         #chat-messages-container::after { bottom: 0; background: linear-gradient(to top, var(--background-color) 0%, transparent 100%); }
         
         #chat-messages {
-            height: 100%;
             flex-grow: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            min-height: 0;
             width: 100%;
-            box-sizing: border-box;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            touch-action: pan-y;
-            scroll-behavior: smooth;
-            padding: 50px 2% 0 2%; /* REMOVED bottom padding */
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         
-        /* This is the new inner wrapper that animates */
         .chat-content-wrapper {
             max-width: 41rem; 
             width: 100%;
             margin: 0 auto;
+            padding: 50px 2% 0 2%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
             transition: max-width var(--sidebar-transition);
         }
 
         #scroll-spacer {
             flex-shrink: 0;
-            height: 25vh; /* Dedicated spacer instead of padding */
+            height: 25vh;
         }
 
         .message-container {
@@ -189,12 +185,12 @@
             to { opacity: 1; }
         }
         
-         .message-container.ai th, .message-container.ai td { border-top: 1px solid var(--border-color); border-left: 1px solid var(--border-color); padding: 0.75rem 1rem; text-align: left; }
+        .message-container.ai th, .message-container.ai td { border-top: 1px solid var(--border-color); border-left: 1px solid var(--border-color); padding: 0.75rem 1rem; text-align: left; }
         .message-container.ai th:first-child, .message-container.ai td:first-child { border-left: none; }
         .message-container.ai thead th { border-top: none; background-color: var(--sidebar-bg); font-weight: 600; }
         .message-container.ai tbody tr:nth-of-type(even) { background-color: var(--sidebar-bg); }
 
-        .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
+        .welcome-message { align-self: center; text-align: center; margin-top: auto; margin-bottom: auto; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         
         #chat-input-container { background-color: var(--background-color); border-top: none; }
@@ -430,7 +426,7 @@
             <div id="chat-messages-container">
                 <div id="chat-messages">
                     <div class="chat-content-wrapper">
-                        <div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>
+                        <!-- Messages will be injected here by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -475,16 +471,24 @@
 
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item');
             
-            // --- NEW: Select the new content wrapper ---
             const chatContentWrapper = document.querySelector('.chat-content-wrapper');
-
-            // --- NEW: Add the spacer div dynamically ---
-            chatMessages.appendChild(document.createElement('div')).id = 'scroll-spacer';
+            const spacer = chatContentWrapper.appendChild(document.createElement('div'));
+            spacer.id = 'scroll-spacer';
 
             marked.setOptions({
                 highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
                 langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
+
+            const showWelcomeMessage = () => {
+                chatContentWrapper.innerHTML = ''; // Clear previous content
+                const welcome = document.createElement('div');
+                welcome.className = 'message-container welcome-message';
+                welcome.innerHTML = `<p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button>`;
+                chatContentWrapper.appendChild(welcome);
+                chatContentWrapper.appendChild(spacer); // Re-append spacer
+                document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
+            };
 
             auth.onAuthStateChanged(user => {
                 if (user) {
@@ -494,9 +498,7 @@
                     currentUser = null; if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
-                    // Clear the content wrapper
-                    chatContentWrapper.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
-                    document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
+                    showWelcomeMessage();
                 }
             });
 
@@ -508,8 +510,6 @@
                 } else {
                     m.textContent = content;
                 }
-                // --- MODIFIED: Append message to the wrapper, before the spacer ---
-                const spacer = document.getElementById('scroll-spacer');
                 chatContentWrapper.insertBefore(m, spacer);
                 
                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
@@ -550,7 +550,8 @@
                 
                 const chat = snapshot.val();
                 localChatHistory = chat.messages || [];
-                chatContentWrapper.innerHTML = ''; // Clear the wrapper
+                chatContentWrapper.innerHTML = '';
+                chatContentWrapper.appendChild(spacer);
                 chatMessages.classList.add('is-loading-history');
 
                 localChatHistory.forEach(msg => {
@@ -733,7 +734,8 @@
             function startNewChat() { 
                 if(document.body.classList.contains('is-mobile') && document.body.classList.contains('sidebar-open')) closeSidebar();
                 localChatHistory = []; currentChatId = null; 
-                chatContentWrapper.innerHTML = ''; // Clear the wrapper
+                chatContentWrapper.innerHTML = '';
+                chatContentWrapper.appendChild(spacer);
                 chatInput.value = ''; 
                 chatInput.style.height = 'auto'; 
                 chatInput.focus(); 

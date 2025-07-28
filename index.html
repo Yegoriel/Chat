@@ -105,11 +105,6 @@
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #pin-sidebar-btn { display: flex; }
         
-        .is-desktop #chat-area.sidebar-collapsed .chat-content-wrapper,
-        .is-desktop #chat-area.sidebar-collapsed .chat-form-wrapper {
-            max-width: 51rem;
-        }
-
         .is-mobile #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
         .is-mobile #sidebar.no-transition { transition: none; }
         .is-mobile #sidebar-close-btn { display: flex; }
@@ -120,39 +115,27 @@
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
-        #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; }
+        #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; }
         #chat-messages-container::before, #chat-messages-container::after { content: ''; position: absolute; left: 0; right: 0; height: 50px; z-index: 2; pointer-events: none; }
         #chat-messages-container::before { top: 0; background: linear-gradient(to bottom, var(--background-color) 0%, transparent 100%); }
         #chat-messages-container::after { bottom: 0; background: linear-gradient(to top, var(--background-color) 0%, transparent 100%); }
         
         #chat-messages {
+            height: 100%;
             flex-grow: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             width: 100%;
+            max-width: 48rem; /* FIXED WIDTH for stability */
+            margin: 0 auto;
+            box-sizing: border-box;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            padding: 50px 2% 30vh 2%; /* Restore stable padding */
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         
-        .chat-content-wrapper {
-            max-width: 41rem; 
-            width: 100%;
-            margin: 0 auto;
-            padding: 50px 2% 0 2%;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            transition: max-width var(--sidebar-transition);
-        }
-
-        #scroll-spacer {
-            flex-shrink: 0;
-            height: 25vh;
-        }
-
         .message-container {
             margin-bottom: 1rem;
             border-radius: 18px;
@@ -190,23 +173,19 @@
         .message-container.ai thead th { border-top: none; background-color: var(--sidebar-bg); font-weight: 600; }
         .message-container.ai tbody tr:nth-of-type(even) { background-color: var(--sidebar-bg); }
 
-        .welcome-message { align-self: center; text-align: center; margin-top: auto; margin-bottom: auto; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
+        .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         
         #chat-input-container { background-color: var(--background-color); border-top: none; }
         
-        .chat-form-wrapper {
-            max-width: 41rem;
-            margin: 0 auto;
-            padding: 0.75rem 2%;
-            box-sizing: border-box; 
-            transition: max-width var(--sidebar-transition);
-        }
-
         #chat-form { 
             display: flex; 
             align-items: flex-end; 
             gap: 0.75rem; 
+            max-width: 48rem; /* FIXED WIDTH to match chat messages */
+            margin: 0 auto;
+            padding: 0.75rem 2%;
+            box-sizing: border-box; 
         }
         
         #chat-input { 
@@ -425,22 +404,18 @@
              <button id="menu-toggle">☰</button>
             <div id="chat-messages-container">
                 <div id="chat-messages">
-                    <div class="chat-content-wrapper">
-                        <!-- Messages will be injected here by JavaScript -->
-                    </div>
+                    <!-- Messages will be injected here by JavaScript -->
                 </div>
             </div>
             <footer id="chat-input-container">
-                <div class="chat-form-wrapper">
-                    <form id="chat-form">
-                        <div class="input-wrapper">
-                            <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
-                            <button type="submit" id="send-btn" title="Send Message">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                <form id="chat-form">
+                    <div class="input-wrapper">
+                        <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
+                        <button type="submit" id="send-btn" title="Send Message">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
+                        </button>
+                    </div>
+                </form>
             </footer>
         </main>
         
@@ -470,25 +445,11 @@
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null, isRenaming = false, activeDropdown = null;
 
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item');
-            
-            const chatContentWrapper = document.querySelector('.chat-content-wrapper');
-            const spacer = chatContentWrapper.appendChild(document.createElement('div'));
-            spacer.id = 'scroll-spacer';
 
             marked.setOptions({
                 highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
                 langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
-
-            const showWelcomeMessage = () => {
-                chatContentWrapper.innerHTML = ''; // Clear previous content
-                const welcome = document.createElement('div');
-                welcome.className = 'message-container welcome-message';
-                welcome.innerHTML = `<p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button>`;
-                chatContentWrapper.appendChild(welcome);
-                chatContentWrapper.appendChild(spacer); // Re-append spacer
-                document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
-            };
 
             auth.onAuthStateChanged(user => {
                 if (user) {
@@ -498,7 +459,8 @@
                     currentUser = null; if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
-                    showWelcomeMessage();
+                    chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
+                    document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
             });
 
@@ -510,8 +472,7 @@
                 } else {
                     m.textContent = content;
                 }
-                chatContentWrapper.insertBefore(m, spacer);
-                
+                chatMessages.appendChild(m);
                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 return m;
             }
@@ -541,7 +502,7 @@
             }
 
             async function loadChat(chatId) {
-                if (!currentUser || (currentChatId === chatId && chatContentWrapper.children.length > 1)) return;
+                if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return;
                 if(document.body.classList.contains('is-mobile')) closeSidebar();
                 cancelAllRenames();
                 const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
@@ -550,8 +511,7 @@
                 
                 const chat = snapshot.val();
                 localChatHistory = chat.messages || [];
-                chatContentWrapper.innerHTML = '';
-                chatContentWrapper.appendChild(spacer);
+                chatMessages.innerHTML = '';
                 chatMessages.classList.add('is-loading-history');
 
                 localChatHistory.forEach(msg => {
@@ -734,8 +694,7 @@
             function startNewChat() { 
                 if(document.body.classList.contains('is-mobile') && document.body.classList.contains('sidebar-open')) closeSidebar();
                 localChatHistory = []; currentChatId = null; 
-                chatContentWrapper.innerHTML = '';
-                chatContentWrapper.appendChild(spacer);
+                chatMessages.innerHTML = '';
                 chatInput.value = ''; 
                 chatInput.style.height = 'auto'; 
                 chatInput.focus(); 

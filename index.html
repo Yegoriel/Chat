@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AI Chat</title>
-    <!-- Font is now a high-performance system stack, no import needed -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            
             --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             --background-color: #ffffff;
             --text-color: #333;
@@ -23,13 +21,14 @@
             --sidebar-collapsed-width: 80px;
             --code-bg: #f0f2f5;
             --code-text-color: #383a42;
+            /* Animation timing for perfect sync */
+            --sidebar-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         html { scroll-behavior: smooth; }
         body, html {
             margin: 0; padding: 0; font-family: var(--system-font); height: 100%; width: 100%; overflow: hidden; background-color: var(--background-color); color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            
             font-size: 1rem;
             letter-spacing: 0.01em;
         }
@@ -78,14 +77,11 @@
         #user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
         body.logged-in #logout-btn { display: flex; }
         
-        #chat-area { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow: hidden; 
-            /* BUG FIX: Synchronized transition for smooth resizing */
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
+        #chat-area { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow: hidden; transition: margin-left var(--sidebar-transition); }
 
         #chat-header, #menu-toggle, #sidebar-close-btn, #pin-sidebar-btn { display: none; }
 
-        .is-desktop #sidebar { width: var(--sidebar-width); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .is-desktop #sidebar { width: var(--sidebar-width); transition: width var(--sidebar-transition); }
         .is-desktop #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); }
         
         .sidebar-header h2,
@@ -110,8 +106,9 @@
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #pin-sidebar-btn { display: flex; }
         
-        .is-desktop #chat-area.sidebar-collapsed #chat-messages,
-        .is-desktop #chat-area.sidebar-collapsed #chat-form {
+        /* --- REFINED SMOOTH RESIZING (NO JUMP) --- */
+        .is-desktop #chat-area.sidebar-collapsed .chat-content-wrapper,
+        .is-desktop #chat-area.sidebar-collapsed .chat-form-wrapper {
             max-width: 51rem;
         }
 
@@ -138,20 +135,28 @@
             flex-direction: column;
             min-height: 0;
             width: 100%;
-            max-width: 41rem; 
-            margin-left: auto;
-            margin-right: auto;
             box-sizing: border-box;
             scrollbar-width: none;
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            /* BUG FIX: Replaced unstable 'vh' unit with stable 'rem' to prevent scroll jumps */
-            padding: 50px 2% 15rem 2%;
-            /* BUG FIX: Synchronized transition for smooth resizing */
-            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 50px 2% 0 2%; /* REMOVED bottom padding */
         }
         #chat-messages::-webkit-scrollbar { display: none; }
+        
+        /* This is the new inner wrapper that animates */
+        .chat-content-wrapper {
+            max-width: 41rem; 
+            width: 100%;
+            margin: 0 auto;
+            transition: max-width var(--sidebar-transition);
+        }
+
+        #scroll-spacer {
+            flex-shrink: 0;
+            height: 25vh; /* Dedicated spacer instead of padding */
+        }
+
         .message-container {
             margin-bottom: 1rem;
             border-radius: 18px;
@@ -193,17 +198,19 @@
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         
         #chat-input-container { background-color: var(--background-color); border-top: none; }
+        
+        .chat-form-wrapper {
+            max-width: 41rem;
+            margin: 0 auto;
+            padding: 0.75rem 2%;
+            box-sizing: border-box; 
+            transition: max-width var(--sidebar-transition);
+        }
+
         #chat-form { 
             display: flex; 
             align-items: flex-end; 
             gap: 0.75rem; 
-            max-width: 41rem;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 0.75rem 2%;
-            box-sizing: border-box; 
-            /* BUG FIX: Synchronized transition for smooth resizing */
-            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         #chat-input { 
@@ -421,17 +428,23 @@
         <main id="chat-area">
              <button id="menu-toggle">☰</button>
             <div id="chat-messages-container">
-                <div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
+                <div id="chat-messages">
+                    <div class="chat-content-wrapper">
+                        <div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>
+                    </div>
+                </div>
             </div>
             <footer id="chat-input-container">
-                <form id="chat-form">
-                    <div class="input-wrapper">
-                        <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
-                        <button type="submit" id="send-btn" title="Send Message">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
-                        </button>
-                    </div>
-                </form>
+                <div class="chat-form-wrapper">
+                    <form id="chat-form">
+                        <div class="input-wrapper">
+                            <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
+                            <button type="submit" id="send-btn" title="Send Message">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </footer>
         </main>
         
@@ -445,7 +458,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Firebase and variable setup (unchanged) ---
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
                 authDomain: "ai-chatbot-b38da.firebaseapp.com",
@@ -462,6 +474,12 @@
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null, isRenaming = false, activeDropdown = null;
 
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item');
+            
+            // --- NEW: Select the new content wrapper ---
+            const chatContentWrapper = document.querySelector('.chat-content-wrapper');
+
+            // --- NEW: Add the spacer div dynamically ---
+            chatMessages.appendChild(document.createElement('div')).id = 'scroll-spacer';
 
             marked.setOptions({
                 highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
@@ -476,7 +494,8 @@
                     currentUser = null; if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
-                    chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
+                    // Clear the content wrapper
+                    chatContentWrapper.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
                     document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
             });
@@ -489,7 +508,10 @@
                 } else {
                     m.textContent = content;
                 }
-                chatMessages.appendChild(m);
+                // --- MODIFIED: Append message to the wrapper, before the spacer ---
+                const spacer = document.getElementById('scroll-spacer');
+                chatContentWrapper.insertBefore(m, spacer);
+                
                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 return m;
             }
@@ -519,7 +541,7 @@
             }
 
             async function loadChat(chatId) {
-                if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return;
+                if (!currentUser || (currentChatId === chatId && chatContentWrapper.children.length > 1)) return;
                 if(document.body.classList.contains('is-mobile')) closeSidebar();
                 cancelAllRenames();
                 const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
@@ -528,7 +550,7 @@
                 
                 const chat = snapshot.val();
                 localChatHistory = chat.messages || [];
-                chatMessages.innerHTML = '';
+                chatContentWrapper.innerHTML = ''; // Clear the wrapper
                 chatMessages.classList.add('is-loading-history');
 
                 localChatHistory.forEach(msg => {
@@ -710,7 +732,12 @@
             
             function startNewChat() { 
                 if(document.body.classList.contains('is-mobile') && document.body.classList.contains('sidebar-open')) closeSidebar();
-                localChatHistory = []; currentChatId = null; chatMessages.innerHTML = ''; chatInput.value = ''; chatInput.style.height = 'auto'; chatInput.focus(); updateActiveChatSelection(null); 
+                localChatHistory = []; currentChatId = null; 
+                chatContentWrapper.innerHTML = ''; // Clear the wrapper
+                chatInput.value = ''; 
+                chatInput.style.height = 'auto'; 
+                chatInput.focus(); 
+                updateActiveChatSelection(null); 
             }
             function updateActiveChatSelection(activeId) { currentChatId = activeId; document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); newChatItem.classList.toggle('active', activeId === null); }
             

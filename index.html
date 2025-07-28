@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AI Chat</title>
-    <!-- Font is now a high-performance system stack, no import needed -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -114,7 +113,7 @@
         
         .is-desktop #chat-area.sidebar-collapsed #chat-messages,
         .is-desktop #chat-area.sidebar-collapsed #chat-form {
-            max-width: 51rem;
+            max-width: 52rem;
         }
 
         .is-mobile #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
@@ -135,31 +134,32 @@
         #chat-messages {
             height: 100%;
             flex-grow: 1;
-            /* THE KEY FIX: Force scrollbar to stabilize layout, then hide it */
-            overflow-y: scroll;
-            scrollbar-width: none; /* For Firefox */
-            -ms-overflow-style: none; /* For Internet Explorer and Edge */
-            
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             min-height: 0;
             width: 100%;
-            max-width: 41rem; 
+            max-width: 42rem; 
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            padding: 50px 2% 30vh;
-            /* Add padding to compensate for the invisible scrollbar's space */
-            padding-right: calc(2% + 15px);
-            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 50px 2% 30vh 2%;
+            /* The width transition is now instant, hidden by the opacity fade */
+            opacity: 1;
+            transition: opacity 0.2s ease-in-out;
         }
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        #chat-messages::-webkit-scrollbar { 
-            display: none;
-        }
+        #chat-messages::-webkit-scrollbar { display: none; }
         
+        /* NEW CLASS FOR THE CROSS-FADE EFFECT */
+        #chat-messages.is-reflowing {
+            opacity: 0;
+            transition: opacity 0.1s ease-in-out;
+        }
+
         .message-container {
             margin-bottom: 1rem;
             border-radius: 18px;
@@ -205,12 +205,11 @@
             display: flex; 
             align-items: flex-end; 
             gap: 0.75rem; 
-            max-width: 41rem;
+            max-width: 42rem;
             margin-left: auto;
             margin-right: auto;
             padding: 0.75rem 2%;
             box-sizing: border-box; 
-            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         #chat-input { 
@@ -452,7 +451,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Firebase and variable setup (unchanged) ---
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
                 authDomain: "ai-chatbot-b38da.firebaseapp.com",
@@ -738,31 +736,62 @@
                     document.body.classList.add('is-desktop');
                     const pinBtn = document.getElementById('pin-sidebar-btn');
                     
+                    // --- NEW JAVASCRIPT LOGIC FOR CROSS-FADE ---
+                    let reflowTimeout;
+                    const startReflow = () => {
+                        clearTimeout(reflowTimeout);
+                        chatMessages.classList.add('is-reflowing');
+                    };
+                    const endReflow = () => {
+                        // Use a timeout to fade the content back in.
+                        // This gives the browser time to reflow the text while it's invisible.
+                        reflowTimeout = setTimeout(() => {
+                            chatMessages.classList.remove('is-reflowing');
+                        }, 150); // This delay should be less than the CSS transition duration.
+                    };
+
+                    const expandSidebar = () => {
+                        startReflow();
+                        sidebar.classList.remove('is-collapsed');
+                        chatArea.classList.remove('sidebar-collapsed');
+                        endReflow();
+                    };
+
+                    const collapseSidebar = () => {
+                        startReflow();
+                        sidebar.classList.add('is-collapsed');
+                        chatArea.classList.add('sidebar-collapsed');
+                        endReflow();
+                    };
+
                     const setPinnedState = (isPinned) => {
                         localStorage.setItem('sidebarPinned', isPinned);
+                        startReflow(); // Trigger fade before changing layout
                         sidebar.classList.toggle('is-pinned', isPinned);
                         pinBtn.title = isPinned ? 'Unpin Sidebar' : 'Pin Sidebar';
                         if (isPinned) {
-                            sidebar.classList.remove('is-collapsed');
-                            chatArea.classList.remove('sidebar-collapsed');
+                            expandSidebar();
                         }
+                        endReflow();
                     };
 
                     const isPinned = localStorage.getItem('sidebarPinned') === 'true';
-                    setPinnedState(isPinned);
+                    sidebar.classList.toggle('is-pinned', isPinned);
+                    pinBtn.title = isPinned ? 'Unpin Sidebar' : 'Pin Sidebar';
+
                     if (!isPinned) {
                         sidebar.classList.add('is-collapsed');
                         chatArea.classList.add('sidebar-collapsed');
                     }
 
                     sidebar.onmouseenter = () => {
-                        sidebar.classList.remove('is-collapsed');
-                        chatArea.classList.remove('sidebar-collapsed');
+                        if (sidebar.classList.contains('is-collapsed')) {
+                            expandSidebar();
+                        }
                     };
                     sidebar.onmouseleave = () => {
                         if (activeDropdown || sidebar.classList.contains('is-pinned')) return;
-                        sidebar.classList.add('is-collapsed');
-                        chatArea.classList.add('sidebar-collapsed');
+                        collapseSidebar();
                     };
                     pinBtn.onclick = (e) => {
                         e.stopPropagation();

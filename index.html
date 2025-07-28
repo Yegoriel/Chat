@@ -163,59 +163,10 @@
             to { opacity: 1; }
         }
         
-        .message-container.ai p {
-            line-height: 1.75;
-        }
-        .message-container.ai > *:not(:last-child) {
-            margin-bottom: 1.25em !important;
-        }
-        .message-container.ai p:first-child { margin-top: 0; }
-        .message-container.ai strong, .message-container.ai b {
-            font-weight: 700;
-            color: #000;
-        }
-        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3 {
-            line-height: 1.2;
-            margin-top: 2.5rem;
-            margin-bottom: 1rem;
-            color: #000;
-        }
-        .message-container.ai h1 {
-            font-size: 2.2em;
-            font-weight: 800;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.4em;
-        }
-        .message-container.ai h2 {
-            font-size: 1.7em;
-            font-weight: 700;
-        }
-        .message-container.ai h3 {
-            font-size: 1.3em;
-            font-weight: 650;
-        }
-        .message-container.ai ul, .message-container.ai ol {
-            padding-left: 1.5em;
-        }
-        .message-container.ai li {
-            margin-bottom: 0.75em;
-            line-height: 1.6;
-        }
-        .message-container.ai a {
-            color: #0056b3;
-            text-decoration: none;
-        }
-        .message-container.ai a:hover {
-            text-decoration: underline;
-        }
-        .message-container.ai hr {
-            border: none;
-            height: 1px;
-            background-color: var(--border-color);
-            margin: 2.5rem 0;
-        }
-
-        /* REMOVED conflicting mobile rules */
+         .message-container.ai th, .message-container.ai td { border-top: 1px solid var(--border-color); border-left: 1px solid var(--border-color); padding: 0.75rem 1rem; text-align: left; }
+        .message-container.ai th:first-child, .message-container.ai td:first-child { border-left: none; }
+        .message-container.ai thead th { border-top: none; background-color: var(--sidebar-bg); font-weight: 600; }
+        .message-container.ai tbody tr:nth-of-type(even) { background-color: var(--sidebar-bg); }
 
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }

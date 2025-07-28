@@ -78,20 +78,27 @@
         #user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
         body.logged-in #logout-btn { display: flex; }
         
-        #chat-area { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow: hidden; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #chat-area { 
+            display: flex; 
+            flex-direction: column; 
+            flex: 1; 
+            min-width: 0; 
+            overflow: hidden; 
+            /* UPDATED: Slower, more graceful transition */
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
 
         #chat-header, #menu-toggle, #sidebar-close-btn, #pin-sidebar-btn { display: none; }
 
-        .is-desktop #sidebar { width: var(--sidebar-width); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .is-desktop #sidebar { width: var(--sidebar-width); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .is-desktop #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); }
         
-        /* --- NEW ELASTIC TEXT ANIMATION --- */
         .sidebar-header h2,
         .chat-title-container,
         #logout-text,
         .chat-actions-btn {
             transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform-origin: left center; /* Animate from the left edge */
+            transform-origin: left center;
         }
 
         .is-desktop #sidebar.is-collapsed .sidebar-header h2,
@@ -100,9 +107,8 @@
         .is-desktop #sidebar.is-collapsed .chat-actions-btn {
             opacity: 0;
             transform: scaleX(0);
-            pointer-events: none; /* Hide from mouse interactions when collapsed */
+            pointer-events: none;
         }
-        /* --- END ELASTIC ANIMATION --- */
 
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #chat-area.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
@@ -146,7 +152,8 @@
             touch-action: pan-y;
             scroll-behavior: smooth;
             padding: 50px 2% 30vh 2%;
-            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* UPDATED: Slower, more graceful transition */
+            transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -164,7 +171,6 @@
             align-self: flex-end; 
             border-bottom-right-radius: 4px;
             max-width: 70%;
-            /* REMOVED font-size override for consistency */
         }
         .message-container.ai { 
             background-color: var(--ai-msg-bg); 
@@ -200,7 +206,8 @@
             margin-right: auto;
             padding: 0.75rem 2%;
             box-sizing: border-box; 
-            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* UPDATED: Slower, more graceful transition */
+            transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         #chat-input { 

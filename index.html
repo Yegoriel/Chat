@@ -10,7 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            /* NEW: Matching ChatGPT's font stack */
+            --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             --background-color: #ffffff;
             --text-color: #333;
             --primary-accent: #1a1a1a;
@@ -28,7 +29,8 @@
             margin: 0; padding: 0; font-family: var(--system-font); height: 100%; width: 100%; overflow: hidden; background-color: var(--background-color); color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-size: 20px;
+            /* NEW: Matching ChatGPT's base font size */
+            font-size: 1rem;
             letter-spacing: 0.01em;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
@@ -90,7 +92,7 @@
         
         .is-desktop #chat-area.sidebar-collapsed #chat-messages,
         .is-desktop #chat-area.sidebar-collapsed #chat-form {
-            max-width: 1100px;
+            max-width: 51rem;
         }
 
         .is-mobile #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
@@ -116,7 +118,7 @@
             flex-direction: column;
             min-height: 0;
             width: 100%;
-            max-width: 900px; 
+            max-width: 41rem; 
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
@@ -129,7 +131,6 @@
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
-            max-width: 90%; 
             margin-bottom: 1rem;
             border-radius: 18px;
             word-wrap: break-word;
@@ -144,16 +145,25 @@
             align-self: flex-end; 
             border-bottom-right-radius: 4px;
             max-width: 70%;
-            font-size: 1.05rem;
+            /* REMOVED font-size override for consistency */
         }
         .message-container.ai { 
             background-color: var(--ai-msg-bg); 
             align-self: flex-start; 
             border: none; 
-            padding: 0.75rem 1.1rem; 
+            padding: 0;
+            width: 100%;
+        }
+        .ai-content-block {
+            padding: 0.75rem 1.1rem;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
-        .message-container.ai {
+        .message-container.ai p {
             line-height: 1.75;
         }
         .message-container.ai > *:not(:last-child) {
@@ -186,8 +196,6 @@
         }
         .message-container.ai ul, .message-container.ai ol {
             padding-left: 1.5em;
-            margin-top: 1.25em;
-            margin-bottom: 1.25em;
         }
         .message-container.ai li {
             margin-bottom: 0.75em;
@@ -207,15 +215,7 @@
             margin: 2.5rem 0;
         }
 
-        @media (max-width: 767px) {
-            body, html {
-                font-size: 15px;
-            }
-            .message-container {
-                align-self: center !important;
-                max-width: 96%;
-            }
-        }
+        /* REMOVED conflicting mobile rules */
 
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
@@ -225,13 +225,14 @@
             display: flex; 
             align-items: flex-end; 
             gap: 0.75rem; 
-            max-width: 900px;
+            max-width: 41rem;
             margin-left: auto;
             margin-right: auto;
             padding: 0.75rem 2%;
             box-sizing: border-box; 
             transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
         #chat-input { 
             flex-grow: 1; 
             border: none; 
@@ -266,15 +267,18 @@
             display: flex;
             align-items: flex-end;
             flex-grow: 1;
-            border: 1px solid var(--border-color);
-            background-color: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: var(--background-color);
             border-radius: 28px;
             padding: 8px 8px 8px 4px;
             min-height: 48px;
             box-sizing: border-box;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
         .input-wrapper:focus-within {
-            border-color: var(--primary-accent);
+            border-color: rgba(0,0,0,0.2);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
         }
         
         .code-block-wrapper { position: relative; margin: 1.25em 0; }
@@ -315,8 +319,28 @@
 
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
         .is-desktop .scroll-controls { display: flex; }
-        .scroll-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); font-size: 1.5rem; color: var(--text-color); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
-        .scroll-btn:hover { background: #fff; transform: scale(1.05); }
+        .scroll-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            opacity: 0.5;
+        }
+        .scroll-btn:hover {
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 1;
+            transform: scale(1.05);
+        }
         
         #chat-history-list::-webkit-scrollbar {
             width: 5px;
@@ -428,8 +452,6 @@
                 }
             });
 
-            // --- CORE LOGIC (No changes needed in JS) ---
-
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
@@ -505,6 +527,7 @@
                 });
             }
 
+            // --- STABLE handleSendMessage with NO ANIMATION ---
             async function handleSendMessage(e) {
                 e.preventDefault();
                 if (!currentUser) return;
@@ -716,7 +739,7 @@
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
             
-            function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 8; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
+            function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 12; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
 
             initializeSidebar(); 
             initializeScrollButtons();
@@ -726,4 +749,3 @@
     </script>
 </body>
 </html>
-and also the user's bubble is not on the right side of the screen on mobile, and the ai's bubble is not centered, fix that please

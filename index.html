@@ -116,7 +116,7 @@
             flex-direction: column;
             min-height: 0;
             width: 100%;
-            max-width: 900px; 
+            max-width: 860px; 
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
@@ -129,12 +129,11 @@
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
-            max-width: 90%; 
             margin-bottom: 1rem;
             border-radius: 18px;
             word-wrap: break-word;
         }
-        .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
+        .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
         
@@ -150,10 +149,19 @@
             background-color: var(--ai-msg-bg); 
             align-self: flex-start; 
             border: none; 
-            padding: 0.75rem 1.1rem; 
+            padding: 0;
+            width: 100%;
+        }
+        .ai-content-block {
+            padding: 0.75rem 1.1rem;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
-        .message-container.ai {
+        .message-container.ai p {
             line-height: 1.75;
         }
         .message-container.ai > *:not(:last-child) {
@@ -223,7 +231,7 @@
             display: flex; 
             align-items: flex-end; 
             gap: 0.75rem; 
-            max-width: 900px;
+            max-width: 860px;
             margin-left: auto;
             margin-right: auto;
             padding: 0.75rem 2%;
@@ -427,8 +435,6 @@
                 }
             });
 
-            // --- CORE LOGIC (No changes needed in JS) ---
-
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
@@ -504,6 +510,7 @@
                 });
             }
 
+            // --- STABLE handleSendMessage with NO ANIMATION ---
             async function handleSendMessage(e) {
                 e.preventDefault();
                 if (!currentUser) return;

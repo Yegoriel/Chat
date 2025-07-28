@@ -57,7 +57,6 @@
 
         #chat-history-list { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 0.5rem 0; user-select: none; -webkit-user-select: none; }
         
-        /* --- BUG FIX: Hide scrollbar on collapsed sidebar --- */
         .is-desktop #sidebar.is-collapsed #chat-history-list {
             overflow-y: hidden;
         }
@@ -133,6 +132,8 @@
             position: relative; 
             flex-grow: 1; 
             overflow: hidden;
+            padding: 0 1rem;
+            box-sizing: border-box;
         }
         #chat-messages-container::before, #chat-messages-container::after { content: ''; position: absolute; left: 0; right: 0; height: 50px; z-index: 2; pointer-events: none; }
         #chat-messages-container::before { top: 0; background: linear-gradient(to bottom, var(--background-color) 0%, transparent 100%); }
@@ -143,8 +144,6 @@
             overflow-y: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            padding: 0 1rem; /* Sleek side padding */
-            box-sizing: border-box;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
 
@@ -312,11 +311,11 @@
 
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-left: 1.75em; /* Consistent, narrow indent */
+            padding-left: 1.75em;
         }
 
         .message-container.ai ul ul li::marker {
-            list-style-type: disc; /* Force solid points */
+            list-style-type: disc;
             font-size: 0.8em;
         }
 

@@ -1,33 +1,10 @@
-/* THIS IS THE PROBLEMATIC RULE */
-.is-desktop #chat-area.sidebar-collapsed #chat-messages,
-.is-desktop #chat-area.sidebar-collapsed #chat-form {
-    max-width: 51rem; /* This increases the text container width, causing the jarring reflow */
-}```
-
-This rule tells the main content area to expand its `max-width` from `41rem` to `51rem` when the sidebar collapses. This change in the container's width is what forces all the text to reflow into new lines, causing the "jump" that makes you lose your place.
-
-### The Correct Solution: A Stable Content Column
-
-The correct approach, which is used by most modern, polished web applications, is to **keep the main content column at a fixed, optimal reading width at all times.** The extra space gained from collapsing the sidebar should simply become empty margin space, leaving the text itself completely undisturbed.
-
-This will achieve your goal:
-*   The sidebar animation remains fast, smooth, and sleek.
-*   The AI text in the main area will **not jump or reflow at all.** It will remain perfectly stable, making the entire experience feel solid and much more professional.
-
-**The fix is simple: we will remove the rule that changes the `max-width`.**
-
-### Exported HTML with the Corrected, Stable Text Flow
-
-I have removed the problematic CSS rule and the unnecessary `max-width` transitions. The sidebar animation remains fast and elastic as you liked, but the main content is now rock-solid. This should give you the exact eye-pleasing effect you're looking for.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AI Chat</title>
-    <!-- Font is now a high-performance system stack, no import needed -->
+   
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -135,12 +112,7 @@ I have removed the problematic CSS rule and the unnecessary `max-width` transiti
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #pin-sidebar-btn { display: flex; }
         
-        /* 
-         *  THE FIX: The problematic rule that increased the max-width has been REMOVED.
-         *  The #chat-messages and #chat-form containers will now always respect their
-         *  base max-width, preventing the text from reflowing.
-        */
-
+        
         .is-mobile #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
         .is-mobile #sidebar.no-transition { transition: none; }
         .is-mobile #sidebar-close-btn { display: flex; }

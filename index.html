@@ -1,26 +1,3 @@
-/* THIS IS THE PROBLEMATIC RULE */
-.is-desktop #chat-area.sidebar-collapsed #chat-messages,
-.is-desktop #chat-area.sidebar-collapsed #chat-form {
-    max-width: 51rem; /* This increases the text container width, causing the jarring reflow */
-}```
-
-This rule tells the main content area to expand its `max-width` from `41rem` to `51rem` when the sidebar collapses. This change in the container's width is what forces all the text to reflow into new lines, causing the "jump" that makes you lose your place.
-
-### The Correct Solution: A Stable Content Column
-
-The correct approach, which is used by most modern, polished web applications, is to **keep the main content column at a fixed, optimal reading width at all times.** The extra space gained from collapsing the sidebar should simply become empty margin space, leaving the text itself completely undisturbed.
-
-This will achieve your goal:
-*   The sidebar animation remains fast, smooth, and sleek.
-*   The AI text in the main area will **not jump or reflow at all.** It will remain perfectly stable, making the entire experience feel solid and much more professional.
-
-**The fix is simple: we will remove the rule that changes the `max-width`.**
-
-### Exported HTML with the Corrected, Stable Text Flow
-
-I have removed the problematic CSS rule and the unnecessary `max-width` transitions. The sidebar animation remains fast and elastic as you liked, but the main content is now rock-solid. This should give you the exact eye-pleasing effect you're looking for.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,7 +141,7 @@ I have removed the problematic CSS rule and the unnecessary `max-width` transiti
             flex-direction: column;
             min-height: 0;
             width: 100%;
-            max-width: 48rem; /* A slightly more generous fixed reading width */
+            max-width: 51rem; 
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
@@ -221,7 +198,7 @@ I have removed the problematic CSS rule and the unnecessary `max-width` transiti
             display: flex; 
             align-items: flex-end; 
             gap: 0.75rem; 
-            max-width: 48rem; /* Match the new fixed width */
+            max-width: 41rem; 
             margin-left: auto;
             margin-right: auto;
             padding: 0.75rem 2%;
@@ -352,7 +329,6 @@ I have removed the problematic CSS rule and the unnecessary `max-width` transiti
             background-color: #aaa;
         }
 
-        /* --- TYPOGRAPHY BEAUTIFYING STYLES --- */
         
         .message-container.ai .ai-content-block {
             line-height: 1.75;

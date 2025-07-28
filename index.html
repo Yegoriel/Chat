@@ -56,12 +56,6 @@
         #sidebar.is-pinned #pin-sidebar-btn .unpin-icon, #sidebar:not(.is-pinned) #pin-sidebar-btn .pin-icon { display: block; }
 
         #chat-history-list { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 0.5rem 0; user-select: none; -webkit-user-select: none; }
-        
-        /* --- BUG FIX: Hide scrollbar on collapsed sidebar --- */
-        .is-desktop #sidebar.is-collapsed #chat-history-list {
-            overflow-y: hidden;
-        }
-
         .chat-history-item { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; cursor: pointer; white-space: nowrap; font-size: 0.9rem; }
         .chat-history-item:hover { background-color: #e9e9eb; }
         .chat-history-item .item-icon { margin-right: 1rem; flex-shrink: 0; }

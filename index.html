@@ -23,13 +23,14 @@
             --code-text-color: #383a42;
             --sidebar-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        html { scroll-behavior: smooth; }
+        html { 
+            scroll-behavior: smooth; 
+            font-size: 16px; /* Set the base font size for desktop */
+        }
         body, html {
             margin: 0; padding: 0; font-family: var(--system-font); height: 100%; width: 100%; overflow: hidden; background-color: var(--background-color); color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-size: 1rem;
-            letter-spacing: 0.01em;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
         body.is-dragging #chat-messages { overflow-y: hidden; }
@@ -353,9 +354,11 @@
 
         /* --- MOBILE RESPONSIVENESS FIX --- */
         @media (max-width: 768px) {
+            html {
+                font-size: 15px; /* Set a smaller base font size for mobile */
+            }
             .chat-content-wrapper,
             #chat-form {
-                /* On mobile, remove the fixed width and re-add padding for breathing room */
                 max-width: 100%;
                 padding-left: 2%;
                 padding-right: 2%;

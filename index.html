@@ -112,10 +112,9 @@
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #pin-sidebar-btn { display: flex; }
         
-        /* THIS RULE IS NOW RESTORED to handle the content expansion */
         .is-desktop #chat-area.sidebar-collapsed #chat-messages,
         .is-desktop #chat-area.sidebar-collapsed #chat-form {
-            max-width: 56rem; /* A wider reading area for the collapsed state */
+            max-width: 56rem;
         }
 
         .is-mobile #sidebar { width: var(--sidebar-width); max-width: 85vw; transform: translateX(calc(-1 * var(--sidebar-width))); transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0); }
@@ -136,7 +135,11 @@
         #chat-messages {
             height: 100%;
             flex-grow: 1;
-            overflow-y: auto;
+            /* THE KEY FIX: Force scrollbar to stabilize layout, then hide it */
+            overflow-y: scroll;
+            scrollbar-width: none; /* For Firefox */
+            -ms-overflow-style: none; /* For Internet Explorer and Edge */
+            
             display: flex;
             flex-direction: column;
             min-height: 0;
@@ -145,15 +148,18 @@
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            padding: 50px 2% 30vh 2%;
-            /* THE KEY FIX: Transition the max-width smoothly */
+            padding: 50px 2% 30vh;
+            /* Add padding to compensate for the invisible scrollbar's space */
+            padding-right: calc(2% + 15px);
             transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        #chat-messages::-webkit-scrollbar { display: none; }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        #chat-messages::-webkit-scrollbar { 
+            display: none;
+        }
+        
         .message-container {
             margin-bottom: 1rem;
             border-radius: 18px;
@@ -204,7 +210,6 @@
             margin-right: auto;
             padding: 0.75rem 2%;
             box-sizing: border-box; 
-            /* THE KEY FIX: Transition the max-width smoothly */
             transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         

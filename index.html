@@ -57,6 +57,7 @@
 
         #chat-history-list { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 0.5rem 0; user-select: none; -webkit-user-select: none; }
         
+        /* --- BUG FIX: Hide scrollbar on collapsed sidebar --- */
         .is-desktop #sidebar.is-collapsed #chat-history-list {
             overflow-y: hidden;
         }
@@ -128,39 +129,34 @@
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
-        #chat-messages-container { 
-            position: relative; 
-            flex-grow: 1; 
-            overflow: hidden;
-            padding: 0 1rem;
-            box-sizing: border-box;
-        }
+        #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; }
         #chat-messages-container::before, #chat-messages-container::after { content: ''; position: absolute; left: 0; right: 0; height: 50px; z-index: 2; pointer-events: none; }
         #chat-messages-container::before { top: 0; background: linear-gradient(to bottom, var(--background-color) 0%, transparent 100%); }
         #chat-messages-container::after { bottom: 0; background: linear-gradient(to top, var(--background-color) 0%, transparent 100%); }
         
         #chat-messages {
             height: 100%;
+            flex-grow: 1;
             overflow-y: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        #chat-messages::-webkit-scrollbar { display: none; }
-
-        .chat-content-wrapper {
-            max-width: 48rem;
-            margin: 0 auto;
-            padding: 50px 0 30vh 0;
             display: flex;
             flex-direction: column;
+            min-height: 0;
+            width: 100%;
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            touch-action: pan-y;
+            scroll-behavior: smooth;
+            padding: 50px 2% 30vh 2%;
         }
-        
+        #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
             margin-bottom: 1rem;
             border-radius: 18px;
             word-wrap: break-word;
-            display: flex;
-            flex-direction: column;
         }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
@@ -172,7 +168,6 @@
             align-self: flex-end; 
             border-bottom-right-radius: 4px;
             max-width: 70%;
-            line-height: 1.6;
         }
         .message-container.ai { 
             background-color: var(--ai-msg-bg); 
@@ -182,6 +177,7 @@
             width: 100%;
         }
         .ai-content-block {
+            padding: 0.75rem 1.1rem;
             animation: fadeIn 0.5s ease forwards;
         }
         @keyframes fadeIn {
@@ -192,19 +188,15 @@
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         
-        #chat-input-container { 
-            background-color: var(--background-color); 
-            border-top: none;
-            padding: 0 1rem;
-            box-sizing: border-box;
-        }
+        #chat-input-container { background-color: var(--background-color); border-top: none; }
         #chat-form { 
             display: flex; 
             align-items: flex-end; 
             gap: 0.75rem; 
             max-width: 48rem;
-            margin: 0 auto;
-            padding: 0.75rem 0;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0.75rem 2%;
             box-sizing: border-box; 
         }
         
@@ -410,11 +402,7 @@
         <main id="chat-area">
              <button id="menu-toggle">☰</button>
             <div id="chat-messages-container">
-                <div id="chat-messages">
-                    <div class="chat-content-wrapper">
-                        <div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>
-                    </div>
-                </div>
+                <div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
             </div>
             <footer id="chat-input-container">
                 <form id="chat-form">
@@ -454,8 +442,6 @@
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null, isRenaming = false, activeDropdown = null;
 
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item');
-            
-            const chatContentWrapper = document.querySelector('.chat-content-wrapper');
 
             marked.setOptions({
                 highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
@@ -470,7 +456,7 @@
                     currentUser = null; if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
-                    chatContentWrapper.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
+                    chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
                     document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
             });
@@ -479,11 +465,11 @@
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
                 if (isHtml) {
-                    m.innerHTML = `<div class="ai-content-block">${content}</div>`;
+                    m.innerHTML = content;
                 } else {
                     m.textContent = content;
                 }
-                chatContentWrapper.appendChild(m);
+                chatMessages.appendChild(m);
                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 return m;
             }
@@ -513,7 +499,7 @@
             }
 
             async function loadChat(chatId) {
-                if (!currentUser || (currentChatId === chatId && chatContentWrapper.children.length > 1)) return;
+                if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return;
                 if(document.body.classList.contains('is-mobile')) closeSidebar();
                 cancelAllRenames();
                 const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
@@ -522,7 +508,7 @@
                 
                 const chat = snapshot.val();
                 localChatHistory = chat.messages || [];
-                chatContentWrapper.innerHTML = '';
+                chatMessages.innerHTML = '';
                 chatMessages.classList.add('is-loading-history');
 
                 localChatHistory.forEach(msg => {
@@ -530,7 +516,7 @@
                         addMessageToUI('user', msg.text);
                     } else if (msg.role === 'model') {
                         const renderedHtml = marked.parse(msg.text || "");
-                        const aiMsgContainer = addMessageToUI('ai', renderedHtml, true);
+                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block">${renderedHtml}</div>`, true);
                         attachFeaturesToAiMessage(aiMsgContainer);
                     }
                 });
@@ -575,7 +561,7 @@
                     db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                const aiMsgContainer = addMessageToUI('ai', '<div class="thinking-indicator"><span></span><span></span><span></span></div>', true);
+                const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 let accumulatedResponseText = '';
 
                 try {

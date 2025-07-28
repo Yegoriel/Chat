@@ -19,11 +19,13 @@
             --user-msg-bg: #f0f2f5;
             --ai-msg-bg: transparent;
             --sidebar-width: 280px;
-            /* MODIFICATION: Restored a narrow collapsed width for the sidebar */
             --sidebar-collapsed-width: 80px;
             --code-bg: #f0f2f5;
             --code-text-color: #383a42;
-            --chat-content-max-width: 48rem;
+            /* MODIFICATION: Renamed for clarity. This is the narrow width. */
+            --chat-content-narrow-width: 48rem; 
+            /* MODIFICATION: This is the width when the sidebar is collapsed. */
+            --chat-content-expanded-width: 60rem; 
         }
         html { scroll-behavior: smooth; }
         body, html {
@@ -54,7 +56,6 @@
         .sidebar-action-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--text-color); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
         .sidebar-action-btn:hover { background-color: #dcdce0; }
         #new-chat-item .item-icon { font-size: 1.5rem; }
-        /* MODIFICATION: Brought back pin button styles */
         #pin-sidebar-btn .pin-icon, #pin-sidebar-btn .unpin-icon { display: none; }
         #sidebar.is-pinned #pin-sidebar-btn .unpin-icon, #sidebar:not(.is-pinned) #pin-sidebar-btn .pin-icon { display: block; }
 
@@ -90,11 +91,9 @@
 
         #chat-header, #menu-toggle, #sidebar-close-btn, #pin-sidebar-btn { display: none; }
 
-        /* MODIFICATION: Restored desktop sidebar behavior */
         .is-desktop #sidebar { width: var(--sidebar-width); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .is-desktop #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); }
         
-        /* MODIFICATION: Restored elastic text animation */
         .sidebar-header h2,
         .chat-title-container,
         #logout-text,
@@ -128,10 +127,10 @@
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
-        /* This is the content wrapper for sleek width control */
         #chat-content-wrapper {
             width: 100%;
-            max-width: var(--chat-content-max-width);
+            /* MODIFICATION: Default to the narrow width (when sidebar is open) */
+            max-width: var(--chat-content-narrow-width);
             margin-right: auto;
             margin-left: auto;
             display: flex;
@@ -140,6 +139,13 @@
             min-height: 0;
             padding: 0 1rem;
             box-sizing: border-box;
+            /* MODIFICATION: Add the animation for max-width */
+            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* MODIFICATION: When sidebar is collapsed, expand the content area */
+        .is-desktop #chat-area.sidebar-collapsed #chat-content-wrapper {
+            max-width: var(--chat-content-expanded-width);
         }
 
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
@@ -403,7 +409,6 @@
             <div class="sidebar-header">
                 <h2>Chat History</h2>
                 <div class="sidebar-header-actions">
-                    <!-- MODIFICATION: Restored Pin button -->
                     <button id="pin-sidebar-btn" class="sidebar-action-btn" title="Pin Sidebar">
                         <span class="pin-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 3H8C6.34315 3 5 4.34315 5 6V14C5 15.6569 6.34315 17 8 17H16C17.6569 17 19 15.6569 19 14V6C19 4.34315 17.6569 3 16 3ZM12 17V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -730,7 +735,6 @@
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             const closeSidebar = () => { document.body.classList.remove('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             
-            // MODIFICATION: Restored the full-featured desktop sidebar logic
             function initializeSidebar() {
                 const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
                 

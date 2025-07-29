@@ -306,14 +306,17 @@
         .copy-btn:active { transform: scale(0.95); }
         
         .table-wrapper {
-            overflow-x: auto;
-            margin: 1.25em 0;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            font-size: 15px;
-            transition: border-color 0.3s;
-        }
+    overflow-x: auto;
+    margin: 1.25em 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: border-color 0.3s;
+    /* --- FIX --- */
+    /* This is the crucial part that stops mobile browsers from changing your font sizes. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
         .table-wrapper table {
             width: 100%;
             border-collapse: separate;
@@ -323,7 +326,18 @@
             border: none;
             box-shadow: none;
         }
-        .message-container.ai th, .message-container.ai td { border-top: 1px solid var(--border-color); border-left: 1px solid var(--border-color); padding: 0.75rem 1rem; text-align: left; transition: border-color 0.3s, background-color 0.3s; }
+        .message-container.ai th, .message-container.ai td {
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    transition: border-color 0.3s, background-color 0.3s;
+    /* --- FIX --- */
+    /* 1. Sets a single, consistent font size for all table text. */
+    font-size: 0.9rem;
+    /* 2. Ensures all content aligns to the top of the cell for a cleaner look. */
+    vertical-align: top;
+}
         .message-container.ai th:first-child, .message-container.ai td:first-child { border-left: none; }
         .message-container.ai thead th { border-top: none; background-color: var(--sidebar-bg); font-weight: 600; }
         .message-container.ai tbody tr:nth-of-type(even) { background-color: var(--sidebar-bg); }

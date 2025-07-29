@@ -22,9 +22,7 @@
             --sidebar-collapsed-width: 80px;
             --code-bg: #f0f2f5;
             --code-text-color: #383a42;
-            /* MODIFICATION: Renamed for clarity. This is the narrow width. */
             --chat-content-narrow-width: 48rem; 
-            /* MODIFICATION: This is the width when the sidebar is collapsed. */
             --chat-content-expanded-width: 60rem; 
         }
         html { scroll-behavior: smooth; }
@@ -60,6 +58,10 @@
         #sidebar.is-pinned #pin-sidebar-btn .unpin-icon, #sidebar:not(.is-pinned) #pin-sidebar-btn .pin-icon { display: block; }
 
         #chat-history-list { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 0.5rem 0; user-select: none; -webkit-user-select: none; }
+        /* MODIFICATION: Hide scrollbar on collapsed sidebar */
+        .is-desktop #sidebar.is-collapsed #chat-history-list::-webkit-scrollbar { display: none; }
+        .is-desktop #sidebar.is-collapsed #chat-history-list { scrollbar-width: none; }
+
         .chat-history-item { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; cursor: pointer; white-space: nowrap; font-size: 0.9rem; }
         .chat-history-item:hover { background-color: #e9e9eb; }
         .chat-history-item .item-icon { margin-right: 1rem; flex-shrink: 0; }
@@ -129,7 +131,6 @@
 
         #chat-content-wrapper {
             width: 100%;
-            /* MODIFICATION: Default to the narrow width (when sidebar is open) */
             max-width: var(--chat-content-narrow-width);
             margin-right: auto;
             margin-left: auto;
@@ -139,11 +140,9 @@
             min-height: 0;
             padding: 0 1rem;
             box-sizing: border-box;
-            /* MODIFICATION: Add the animation for max-width */
             transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* MODIFICATION: When sidebar is collapsed, expand the content area */
         .is-desktop #chat-area.sidebar-collapsed #chat-content-wrapper {
             max-width: var(--chat-content-expanded-width);
         }
@@ -298,27 +297,31 @@
 
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
         .is-desktop .scroll-controls { display: flex; }
+        
+        /* MODIFICATION: Sleek, modern scroll buttons */
         .scroll-btn {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            border: none;
-            background: rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(5px);
-            font-size: 1.5rem;
-            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--border-color);
+            background: var(--background-color);
+            color: #666;
             cursor: pointer;
             user-select: none;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
-            opacity: 0.5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .scroll-btn:hover {
-            background: rgba(0, 0, 0, 0.3);
-            opacity: 1;
-            transform: scale(1.05);
+            background-color: var(--sidebar-bg);
+            border-color: #ddd;
+            transform: translateY(-1px);
+        }
+        .scroll-btn svg {
+            width: 20px;
+            height: 20px;
         }
         
         #chat-history-list::-webkit-scrollbar { width: 5px; }
@@ -353,17 +356,18 @@
         .message-container.ai h2 { font-size: 1.5rem; }
         .message-container.ai h3 { font-size: 1.25rem; }
 
+        /* MODIFICATION: Refined list styling */
         .message-container.ai ul,
         .message-container.ai ol {
             margin: 1em 0;
-            padding-left: 2em;
+            padding-left: 1.5em; /* Tighter default indentation */
         }
 
         .message-container.ai ul ul,
         .message-container.ai ol ol,
         .message-container.ai ul ol,
         .message-container.ai ol ul {
-            padding-left: 1.5em; 
+            padding-left: 1.2em; /* Even tighter for nested lists */
         }
 
         .message-container.ai li {
@@ -371,9 +375,13 @@
             margin-bottom: 0.5em;
         }
         
-        .message-container.ai li li {
-            list-style-type: circle; 
-        }
+        .message-container.ai ul li { list-style-type: disc; }
+        .message-container.ai ul ul li { list-style-type: '- '; } /* Softer dash */
+        .message-container.ai ul ul ul li { list-style-type: circle; }
+
+        .message-container.ai ol li { list-style-type: decimal; }
+        .message-container.ai ol ol li { list-style-type: lower-alpha; }
+        .message-container.ai ol ol ol li { list-style-type: lower-roman; }
 
         .message-container.ai li strong {
             font-weight: 500;
@@ -398,6 +406,14 @@
         
         .message-container.ai blockquote p {
             margin: 0;
+        }
+        
+        /* MODIFICATION: Softer horizontal rule */
+        .message-container.ai hr {
+            border: 0;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 2em 0;
         }
 
     </style>
@@ -454,8 +470,13 @@
         </main>
         
         <div class="scroll-controls">
-            <button id="scroll-up-btn" class="scroll-btn" title="Scroll Up (Double-click for Top)">▲</button>
-            <button id="scroll-down-btn" class="scroll-btn" title="Scroll Down (Double-click for Bottom)">▼</button>
+            <!-- MODIFICATION: New sleek SVG icons for scroll buttons -->
+            <button id="scroll-up-btn" class="scroll-btn" title="Scroll Up (Double-click for Top)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            </button>
+            <button id="scroll-down-btn" class="scroll-btn" title="Scroll Down (Double-click for Bottom)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
         </div>
     </div>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -683,8 +704,8 @@
                             itemEl = document.createElement('div');
                             itemEl.className = 'chat-history-item';
                             itemEl.dataset.chatId = chat.id;
+                            // MODIFICATION: Removed the item-icon span from the history item
                             itemEl.innerHTML = `
-                                <span class="item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>
                                 <div class="chat-title-container">${titleText}</div>
                                 <button class="chat-actions-btn" data-chat-id="${chat.id}">
                                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>

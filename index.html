@@ -433,10 +433,8 @@
   color: #2e2e2e;
 }
 
-.message-container.ai li p {
-  font-size: 0.95rem;
-  margin: 0.3em 0;
-  line-height: 1.6;
+.message-container.ai .ai-content-block > p:last-child {
+  margin-bottom: 0; /* убираем лишний отступ снизу */
 }
 
 /* === STRONG & B === */
@@ -460,40 +458,37 @@
   list-style-position: outside;
 }
 
-/* Nested list styles */
+/* === Стилизация маркеров списков === */
+.message-container.ai ul li::marker {
+  color: #bbb; /* светло-серый маркер */
+  content: "• "; /* полный круг */
+  font-size: 1em;
+}
+
+.message-container.ai ol {
+  list-style: decimal;
+}
+
+.message-container.ai ol li::marker {
+  color: #bbb; /* светло-серая нумерация */
+  font-size: 1em;
+}
+
+/* === Вложенные списки === */
 .message-container.ai li ul,
 .message-container.ai li ol {
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
+  margin: 0.4em 0;
   padding-left: 1.25em;
 }
 
-.message-container.ai ul ul {
-  list-style-type: circle;
+.message-container.ai ul ul li::marker {
+  content: "• ";
+  color: #ccc;
 }
 
-.message-container.ai ul ul ul {
-  list-style-type: square;
-}
-
-/* === EMOJI FIX === */
-.message-container.ai h1 > .emoji,
-.message-container.ai h2 > .emoji,
-.message-container.ai h3 > .emoji {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35em;
-  margin-right: 0.5em;
-  background-color: var(--sidebar-bg, #f4f4f4);
-  border-radius: 6px;
-  line-height: 1;
-  font-size: 0.85em;
-}
-
-.message-container.ai p > .emoji,
-.message-container.ai li > .emoji {
-  display: none;
+.message-container.ai ul ul ul li::marker {
+  content: "• ";
+  color: #ddd;
 }
 
 /* === BLOCKQUOTE === */
@@ -535,13 +530,33 @@
   background-color: #cce4ff;
 }
 
+/* === EMOJI FIX === */
+.message-container.ai h1 > .emoji,
+.message-container.ai h2 > .emoji,
+.message-container.ai h3 > .emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35em;
+  margin-right: 0.5em;
+  background-color: var(--sidebar-bg, #f4f4f4);
+  border-radius: 6px;
+  line-height: 1;
+  font-size: 0.85em;
+}
+
+.message-container.ai p > .emoji,
+.message-container.ai li > .emoji {
+  display: none;
+}
+
 /* === RESPONSIVENESS === */
 @media (max-width: 768px) {
   .message-container.ai h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
   .message-container.ai h2 {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
   }
   .message-container.ai h3 {
     font-size: 1.1rem;

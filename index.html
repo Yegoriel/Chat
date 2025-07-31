@@ -382,15 +382,12 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- TYPOGRAPHY BEAUTIFYING STYLES --- */
-        
-/* === GLOBAL AI CONTENT STYLING FIX === */
-/* === TYPOGRAPHY CORE RESET === */
-/* === TYPOGRAPHY CORE RESET === */
-.message-container.ai .ai-content-block {
-  font-family: inherit;
-  font-weight: 400;
+ font-weight: 400;
+  font-size: 1rem;
   line-height: 1.75;
+  color: #1e1e1e;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   text-decoration: none;
 }
 
@@ -398,30 +395,27 @@
 .message-container.ai h1,
 .message-container.ai h2,
 .message-container.ai h3 {
-  font-family: inherit;
   font-weight: 600;
   line-height: 1.3;
+  margin: 2rem 0 1rem;
   text-decoration: none;
-  border: none;
+  color: #111;
 }
 
 .message-container.ai h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
+  font-size: 2rem;
   letter-spacing: -0.01em;
-  margin: 2rem 0 1.25rem;
+  margin-top: 2.5rem;
 }
 
 .message-container.ai h2 {
   font-size: 1.5rem;
   font-weight: 500;
-  margin: 1.5rem 0 1rem;
 }
 
 .message-container.ai h3 {
   font-size: 1.25rem;
   font-weight: 500;
-  margin: 1.25rem 0 0.75rem;
 }
 
 /* === PARAGRAPHS === */
@@ -434,14 +428,7 @@
 }
 
 .message-container.ai .ai-content-block > p:last-child {
-  margin-bottom: 0; /* убираем лишний отступ снизу */
-}
-
-/* === STRONG & B === */
-.message-container.ai strong,
-.message-container.ai b {
-  font-weight: 600;
-  color: #000;
+  margin-bottom: 0;
 }
 
 /* === LISTS === */
@@ -450,19 +437,20 @@
   margin: 1.25em 0;
   padding-left: 1.5em;
   color: #2a2a2a;
+  font-weight: 400;
 }
 
 .message-container.ai li {
   margin: 0.4em 0;
+  padding-left: 0;
   line-height: 1.6;
-  list-style-position: outside;
 }
 
-/* === Стилизация маркеров списков === */
+/* === Стили маркеров списков как в ChatGPT === */
 .message-container.ai ul li::marker {
-  color: #bbb; /* светло-серый маркер */
-  content: "• "; /* полный круг */
-  font-size: 1em;
+  content: "• ";
+  color: #444; /* немного светлее обычного черного */
+  font-size: 1rem;
 }
 
 .message-container.ai ol {
@@ -470,25 +458,28 @@
 }
 
 .message-container.ai ol li::marker {
-  color: #bbb; /* светло-серая нумерация */
-  font-size: 1em;
+  color: #999; /* светло-серые цифры */
+  font-size: 1rem;
 }
 
-/* === Вложенные списки === */
-.message-container.ai li ul,
-.message-container.ai li ol {
-  margin: 0.4em 0;
+/* === Вложенные списки — одинаковый стиль и без доп. отступов === */
+.message-container.ai li > ul,
+.message-container.ai li > ol {
+  margin: 0.3em 0;
   padding-left: 1.25em;
 }
 
-.message-container.ai ul ul li::marker {
+.message-container.ai li > ul > li::marker,
+.message-container.ai li > ol > li::marker {
   content: "• ";
-  color: #ccc;
+  color: #444;
+  font-size: 1rem;
 }
 
-.message-container.ai ul ul ul li::marker {
-  content: "• ";
-  color: #ddd;
+.message-container.ai li ul li,
+.message-container.ai li ol li {
+  margin-left: 0;
+  padding-left: 0;
 }
 
 /* === BLOCKQUOTE === */
@@ -498,8 +489,8 @@
   background-color: rgba(0, 122, 255, 0.07);
   border-left: 4px solid #007aff;
   border-radius: 8px;
-  color: #1a1a1a;
   position: relative;
+  color: #1a1a1a;
 }
 
 .message-container.ai blockquote::before {
@@ -514,20 +505,15 @@
   margin: 0;
 }
 
-/* === INLINE CODE === */
+/* === INLINE CODE — как в ChatGPT === */
 .message-container.ai code {
-  font-size: 0.85rem;
   font-family: 'Fira Code', 'SF Mono', monospace;
+  font-size: 0.9rem;
   padding: 0.2em 0.4em;
-  background-color: var(--code-bg, #f3f3f3);
   border-radius: 4px;
-  color: #c7254e;
+  background-color: #f7f7f8; /* светлый серый фон */
+  color: #1e1e1e; /* обычный текстовый цвет */
   white-space: pre-wrap;
-}
-
-/* === SELECTION STYLING === */
-.message-container.ai ::selection {
-  background-color: #cce4ff;
 }
 
 /* === EMOJI FIX === */
@@ -541,13 +527,17 @@
   margin-right: 0.5em;
   background-color: var(--sidebar-bg, #f4f4f4);
   border-radius: 6px;
-  line-height: 1;
   font-size: 0.85em;
 }
 
 .message-container.ai p > .emoji,
 .message-container.ai li > .emoji {
   display: none;
+}
+
+/* === SELECTION === */
+.message-container.ai ::selection {
+  background-color: #d0e7ff;
 }
 
 /* === RESPONSIVENESS === */

@@ -389,36 +389,40 @@
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-family: var(--system-font);
 }
 
+/* === HEADINGS === */
 .message-container.ai h1 {
-    font-size: 2.25rem;        
-    font-weight: 800;          /* Extra bold */
-    line-height: 1.3;
-    margin: 1.75rem 0 1rem;
-    letter-spacing: -0.01em;   /* Плотность — как в sleek UI */
+    font-size: 1.875rem; /* ~30px */
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 1.5rem 0 1rem;
+    letter-spacing: -0.005em;
+    text-decoration: none;
     font-family: var(--system-font);
 }
 
 .message-container.ai h2 {
-    font-size: 1.5rem;       /* ~24px */
+    font-size: 1.5rem;
     font-weight: 600;
     margin: 1.25rem 0 0.75rem;
 }
 
 .message-container.ai h3 {
-    font-size: 1.25rem;      /* ~20px */
+    font-size: 1.25rem;
     font-weight: 500;
     margin: 1rem 0 0.5rem;
 }
 
+/* === PARAGRAPH === */
 .message-container.ai p {
     font-size: 1rem;
     line-height: 1.75;
     margin: 1rem 0;
 }
 
-
+/* === LISTS === */
 .message-container.ai ul,
 .message-container.ai ol {
     margin: 1.25em 0;
@@ -437,19 +441,25 @@
     padding-left: 1.5em;
 }
 
-.message-container.ai > .ai-content-block > ul > li { list-style-type: disc; }
-.message-container.ai > .ai-content-block > ol > li { list-style-type: decimal; }
+.message-container.ai > .ai-content-block > ul > li {
+    list-style-type: disc;
+}
+.message-container.ai > .ai-content-block > ol > li {
+    list-style-type: decimal;
+}
+
+.message-container.ai li > ul > li,
+.message-container.ai li > ol > li {
+    position: relative;
+    list-style-type: none;
+}
 
 .message-container.ai li > ul > li::before,
 .message-container.ai li > ol > li::before {
     content: '—';
     position: absolute;
     margin-left: -1.25em;
-}
-.message-container.ai li > ul > li,
-.message-container.ai li > ol > li {
-    position: relative;
-    list-style-type: none;
+    color: var(--text-color);
 }
 
 .message-container.ai li > ul > li > ul > li,
@@ -459,18 +469,18 @@
     list-style-type: circle;
 }
 
+/* === BLOCKQUOTE === */
 .message-container.ai blockquote {
     margin: 1.5em 0;
     padding: 1rem 1rem 1rem 3rem;
     background-color: rgba(74, 144, 226, 0.1);
-    border-left: 4px solid #4a90e2; 
+    border-left: 4px solid #4a90e2;
     border-radius: 8px;
     position: relative;
 }
 body.dark-theme .message-container.ai blockquote {
-     background-color: rgba(74, 144, 226, 0.15);
+    background-color: rgba(74, 144, 226, 0.15);
 }
-
 .message-container.ai blockquote::before {
     content: '💡';
     position: absolute;
@@ -478,11 +488,11 @@ body.dark-theme .message-container.ai blockquote {
     top: 1rem;
     font-size: 1.2rem;
 }
-
 .message-container.ai blockquote p {
     margin: 0;
 }
 
+/* === HR === */
 .message-container.ai hr {
     border: 0;
     height: 1px;
@@ -490,23 +500,115 @@ body.dark-theme .message-container.ai blockquote {
     margin: 2.5rem 0;
 }
 
+/* === INLINE CODE === */
 .message-container.ai code {
     font-size: 0.95rem;
     padding: 0.15em 0.4em;
     background-color: var(--code-bg);
     border-radius: 4px;
+    font-family: 'Fira Code', 'SF Mono', monospace;
 }
 
-        #theme-toggle-btn {
-            flex-shrink: 0;
-        }
-        #theme-toggle-btn .theme-icon {
-            display: none;
-        }
-        body:not(.dark-theme) #theme-toggle-btn .moon-icon,
-        body.dark-theme #theme-toggle-btn .sun-icon {
-            display: block;
-        }
+/* === CODE BLOCKS === */
+.code-block-wrapper {
+    position: relative;
+    margin: 1.25em 0;
+}
+
+.message-container.ai pre {
+    background-color: var(--code-bg);
+    color: var(--code-text-color);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    overflow-x: auto;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.message-container.ai pre code.hljs {
+    padding: 0;
+    background: transparent;
+}
+
+/* === COPY BUTTON === */
+.copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #e9e9eb;
+    color: #555;
+    border: 1px solid var(--border-color);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+body.dark-theme .copy-btn {
+    background-color: #4a4a4a;
+    color: #ddd;
+    border-color: #555;
+}
+.code-block-wrapper:hover .copy-btn {
+    opacity: 1;
+}
+.copy-btn:hover {
+    background: #dcdce0;
+}
+body.dark-theme .copy-btn:hover {
+    background-color: #5a5a5a;
+}
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+/* === TABLE STYLES === */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 1.25em 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+.table-wrapper table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 500px;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+}
+.message-container.ai th,
+.message-container.ai td {
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.9rem;
+    vertical-align: top;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+.message-container.ai th:first-child,
+.message-container.ai td:first-child {
+    border-left: none;
+}
+.message-container.ai thead th {
+    border-top: none;
+    background-color: var(--sidebar-bg);
+    font-weight: 600;
+}
+.message-container.ai tbody tr:nth-of-type(even) {
+    background-color: var(--sidebar-bg);
+}
+
 
     </style>
 </head>

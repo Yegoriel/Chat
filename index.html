@@ -385,271 +385,244 @@
       /* --- TYPOGRAPHY BEAUTIFYING STYLES --- */
         
 /* === GLOBAL AI CONTENT STYLING FIX === */
-/* === TYPOGRAPHY CORE RESET === */
-/* === TYPOGRAPHY CORE RESET === */
 .message-container.ai .ai-content-block {
-  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-  font-weight: 400;
-  line-height: 1.75;
-  font-size: 1rem;
-  color: #1e1e1e;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+    line-height: 1.75;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: var(--system-font);
 }
 
-/* === HEADINGS === */
-.message-container.ai h1,
-.message-container.ai h2,
-.message-container.ai h3 {
-  font-family: inherit;
-  font-weight: 600;
-  line-height: 1.4;
-  color: #111;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  text-decoration: none;
-  border: none;
-}
+
 
 .message-container.ai h1 {
-  font-size: 1.75rem;
-  letter-spacing: -0.01em;
+    font-size: 2.125rem;        /* ≈ 34px */
+    font-weight: 700;           /* Не жирный, но уверенный */
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    margin: 2rem 0 1.25rem;
+    text-decoration: none;
 }
 
 .message-container.ai h2 {
-  font-size: 1.5rem;
+    font-size: 1.5rem;
 }
 
 .message-container.ai h3 {
-  font-size: 1.25rem;
-  font-weight: 500;
+    font-size: 1.25rem;
 }
 
-/* === PARAGRAPHS === */
+.message-container.ai h1 *::before,
+.message-container.ai h2 *::before,
+.message-container.ai h3 *::before,
+.message-container.ai h1 *::after,
+.message-container.ai h2 *::after,
+.message-container.ai h3 *::after {
+    content: none !important;
+}
+
+/* === PARAGRAPH === */
 .message-container.ai p {
-  font-size: 1rem;
-  line-height: 1.75;
-  font-weight: 400;
-  margin: 1rem 0;
-  color: #2e2e2e;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    margin: 1rem 0;
 }
 
-.message-container.ai li p {
-  font-size: 0.95rem;
-  margin: 0.3em 0;
-  line-height: 1.6;
-}
-
-/* === STRONG & B === */
-.message-container.ai strong,
-.message-container.ai b {
-  font-weight: 600;
-  color: #000;
-}
-
-/* === LISTS === */
+/* === LIST STYLING === */
 .message-container.ai ul,
 .message-container.ai ol {
-  margin: 1.25em 0;
-  padding-left: 1.5em;
-  color: #2a2a2a;
+    margin: 1.25em 0;
+    padding-left: 1.75em;
+    counter-reset: custom-counter;
 }
 
 .message-container.ai li {
-  margin: 0.4em 0;
-  line-height: 1.6;
-  list-style-position: outside;
+    margin-bottom: 0.5em;
+    padding-left: 0.5em;
 }
 
-/* Nested list styles */
 .message-container.ai li ul,
 .message-container.ai li ol {
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
-  padding-left: 1.25em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-left: 1.5em;
 }
 
-.message-container.ai ul ul {
-  list-style-type: circle;
+/* Fix unordered list symbols */
+.message-container.ai > .ai-content-block > ul > li {
+    list-style-type: disc;
 }
 
-.message-container.ai ul ul ul {
-  list-style-type: square;
+/* Fix ordered list numbers */
+.message-container.ai > .ai-content-block > ol {
+    list-style-type: decimal;
 }
 
-/* === EMOJI FIX === */
-.message-container.ai h1 > .emoji,
-.message-container.ai h2 > .emoji,
-.message-container.ai h3 > .emoji {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35em;
-  margin-right: 0.5em;
-  background-color: var(--sidebar-bg, #f4f4f4);
-  border-radius: 6px;
-  line-height: 1;
-  font-size: 0.85em;
+.message-container.ai li > ul > li,
+.message-container.ai li > ol > li {
+    position: relative;
+    list-style-type: none;
 }
 
-.message-container.ai p > .emoji,
-.message-container.ai li > .emoji {
-  display: none;
+.message-container.ai li > ul > li::before,
+.message-container.ai li > ol > li::before {
+    content: '—';
+    position: absolute;
+    margin-left: -1.25em;
+    color: var(--text-color);
+}
+
+.message-container.ai li > ul > li > ul > li,
+.message-container.ai li > ul > li > ol > li,
+.message-container.ai li > ol > li > ul > li,
+.message-container.ai li > ol > li > ol > li {
+    list-style-type: circle;
 }
 
 /* === BLOCKQUOTE === */
 .message-container.ai blockquote {
-  margin: 1.5em 0;
-  padding: 1rem 1.5rem;
-  background-color: rgba(0, 122, 255, 0.07);
-  border-left: 4px solid #007aff;
-  border-radius: 8px;
-  color: #1a1a1a;
-  position: relative;
+    margin: 1.5em 0;
+    padding: 1rem 1rem 1rem 3rem;
+    background-color: rgba(74, 144, 226, 0.1);
+    border-left: 4px solid #4a90e2;
+    border-radius: 8px;
+    position: relative;
+}
+
+body.dark-theme .message-container.ai blockquote {
+    background-color: rgba(74, 144, 226, 0.15);
 }
 
 .message-container.ai blockquote::before {
-  content: '💡';
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  font-size: 1.2rem;
+    content: '💡';
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    font-size: 1.2rem;
 }
 
 .message-container.ai blockquote p {
-  margin: 0;
+    margin: 0;
+}
+
+/* === HR === */
+.message-container.ai hr {
+    border: 0;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 2.5rem 0;
 }
 
 /* === INLINE CODE === */
 .message-container.ai code {
-  font-size: 0.85rem;
-  font-family: 'Fira Code', 'SF Mono', monospace;
-  padding: 0.2em 0.4em;
-  background-color: var(--code-bg, #f3f3f3);
-  border-radius: 4px;
-  color: #c7254e;
-  white-space: pre-wrap;
-}
-
-/* === SELECTION STYLING === */
-.message-container.ai ::selection {
-  background-color: #cce4ff;
-}
-
-/* === RESPONSIVENESS === */
-@media (max-width: 768px) {
-  .message-container.ai h1 {
-    font-size: 1.5rem;
-  }
-  .message-container.ai h2 {
-    font-size: 1.25rem;
-  }
-  .message-container.ai h3 {
-    font-size: 1.1rem;
-  }
-  .message-container.ai p {
     font-size: 0.95rem;
-  }
+    padding: 0.15em 0.4em;
+    background-color: var(--code-bg);
+    border-radius: 4px;
+    font-family: 'Fira Code', 'SF Mono', monospace;
+}
+
+/* === CODE BLOCKS === */
+.code-block-wrapper {
+    position: relative;
+    margin: 1.25em 0;
+}
+
+.message-container.ai pre {
+    background-color: var(--code-bg);
+    color: var(--code-text-color);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    overflow-x: auto;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.message-container.ai pre code.hljs {
+    padding: 0;
+    background: transparent;
+}
+
+/* === COPY BUTTON === */
+.copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #e9e9eb;
+    color: #555;
+    border: 1px solid var(--border-color);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+body.dark-theme .copy-btn {
+    background-color: #4a4a4a;
+    color: #ddd;
+    border-color: #555;
+}
+.code-block-wrapper:hover .copy-btn {
+    opacity: 1;
+}
+.copy-btn:hover {
+    background: #dcdce0;
+}
+body.dark-theme .copy-btn:hover {
+    background-color: #5a5a5a;
+}
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+/* === TABLE STYLES === */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 1.25em 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+.table-wrapper table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 500px;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+}
+.message-container.ai th,
+.message-container.ai td {
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.9rem;
+    vertical-align: top;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+.message-container.ai th:first-child,
+.message-container.ai td:first-child {
+    border-left: none;
+}
+.message-container.ai thead th {
+    border-top: none;
+    background-color: var(--sidebar-bg);
+    font-weight: 400;
+}
+.message-container.ai tbody tr:nth-of-type(even) {
+    background-color: var(--sidebar-bg);
 }
 
 
-    .message-container.ai hr {
-      border: 0;
-      height: 1px;
-      background-color: var(--border-color);
-      margin: 2.5rem 0;
-    }
-
-    .code-block-wrapper {
-      position: relative;
-      margin: 1.25em 0;
-    }
-
-    .message-container.ai pre {
-      background-color: var(--code-bg);
-      color: var(--code-text-color);
-      padding: 1rem;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      overflow-x: auto;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 0.875rem;
-      line-height: 1.6;
-      margin: 0;
-      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-    }
-
-    .message-container.ai pre code.hljs {
-      padding: 0;
-      background: transparent;
-    }
-
-    .copy-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: #e9e9eb;
-      color: #555;
-      border: 1px solid var(--border-color);
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .code-block-wrapper:hover .copy-btn {
-      opacity: 1;
-    }
-
-    .copy-btn:hover {
-      background: #dcdce0;
-    }
-
-    .copy-btn:active {
-      transform: scale(0.95);
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-      margin: 1.25em 0;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .table-wrapper table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      min-width: 500px;
-    }
-
-    .message-container.ai th,
-    .message-container.ai td {
-      border-top: 1px solid var(--border-color);
-      border-left: 1px solid var(--border-color);
-      padding: 0.75rem 1rem;
-      text-align: left;
-      font-size: 0.9rem;
-      vertical-align: top;
-    }
-
-    .message-container.ai th:first-child,
-    .message-container.ai td:first-child {
-      border-left: none;
-    }
-
-    .message-container.ai thead th {
-      border-top: none;
-      background-color: var(--sidebar-bg);
-      font-weight: 600;
-    }
-
-    .message-container.ai tbody tr:nth-of-type(even) {
-      background-color: var(--sidebar-bg);
-    }
     </style>
 </head>
 <body>

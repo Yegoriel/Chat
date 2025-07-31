@@ -451,11 +451,26 @@
 .message-container.ai p {
   font-size: 1rem;
   line-height: 1.75;
+  font-weight: 400;
   margin: 1rem 0;
+}
+
+/* === ПАРАГРАФ ВНУТРИ СПИСКА — чуть компактнее === */
+.message-container.ai li p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-weight: 400;
+  margin: 0.25em 0 0.5em;
+}
+
+/* === Удалить жирность у списков, если случайно попала === */
+.message-container.ai li,
+.message-container.ai ul,
+.message-container.ai ol {
   font-weight: 400;
 }
 
-/* === LIST STYLING === */
+/* === УНИФИЦИРОВАННЫЕ СПИСКИ === */
 .message-container.ai ul,
 .message-container.ai ol {
   margin: 1em 0;
@@ -463,39 +478,27 @@
 }
 
 .message-container.ai li {
-  margin: 0.25em 0;
+  margin: 0.4em 0;
   padding-left: 0;
   line-height: 1.6;
 }
 
-/* Первого уровня: обычные маркеры */
-.message-container.ai > .ai-content-block > ul > li {
-  list-style-type: disc;
-}
-.message-container.ai > .ai-content-block > ol > li {
-  list-style-type: decimal;
-}
-
-/* Вложенные списки: упрощаем и убираем лесенку */
+/* === ВЛОЖЕННЫЕ СПИСКИ — без каскадных лесенок === */
 .message-container.ai li > ul,
 .message-container.ai li > ol {
-  margin: 0.25em 0;
+  margin: 0.3em 0;
   padding-left: 1.25em;
 }
 
 .message-container.ai li > ul > li,
 .message-container.ai li > ol > li {
-  position: relative;
-  list-style-type: disc; /* убрали кастомный маркер “–” */
+  list-style-type: disc;
   padding-left: 0;
   margin-left: 0;
 }
 
-/* Глубже: тоже без каскада и визуально ровно */
 .message-container.ai li > ul > li > ul > li,
-.message-container.ai li > ul > li > ol > li,
-.message-container.ai li > ol > li > ul > li,
-.message-container.ai li > ol > li > ol > li {
+.message-container.ai li > ol > li > ul > li {
   list-style-type: circle;
   padding-left: 0;
   margin-left: 0;

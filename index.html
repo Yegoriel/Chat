@@ -340,9 +340,9 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: FLAWLESS & SLEEK TYPOGRAPHY SYSTEM --- */
+      /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
 
-        /* Base style for all AI-generated content */
+        /* Base style for AI response block */
         .message-container.ai .ai-content-block {
             font-family: inherit;
             font-weight: 400;
@@ -351,7 +351,7 @@
             text-rendering: optimizeLegibility;
         }
 
-        /* === HEADINGS: A CLEAR & VALUABLE HIERARCHY === */
+        /* === HEADINGS (NEW HIERARCHY) === */
         
         .message-container.ai h1,
         .message-container.ai h2,
@@ -364,45 +364,44 @@
             color: var(--text-color);
         }
 
-        /* H1: The Massive, Main Title (for guide names, etc.) */
+        /* The Massive, Main Title (Guidebook Name) */
         .message-container.ai h1 {
-            font-size: 3.0rem;
+            font-size: 3.2rem;
             font-weight: 800;
             letter-spacing: -0.025em;
             margin: 3rem 0 1.5rem;
         }
 
-        /* H2: The Primary Sub-heading (for sections) */
+        /* The Main Sub-heading (Section Title) */
         .message-container.ai h2 {
-            font-size: 2.0rem;
+            font-size: 2.2rem;
             font-weight: 700;
             letter-spacing: -0.02em;
             margin: 2.5rem 0 1.25rem;
         }
 
-        /* H3: The Supporting Sub-heading */
+        /* The Supporting Sub-heading */
         .message-container.ai h3 {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 600;
             margin: 2rem 0 1rem;
         }
 
-        /* Special style for emojis inside headings (The "Badge") */
+        /* Special style for emojis inside headings */
         .message-container.ai h1 > .emoji,
         .message-container.ai h2 > .emoji,
         .message-container.ai h3 > .emoji {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 1.4em;
-            height: 1.4em;
+            width: 1.5em;
+            height: 1.5em;
             margin-right: 0.6em;
             background-color: var(--sidebar-bg);
-            border-radius: 0.4em;
-            font-size: 0.9em;
+            border-radius: 0.5em;
+            font-size: 0.8em;
             line-height: 1;
             vertical-align: middle;
-            border: 1px solid var(--border-color);
         }
 
         /* === PARAGRAPHS & TEXT === */
@@ -419,16 +418,16 @@
             font-weight: 600;
         }
 
-        /* === LISTS: FLAWLESS & STRAIGHT ALIGNMENT === */
+        /* === LISTS (FLAWLESS & STRAIGHT ALIGNMENT) === */
 
         .message-container.ai ul,
         .message-container.ai ol {
             margin: 1em 0;
-            padding-left: 1.5em; /* Space for the bullet point */
+            padding-left: 1.5em; /* Creates space for the bullet */
             font-weight: 400;
         }
         
-        /* This is the key for the "straight line" alignment */
+        /* THE FIX for "straight line" alignment */
         .message-container.ai ul,
         .message-container.ai ol {
             list-style-position: outside;
@@ -441,26 +440,28 @@
             padding-left: 0.4em; /* Small gap between bullet and text */
         }
         
-        /* This hides any empty list items that might be generated */
+        /* THE FIX for empty bullet points */
         .message-container.ai li:empty {
             display: none;
         }
         
-        /* This ensures all bullets are simple, light discs */
+        /* THE FIX for consistent bullets (no squares) */
         .message-container.ai ul li,
         .message-container.ai ul ul li,
-        .message-container.ai ol ul li {
+        .message-container.ai ul ol li,
+        .message-container.ai ol ul li,
+        .message-container.ai ol ol li {
             list-style-type: disc;
         }
 
-        /* Styling for all list markers (bullets and numbers) */
+        /* Styling for all list markers */
         .message-container.ai li::marker {
             color: var(--text-color);
             opacity: 0.6;
             font-size: 0.9em;
         }
 
-        /* Nested lists get a simple indent */
+        /* Nested lists indentation */
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin-top: 0.5em;
@@ -468,34 +469,25 @@
             padding-left: 1.5em;
         }
         
-        /* Reset pseudo-elements to prevent conflicts */
+        /* Resetting pseudo-elements to prevent conflicts */
         .message-container.ai li::before,
         .message-container.ai li::after {
             content: none !important;
         }
 
-        /* === OTHER ELEMENTS: BLOCKQUOTES, CODE, ETC. === */
+        /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
 
-        /* The new, sleek "Tip Bar" style */
+        /* Sleek, modern blockquote */
         .message-container.ai blockquote {
-            position: relative;
-            margin: 1.75em 0;
-            padding: 1rem 1rem 1rem 3rem;
-            background-color: var(--sidebar-bg);
-            border-left: none;
-            border-radius: 8px;
+            margin: 1.5em 0;
+            padding: 0.1em 0 0.1em 1.25rem;
+            background-color: transparent;
+            border-left: 3px solid var(--primary-accent);
+            opacity: 0.85;
         }
         
-        .message-container.ai blockquote::before {
-            content: '💡';
-            position: absolute;
-            left: 1rem;
-            top: 1.25rem;
-            font-size: 1.2rem;
-        }
-
         .message-container.ai blockquote p {
-            margin: 0 !important;
+            margin: 1em 0 !important;
         }
 
         /* Inline code styling */
@@ -595,7 +587,7 @@
         .message-container.ai thead th { border-top: none; background-color: var(--sidebar-bg); font-weight: 600; }
         .message-container.ai tbody tr:nth-of-type(even) { background-color: var(--sidebar-bg); }
 
-      /* --- END: FLAWLESS & SLEEK TYPOGRAPHY SYSTEM --- */
+      /* --- END: FLAWLESS TYPOGRAPHY SYSTEM --- */
     </style>
 </head>
 <body>
@@ -720,18 +712,21 @@
                 return m;
             }
 
-            // --- SMART JAVASCRIPT FUNCTION TO STYLE SPECIAL ELEMENTS ---
+            // --- NEW JAVASCRIPT FUNCTION TO STYLE EMOJIS ---
             function styleSpecialElements(container) {
                 // This regex finds a wide range of emojis at the beginning of a string.
                 const emojiRegex = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26ff]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/;
 
                 container.querySelectorAll('h1, h2, h3').forEach(heading => {
+                    // Trim whitespace to correctly detect the emoji
                     const trimmedText = heading.innerHTML.trim();
                     const match = trimmedText.match(emojiRegex);
                     
                     if (match) {
                         const emoji = match[0];
+                        // Get the rest of the text, trimming any space after the emoji
                         const restOfText = trimmedText.substring(emoji.length).trim();
+                        // Rebuild the heading with the styled emoji span
                         heading.innerHTML = `<span class="emoji">${emoji}</span> ${restOfText}`;
                     }
                 });
@@ -758,8 +753,8 @@
                     wrapper.appendChild(table);
                 });
 
-                // 4. --- JAVASCRIPT LOGIC INTEGRATION ---
-                // Style emojis in headings AFTER HTML is rendered by marked.js
+                // 4. --- JAVASCRIPT FIX INTEGRATION ---
+                // Style emojis in headings AFTER HTML is rendered
                 styleSpecialElements(container);
             }
 
@@ -782,7 +777,7 @@
                     } else if (msg.role === 'model') {
                         const renderedHtml = marked.parse(msg.text || "");
                         const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block">${renderedHtml}</div>`, true);
-                        // Apply all post-processing here
+                        // --- JAVASCRIPT FIX INTEGRATION ---
                         attachFeaturesToAiMessage(aiMsgContainer);
                     }
                 });
@@ -866,7 +861,7 @@
                                             const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                                             if (contentBlock) {
                                                 contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                                                // Apply all post-processing here
+                                                // --- JAVASCRIPT FIX INTEGRATION ---
                                                 attachFeaturesToAiMessage(aiMsgContainer);
                                             }
                                         }

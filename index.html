@@ -385,77 +385,53 @@
       /* --- TYPOGRAPHY BEAUTIFYING STYLES --- */
         
 /* === GLOBAL AI CONTENT STYLING FIX === */
+/* === TYPOGRAPHY CORE RESET === */
 .message-container.ai .ai-content-block {
-      font-family: inherit;
-      font-weight: 400;
-      line-height: 1.75;
-    }
-
-    .message-container.ai h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      line-height: 1.3;
-      letter-spacing: -0.01em;
-      margin: 2rem 0 1.25rem;
-      text-decoration: none;
-    }
-
-    .message-container.ai h2 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin: 1.5rem 0 1rem;
-    }
-
-    .message-container.ai h3 {
-      font-size: 1.25rem;
-      font-weight: 500;
-      margin: 1.25rem 0 0.75rem;
-    }
-
-    .message-container.ai p {
-      font-size: 1rem;
-      line-height: 1.75;
-      margin: 1rem 0;
-      font-size: 1rem !important;
-      text-decoration: none;
-    }
-
-    .message-container.ai strong,
-    .message-container.ai b {
-      font-weight: 600;
-      text-decoration: none !important;
-    }
-/* === EMOJI STYLING FIX === */
-/* Style emojis ONLY when they are inside a heading */
-.message-container.ai h1 > .emoji,
-.message-container.ai h2 > .emoji,
-.message-container.ai h3 > .emoji {
-    display: inline-block;
-    padding: 0.35em;
-    margin-right: 0.5em;
-    background-color: var(--sidebar-bg);
-    border-radius: 6px;
-    line-height: 1;
-    vertical-align: middle;
-    font-size: 0.8em;
-    transition: background-color 0.3s;
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1.75;
+  text-decoration: none;
 }
 
-/* Hide emojis that might appear incorrectly in paragraphs or lists */
-.message-container.ai p > .emoji,
-.message-container.ai li > .emoji {
-    display: none;
+/* === HEADINGS === */
+.message-container.ai h1,
+.message-container.ai h2,
+.message-container.ai h3 {
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.3;
+  text-decoration: none;
+  border: none;
 }
 
-/* === PARAGRAPH === */
+.message-container.ai h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 2rem 0 1.25rem;
+}
+
+.message-container.ai h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin: 1.5rem 0 1rem;
+}
+
+.message-container.ai h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 1.25rem 0 0.75rem;
+}
+
+/* === PARAGRAPHS === */
 .message-container.ai p {
   font-size: 1rem;
   line-height: 1.75;
   font-weight: 400;
   margin: 1rem 0;
+  text-decoration: none !important;
 }
 
-/* === ПАРАГРАФ ВНУТРИ СПИСКА — чуть компактнее === */
 .message-container.ai li p {
   font-size: 0.95rem;
   line-height: 1.6;
@@ -463,27 +439,28 @@
   margin: 0.25em 0 0.5em;
 }
 
-/* === Удалить жирность у списков, если случайно попала === */
-.message-container.ai li,
-.message-container.ai ul,
-.message-container.ai ol {
-  font-weight: 400;
+/* === STRONG & B === */
+.message-container.ai strong,
+.message-container.ai b {
+  font-weight: 600;
+  text-decoration: none !important;
 }
 
-/* === УНИФИЦИРОВАННЫЕ СПИСКИ === */
+/* === LISTS === */
 .message-container.ai ul,
 .message-container.ai ol {
   margin: 1em 0;
   padding-left: 1.25em;
+  font-weight: 400;
 }
 
 .message-container.ai li {
   margin: 0.4em 0;
   padding-left: 0;
   line-height: 1.6;
+  font-weight: 400;
 }
 
-/* === ВЛОЖЕННЫЕ СПИСКИ — без каскадных лесенок === */
 .message-container.ai li > ul,
 .message-container.ai li > ol {
   margin: 0.3em 0;
@@ -504,40 +481,57 @@
   margin-left: 0;
 }
 
-/* Параграфы внутри списков — без лишних отступов */
-.message-container.ai li p {
-  margin: 0.25em 0;
+/* === EMOJI FIX === */
+.message-container.ai h1 > .emoji,
+.message-container.ai h2 > .emoji,
+.message-container.ai h3 > .emoji {
+  display: inline-block;
+  padding: 0.35em;
+  margin-right: 0.5em;
+  background-color: var(--sidebar-bg);
+  border-radius: 6px;
+  line-height: 1;
+  vertical-align: middle;
+  font-size: 0.8em;
+  transition: background-color 0.3s;
 }
 
+.message-container.ai p > .emoji,
+.message-container.ai li > .emoji {
+  display: none;
+}
 
+/* === BLOCKQUOTE === */
 .message-container.ai blockquote {
-      margin: 1.5em 0;
-      padding: 1rem 1rem 1rem 3rem;
-      background-color: rgba(74, 144, 226, 0.1);
-      border-left: 4px solid #4a90e2;
-      border-radius: 8px;
-      position: relative;
-    }
+  margin: 1.5em 0;
+  padding: 1rem 1rem 1rem 3rem;
+  background-color: rgba(74, 144, 226, 0.1);
+  border-left: 4px solid #4a90e2;
+  border-radius: 8px;
+  position: relative;
+}
 
-    .message-container.ai blockquote::before {
-      content: '💡';
-      position: absolute;
-      left: 1rem;
-      top: 1rem;
-      font-size: 1.2rem;
-    }
+.message-container.ai blockquote::before {
+  content: '💡';
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  font-size: 1.2rem;
+}
 
-    .message-container.ai blockquote p {
-      margin: 0;
-    }
+.message-container.ai blockquote p {
+  margin: 0;
+}
 
-    .message-container.ai code {
-      font-size: 0.85rem;
-      padding: 0.15em 0.4em;
-      background-color: var(--code-bg);
-      border-radius: 4px;
-      font-family: 'Fira Code', 'SF Mono', monospace;
-    }
+/* === INLINE CODE === */
+.message-container.ai code {
+  font-size: 0.85rem;
+  padding: 0.15em 0.4em;
+  background-color: var(--code-bg);
+  border-radius: 4px;
+  font-family: 'Fira Code', 'SF Mono', monospace;
+}
+
 
     .message-container.ai hr {
       border: 0;

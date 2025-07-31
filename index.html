@@ -74,7 +74,7 @@
         .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; transition: border-color 0.3s; }
         .sidebar-header h2 { margin: 0; font-size: 1.1rem; user-select: none; -webkit-user-select: none; white-space: nowrap; }
         .sidebar-header-actions { display: flex; align-items: center; gap: 0.25rem; }
-        .sidebar-action-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--text-color); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; transition: color 0.3s; }
+        .sidebar-action-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--text-color); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; transition: color 0.3s, background-color 0.2s; }
         .sidebar-action-btn:hover { background-color: rgba(0,0,0,0.1); }
         body.dark-theme .sidebar-action-btn:hover { background-color: rgba(255,255,255,0.1); }
         
@@ -109,6 +109,11 @@
         #user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
         body.logged-in #logout-btn { display: flex; }
         
+        #theme-toggle-btn .sun-icon { display: none; }
+        #theme-toggle-btn .moon-icon { display: block; }
+        body.dark-theme #theme-toggle-btn .moon-icon { display: none; }
+        body.dark-theme #theme-toggle-btn .sun-icon { display: block; }
+
         #chat-area { 
             display: flex; 
             flex-direction: column; 
@@ -295,53 +300,6 @@
             border-color: #555;
         }
         
-        .code-block-wrapper { position: relative; margin: 1.25em 0; }
-        .message-container.ai pre { background-color: var(--code-bg); color: var(--code-text-color); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; font-family: 'SF Mono', 'Fira Code', 'monospace'; font-size: 0.875rem; line-height: 1.6; margin: 0; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
-        .message-container.ai pre code.hljs { padding: 0; background: transparent; }
-        .copy-btn { position: absolute; top: 8px; right: 8px; background: #e9e9eb; color: #555; border: 1px solid var(--border-color); padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; }
-        body.dark-theme .copy-btn { background-color: #4a4a4a; color: #ddd; border-color: #555; }
-        .code-block-wrapper:hover .copy-btn { opacity: 1; }
-        .copy-btn:hover { background: #dcdce0; }
-        body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
-        .copy-btn:active { transform: scale(0.95); }
-        
-        .table-wrapper {
-    overflow-x: auto;
-    margin: 1.25em 0;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    transition: border-color 0.3s;
-    /* --- FIX --- */
-    /* This is the crucial part that stops mobile browsers from changing your font sizes. */
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-}
-        .table-wrapper table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            min-width: 500px; 
-            margin: 0;
-            border: none;
-            box-shadow: none;
-        }
-        .message-container.ai th, .message-container.ai td {
-    border-top: 1px solid var(--border-color);
-    border-left: 1px solid var(--border-color);
-    padding: 0.75rem 1rem;
-    text-align: left;
-    transition: border-color 0.3s, background-color 0.3s;
-    /* --- FIX --- */
-    /* 1. Sets a single, consistent font size for all table text. */
-    font-size: 0.9rem;
-    /* 2. Ensures all content aligns to the top of the cell for a cleaner look. */
-    vertical-align: top;
-}
-        .message-container.ai th:first-child, .message-container.ai td:first-child { border-left: none; }
-        .message-container.ai thead th { border-top: none; background-color: var(--sidebar-bg); font-weight: 600; }
-        .message-container.ai tbody tr:nth-of-type(even) { background-color: var(--sidebar-bg); }
-
         .thinking-indicator { display: flex; gap: 4px; align-items: center; justify-content: center; height: 1.5rem; }
         .thinking-indicator span { width: 7px; height: 7px; background-color: var(--primary-accent); border-radius: 50%; animation: sleekWave 1.2s ease-in-out infinite; }
         .thinking-indicator span:nth-child(2) { animation-delay: 0.1s; }
@@ -382,255 +340,254 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-  /* === TYPOGRAPHY CORE RESET === */
-.message-container.ai .ai-content-block {
-  font-family: inherit;
-  font-weight: 400;
-  line-height: 1.75;
-  text-decoration: none;
-}
+      /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
 
-/* === HEADINGS === */
-.message-container.ai h1,
-.message-container.ai h2,
-.message-container.ai h3 {
-  font-family: inherit;
-  font-weight: 600;
-  line-height: 1.3;
-  text-decoration: none;
-  border: none;
-}
+        /* Base style for AI response block */
+        .message-container.ai .ai-content-block {
+            font-family: inherit;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--text-color);
+            text-rendering: optimizeLegibility;
+        }
 
-.message-container.ai h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  margin: 2rem 0 1.25rem;
-}
+        /* === HEADINGS (NEW HIERARCHY) === */
+        
+        .message-container.ai h1,
+        .message-container.ai h2,
+        .message-container.ai h3 {
+            font-family: inherit;
+            line-height: 1.3;
+            text-decoration: none !important;
+            border: none !important;
+            list-style: none !important;
+            color: var(--text-color);
+        }
 
-.message-container.ai h2 {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin: 1.5rem 0 1rem;
-}
+        /* The Massive, Main Title (Guidebook Name) */
+        .message-container.ai h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin: 3rem 0 1.5rem;
+        }
 
-.message-container.ai h3 {
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin: 1.25rem 0 0.75rem;
-}
+        /* The Main Sub-heading (Section Title) */
+        .message-container.ai h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin: 2.5rem 0 1.25rem;
+        }
 
-/* === PARAGRAPHS === */
-.message-container.ai p {
-  font-size: 1rem;
-  line-height: 1.75;
-  font-weight: 400;
-  margin: 1rem 0;
-  text-decoration: none !important;
-}
+        /* The Supporting Sub-heading */
+        .message-container.ai h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+        }
 
-.message-container.ai li p {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  font-weight: 400;
-  margin: 0.25em 0 0.5em;
-}
+        /* Special style for emojis inside headings */
+        .message-container.ai h1 > .emoji,
+        .message-container.ai h2 > .emoji,
+        .message-container.ai h3 > .emoji {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5em;
+            height: 1.5em;
+            margin-right: 0.6em;
+            background-color: var(--sidebar-bg);
+            border-radius: 0.5em;
+            font-size: 0.8em;
+            line-height: 1;
+            vertical-align: middle;
+        }
 
-/* === STRONG & B === */
-.message-container.ai strong,
-.message-container.ai b {
-  font-weight: 600;
-  text-decoration: none !important;
-}
+        /* === PARAGRAPHS & TEXT === */
 
-/* === LISTS === */
-.message-container.ai ul,
-.message-container.ai ol {
-  margin: 1em 0;
-  padding-left: 1.25em;
-  font-weight: 400;
-}
+        .message-container.ai p {
+            font-size: 1rem;
+            line-height: 1.75;
+            margin: 1em 0 !important;
+            font-weight: 400 !important;
+        }
 
-.message-container.ai li {
-  margin: 0.4em 0;
-  padding-left: 0;
-  line-height: 1.6;
-  font-weight: 400;
-}
+        .message-container.ai strong,
+        .message-container.ai b {
+            font-weight: 600;
+        }
 
-.message-container.ai li > ul,
-.message-container.ai li > ol {
-  margin: 0.3em 0;
-  padding-left: 1.25em;
-}
+        /* === LISTS (FLAWLESS & STRAIGHT ALIGNMENT) === */
 
-.message-container.ai li > ul > li,
-.message-container.ai li > ol > li {
-  list-style-type: disc;
-  padding-left: 0;
-  margin-left: 0;
-}
+        .message-container.ai ul,
+        .message-container.ai ol {
+            margin: 1em 0;
+            padding-left: 1.5em; /* Creates space for the bullet */
+            font-weight: 400;
+        }
+        
+        /* THE FIX for "straight line" alignment */
+        .message-container.ai ul,
+        .message-container.ai ol {
+            list-style-position: outside;
+        }
 
-.message-container.ai li > ul > li > ul > li,
-.message-container.ai li > ol > li > ul > li {
-  list-style-type: circle;
-  padding-left: 0;
-  margin-left: 0;
-}
+        .message-container.ai ul li,
+        .message-container.ai ol li {
+            line-height: 1.6;
+            margin: 0.5em 0;
+            padding-left: 0.4em; /* Small gap between bullet and text */
+        }
+        
+        /* THE FIX for empty bullet points */
+        .message-container.ai li:empty {
+            display: none;
+        }
+        
+        /* THE FIX for consistent bullets (no squares) */
+        .message-container.ai ul li,
+        .message-container.ai ul ul li,
+        .message-container.ai ul ol li,
+        .message-container.ai ol ul li,
+        .message-container.ai ol ol li {
+            list-style-type: disc;
+        }
 
-/* === EMOJI FIX === */
-.message-container.ai h1 > .emoji,
-.message-container.ai h2 > .emoji,
-.message-container.ai h3 > .emoji {
-  display: inline-block;
-  padding: 0.35em;
-  margin-right: 0.5em;
-  background-color: var(--sidebar-bg);
-  border-radius: 6px;
-  line-height: 1;
-  vertical-align: middle;
-  font-size: 0.8em;
-  transition: background-color 0.3s;
-}
+        /* Styling for all list markers */
+        .message-container.ai li::marker {
+            color: var(--text-color);
+            opacity: 0.6;
+            font-size: 0.9em;
+        }
 
-.message-container.ai p > .emoji,
-.message-container.ai li > .emoji {
-  display: none;
-}
+        /* Nested lists indentation */
+        .message-container.ai li > ul,
+        .message-container.ai li > ol {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+            padding-left: 1.5em;
+        }
+        
+        /* Resetting pseudo-elements to prevent conflicts */
+        .message-container.ai li::before,
+        .message-container.ai li::after {
+            content: none !important;
+        }
 
-/* === BLOCKQUOTE === */
-.message-container.ai blockquote {
-  margin: 1.5em 0;
-  padding: 1rem 1rem 1rem 3rem;
-  background-color: rgba(74, 144, 226, 0.1);
-  border-left: 4px solid #4a90e2;
-  border-radius: 8px;
-  position: relative;
-}
+        /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
 
-.message-container.ai blockquote::before {
-  content: '💡';
-  position: absolute;
-  left: 1rem;
-  top: 1rem;
-  font-size: 1.2rem;
-}
+        /* Sleek, modern blockquote */
+        .message-container.ai blockquote {
+            margin: 1.5em 0;
+            padding: 0.1em 0 0.1em 1.25rem;
+            background-color: transparent;
+            border-left: 3px solid var(--primary-accent);
+            opacity: 0.85;
+        }
+        
+        .message-container.ai blockquote p {
+            margin: 1em 0 !important;
+        }
 
-.message-container.ai blockquote p {
-  margin: 0;
-}
+        /* Inline code styling */
+        .message-container.ai code:not(pre > code) {
+            font-size: 0.875rem;
+            padding: 0.2em 0.4em;
+            background-color: var(--code-bg);
+            border-radius: 4px;
+            font-family: 'Fira Code', 'SF Mono', monospace;
+            border: 1px solid var(--border-color);
+        }
 
-/* === INLINE CODE === */
-.message-container.ai code {
-  font-size: 0.85rem;
-  padding: 0.15em 0.4em;
-  background-color: var(--code-bg);
-  border-radius: 4px;
-  font-family: 'Fira Code', 'SF Mono', monospace;
-}
+        .message-container.ai hr {
+            border: 0;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 2.5rem 0;
+        }
 
+        .code-block-wrapper {
+            position: relative;
+            margin: 1.25em 0;
+        }
+        
+        body.dark-theme .message-container.ai pre code.hljs {
+            color: var(--code-text-color);
+        }
 
-/* === CODE BLOCKS === */
-.code-block-wrapper {
-    position: relative;
-    margin: 1.25em 0;
-}
+        .message-container.ai pre {
+            background-color: var(--code-bg);
+            color: var(--code-text-color);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Fira Code', 'monospace';
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
 
-.message-container.ai pre {
-    background-color: var(--code-bg);
-    color: var(--code-text-color);
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    overflow-x: auto;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 0.875rem;
-    line-height: 1.6;
-    margin: 0;
-    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-}
+        .message-container.ai pre code.hljs {
+            padding: 0;
+            background: transparent;
+        }
 
-.message-container.ai pre code.hljs {
-    padding: 0;
-    background: transparent;
-}
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #e9e9eb;
+            color: #555;
+            border: 1px solid var(--border-color);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        body.dark-theme .copy-btn { background-color: #4a4a4a; color: #ddd; border-color: #555; }
+        .code-block-wrapper:hover .copy-btn { opacity: 1; }
+        .copy-btn:hover { background: #dcdce0; }
+        body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
+        .copy-btn:active { transform: scale(0.95); }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 1.25em 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: border-color 0.3s;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 500px; 
+            margin: 0;
+            border: none;
+            box-shadow: none;
+        }
+        .message-container.ai th, .message-container.ai td {
+            border-top: 1px solid var(--border-color);
+            border-left: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            transition: border-color 0.3s, background-color 0.3s;
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+        .message-container.ai th:first-child, .message-container.ai td:first-child { border-left: none; }
+        .message-container.ai thead th { border-top: none; background-color: var(--sidebar-bg); font-weight: 600; }
+        .message-container.ai tbody tr:nth-of-type(even) { background-color: var(--sidebar-bg); }
 
-/* === COPY BUTTON === */
-.copy-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: #e9e9eb;
-    color: #555;
-    border: 1px solid var(--border-color);
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-body.dark-theme .copy-btn {
-    background-color: #4a4a4a;
-    color: #ddd;
-    border-color: #555;
-}
-.code-block-wrapper:hover .copy-btn {
-    opacity: 1;
-}
-.copy-btn:hover {
-    background: #dcdce0;
-}
-body.dark-theme .copy-btn:hover {
-    background-color: #5a5a5a;
-}
-.copy-btn:active {
-    transform: scale(0.95);
-}
-
-/* === TABLE STYLES === */
-.table-wrapper {
-    overflow-x: auto;
-    margin: 1.25em 0;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-}
-.table-wrapper table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    min-width: 500px;
-    margin: 0;
-    border: none;
-    box-shadow: none;
-}
-.message-container.ai th,
-.message-container.ai td {
-    border-top: 1px solid var(--border-color);
-    border-left: 1px solid var(--border-color);
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-size: 0.9rem;
-    vertical-align: top;
-    transition: border-color 0.3s, background-color 0.3s;
-}
-.message-container.ai th:first-child,
-.message-container.ai td:first-child {
-    border-left: none;
-}
-.message-container.ai thead th {
-    border-top: none;
-    background-color: var(--sidebar-bg);
-    font-weight: 400;
-}
-.message-container.ai tbody tr:nth-of-type(even) {
-    background-color: var(--sidebar-bg);
-}
-
-
+      /* --- END: FLAWLESS TYPOGRAPHY SYSTEM --- */
     </style>
 </head>
 <body>
@@ -756,22 +713,17 @@ body.dark-theme .copy-btn:hover {
             }
 
             function attachFeaturesToAiMessage(container) {
-                container.querySelectorAll('pre').forEach(pre => {
-                    if (pre.parentNode.classList.contains('code-block-wrapper')) {
-                        hljs.highlightElement(pre.querySelector('code'));
-                        return; 
-                    }
+                container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
                     const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
                     btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
-                    wrapper.appendChild(btn); hljs.highlightElement(pre.querySelector('code'));
+                    wrapper.appendChild(btn); 
                 });
+                
+                container.querySelectorAll('pre code').forEach(hljs.highlightElement);
 
-                container.querySelectorAll('table').forEach(table => {
-                    if (table.parentNode.classList.contains('table-wrapper')) {
-                        return;
-                    }
+                container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'table-wrapper';
                     table.parentNode.insertBefore(wrapper, table);
@@ -1053,4 +1005,4 @@ body.dark-theme .copy-btn:hover {
         });
     </script>
 </body>
-</html>```
+</html>

@@ -449,46 +449,63 @@
 
 /* === PARAGRAPH === */
 .message-container.ai p {
-    font-size: 1rem;
-    line-height: 1.75;
-    margin: 1rem 0;
+  font-size: 1rem;
+  line-height: 1.75;
+  margin: 1rem 0;
+  font-weight: 400;
 }
 
 /* === LIST STYLING === */
 .message-container.ai ul,
-    .message-container.ai ol {
-      margin: 1.25em 0;
-      padding-left: 1.75em;
-    }
+.message-container.ai ol {
+  margin: 1em 0;
+  padding-left: 1.25em;
+}
 
-    .message-container.ai li {
-      margin-bottom: 0.5em;
-      padding-left: 0.25em;
-    }
+.message-container.ai li {
+  margin: 0.25em 0;
+  padding-left: 0;
+  line-height: 1.6;
+}
 
-    .message-container.ai > .ai-content-block > ul > li { list-style-type: disc; }
-    .message-container.ai > .ai-content-block > ol > li { list-style-type: decimal; }
+/* Первого уровня: обычные маркеры */
+.message-container.ai > .ai-content-block > ul > li {
+  list-style-type: disc;
+}
+.message-container.ai > .ai-content-block > ol > li {
+  list-style-type: decimal;
+}
 
-    .message-container.ai li > ul > li,
-    .message-container.ai li > ol > li {
-      position: relative;
-      list-style-type: none;
-    }
+/* Вложенные списки: упрощаем и убираем лесенку */
+.message-container.ai li > ul,
+.message-container.ai li > ol {
+  margin: 0.25em 0;
+  padding-left: 1.25em;
+}
 
-    .message-container.ai li > ul > li::before,
-    .message-container.ai li > ol > li::before {
-      content: '–';
-      position: absolute;
-      margin-left: -1.25em;
-      color: var(--text-color);
-    }
+.message-container.ai li > ul > li,
+.message-container.ai li > ol > li {
+  position: relative;
+  list-style-type: disc; /* убрали кастомный маркер “–” */
+  padding-left: 0;
+  margin-left: 0;
+}
 
-    .message-container.ai li > ul > li > ul > li,
-    .message-container.ai li > ul > li > ol > li,
-    .message-container.ai li > ol > li > ul > li,
-    .message-container.ai li > ol > li > ol > li {
-      list-style-type: circle;
-    }
+/* Глубже: тоже без каскада и визуально ровно */
+.message-container.ai li > ul > li > ul > li,
+.message-container.ai li > ul > li > ol > li,
+.message-container.ai li > ol > li > ul > li,
+.message-container.ai li > ol > li > ol > li {
+  list-style-type: circle;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+/* Параграфы внутри списков — без лишних отступов */
+.message-container.ai li p {
+  margin: 0.25em 0;
+}
+
 
 .message-container.ai blockquote {
       margin: 1.5em 0;

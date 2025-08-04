@@ -11,6 +11,20 @@
     <style>
         :root {
             --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            
+            /* MODIFIED: Added Modular Spacing & Font Variables */
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.25rem;
+            --space-xl: 1.5rem;
+            --space-xxl: 2rem;
+            --space-xxxl: 3rem;
+
+            --font-size-body: 0.95rem;
+            --font-size-h1: 3.4rem;
+            --font-size-h2: 2.4rem;
+            --font-size-h3: 1.75rem;
+            
             /* Light Theme Colors */
             --background-color: #ffffff;
             --text-color: #202020;
@@ -342,13 +356,19 @@
 
       /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
 
-        /* Base style for AI response block */
+        .message-container.ai * {
+            box-sizing: border-box;
+            word-wrap: break-word;
+        }
+      
         .message-container.ai .ai-content-block {
             font-family: inherit;
             font-weight: 400;
             line-height: 1.75;
             color: var(--text-color);
+            /* MODIFIED: Added advanced font rendering */
             text-rendering: optimizeLegibility;
+            font-feature-settings: "ss01" on, "cv02" on;
         }
 
         /* === HEADINGS (NEW HIERARCHY) === */
@@ -364,30 +384,28 @@
             color: var(--text-color);
         }
 
-        /* The Massive, Main Title (Guidebook Name) */
         .message-container.ai h1 {
-            font-size: 3.4rem;
+            font-size: var(--font-size-h1);
             font-weight: 700;
             letter-spacing: -0.03em;
-            margin: 3rem 0 1.5rem;
+            margin: var(--space-xxxl) 0 var(--space-xl);
         }
 
-        /* The Main Sub-heading (Section Title) */
         .message-container.ai h2 {
-            font-size: 2.4rem;
+            font-size: var(--font-size-h2);
             font-weight: 600;
             letter-spacing: -0.02em;
-            margin: 2.5rem 0 1.25rem;
+            margin: var(--space-xxl) 0 var(--space-lg);
+            padding-left: 0.25rem; /* MODIFIED: Added for rectangular alignment */
         }
 
-        /* The Supporting Sub-heading */
         .message-container.ai h3 {
-            font-size: 1.75rem;
+            font-size: var(--font-size-h3);
             font-weight: 500;
-            margin: 2rem 0 1rem;
+            margin: var(--space-xl) 0 var(--space-md);
+            padding-left: 0.25rem; /* MODIFIED: Added for rectangular alignment */
         }
 
-        /* Special style for emojis inside headings */
         .message-container.ai h1 > .emoji,
         .message-container.ai h2 > .emoji,
         .message-container.ai h3 > .emoji {
@@ -408,9 +426,9 @@
         /* === PARAGRAPHS & TEXT === */
 
         .message-container.ai p {
-            font-size: 0.95rem;
+            font-size: var(--font-size-body);
             line-height: 1.75;
-            margin: 1em 0 !important;
+            margin: var(--space-md) 0 !important;
             font-weight: 400 !important;
         }
 
@@ -423,7 +441,7 @@
 
         .message-container.ai ul,
         .message-container.ai ol {
-            margin: 1em 0;
+            margin: var(--space-md) 0;
             padding-left: 1.75em;
             font-weight: 400;
             list-style-position: outside;
@@ -434,7 +452,7 @@
             line-height: 1.7;
             margin: 0.6em 0;
             padding-left: 0.5em;
-            font-size: 0.95rem;
+            font-size: var(--font-size-body);
             font-weight: 400;
         }
         
@@ -465,11 +483,10 @@
             opacity: 0.8;
         }
 
-        /* Nested lists indentation */
         .message-container.ai li > ul,
         .message-container.ai li > ol {
-            margin-top: 0.5em;
-            margin-bottom: 0.5em;
+            margin-top: var(--space-sm);
+            margin-bottom: var(--space-sm);
             padding-left: 1.5em;
         }
         
@@ -481,7 +498,7 @@
         /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
 
         .message-container.ai blockquote {
-            margin: 1.5em 0;
+            margin: var(--space-xl) 0;
             padding: 0.1em 0 0.1em 1.25rem;
             background-color: transparent;
             border-left: 3px solid var(--primary-accent);
@@ -489,7 +506,7 @@
         }
         
         .message-container.ai blockquote p {
-            margin: 1em 0 !important;
+            margin: var(--space-md) 0 !important;
         }
 
         .message-container.ai code:not(pre > code) {
@@ -497,7 +514,7 @@
             padding: 0.2em 0.4em;
             background-color: var(--code-bg);
             border-radius: 4px;
-            font-family: 'Fira Code', 'SF Mono', monospace;
+            font-family: 'Fira Code', 'SF Mono', monospace; /* MODIFIED: Refined font stack */
             border: 1px solid var(--border-color);
         }
 
@@ -520,7 +537,7 @@
         .message-container.ai pre {
             background-color: var(--code-bg);
             color: var(--code-text-color);
-            padding: 1rem;
+            padding: var(--space-md);
             border-radius: 8px;
             border: 1px solid var(--border-color);
             overflow-x: auto;
@@ -732,7 +749,10 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                // MODIFIED: Only autoscroll for user messages
+                if (sender === 'user') {
+                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                }
                 return m;
             }
 
@@ -843,7 +863,7 @@
                 let isAnimating = false;
                 let isStreamFinished = false;
                 let animationFrameId = null;
-                const charsPerFrame = 2; // MODIFIED: Reduced for smoother, more legible animation
+                const charsPerFrame = 2;
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -857,8 +877,6 @@
                             attachFeaturesToAiMessage(aiMsgContainer);
                         }
                     }
-
-                    // MODIFIED: Autoscroll removed from the animation loop
 
                     if (animationQueue.length === 0 && isStreamFinished) {
                         localChatHistory.push({ role: 'model', text: accumulatedResponseText });
@@ -912,7 +930,7 @@
                                                 isAnimating = true;
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                                                 if(contentBlock) contentBlock.innerHTML = '';
-                                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' }); // MODIFIED: Scroll once at the very beginning
+                                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                                                 animateText();
                                             }
                                         }

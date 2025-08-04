@@ -45,8 +45,8 @@
 
             --sidebar-width: 256px;
             --sidebar-collapsed-width: 64px;
-            --chat-content-narrow-width: 42rem; /* MODIFIED: Reverted to original width */
-            --chat-content-expanded-width: 50rem; /* MODIFIED: Reverted to original width */
+            --chat-content-narrow-width: 42rem;
+            --chat-content-expanded-width: 50rem;
         }
 
         body.dark-theme {
@@ -252,8 +252,6 @@
             animation: fadeIn 0.5s ease forwards;
             font-feature-settings: "ss01" on, "cv02" on;
             text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -831,6 +829,58 @@
                 let isStreamFinished = false;
                 let animationFrameId = null;
                 const charsPerFrame = 2;
+                
+                // --- NEW: Throttled Saving State ---
+                let lastSaveTime = 0;
+                const saveThreshold = 1500; // Save every 1.5 seconds
+
+                const throttledSave = () => {
+                    if (!isStreamFinished) {
+                        const now = Date.now();
+                        if (now - lastSaveTime > saveThreshold) {
+                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            saveChat();
+                            localChatHistory.pop(); // Remove after saving to avoid duplication
+                            lastSaveTime = now;
+                        }
+                    }
+                };
+
+                const finalizeAndSave = () => {
+                    cancelAnimationFrame(animationFrameId);
+                    isAnimating = false;
+                    
+                    const finalMessage = localChatHistory.find(m => m.role === 'model');
+                    if (finalMessage) {
+                        finalMessage.text = accumulatedResponseText;
+                    } else {
+                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                    }
+                    saveChat();
+                };
+
+                // --- NEW: Page Visibility Handler ---
+                const handleVisibilityChange = () => {
+                    if (document.hidden) return; // Only act when returning to the tab
+                    if (isAnimating && animationQueue.length > 0) {
+                        cancelAnimationFrame(animationFrameId);
+                        isAnimating = false;
+                        
+                        displayedText += animationQueue; // Instantly add remaining text
+                        animationQueue = ''; // Clear the queue
+                        
+                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                        if (contentBlock) {
+                            contentBlock.innerHTML = marked.parse(displayedText);
+                            attachFeaturesToAiMessage(aiMsgContainer);
+                        }
+                        
+                        if (isStreamFinished) {
+                            finalizeAndSave();
+                        }
+                    }
+                };
+                document.addEventListener('visibilitychange', handleVisibilityChange);
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -846,9 +896,8 @@
                     }
 
                     if (animationQueue.length === 0 && isStreamFinished) {
-                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                        saveChat();
-                        cancelAnimationFrame(animationFrameId);
+                        finalizeAndSave();
+                        document.removeEventListener('visibilitychange', handleVisibilityChange); // Clean up listener
                         return;
                     }
                     
@@ -874,9 +923,8 @@
                             if (done) {
                                 isStreamFinished = true;
                                 if (!isAnimating) {
-                                    cancelAnimationFrame(animationFrameId);
-                                    localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                                    saveChat();
+                                    finalizeAndSave();
+                                    document.removeEventListener('visibilitychange', handleVisibilityChange);
                                 }
                                 break;
                             }
@@ -893,6 +941,7 @@
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
                                             animationQueue += textPart;
+                                            throttledSave(); // Save periodically
                                             if (!isAnimating) {
                                                 isAnimating = true;
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
@@ -912,6 +961,7 @@
                     const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                     if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                     cancelAnimationFrame(animationFrameId);
+                    document.removeEventListener('visibilitychange', handleVisibilityChange);
                 }
             }
             

@@ -224,6 +224,14 @@
             padding: 0;
             width: 100%;
         }
+        .ai-content-block {
+            padding: 0.75rem 0.1rem;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
         
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: var(--background-color); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s, color 0.3s; }
@@ -334,123 +342,166 @@
 
       /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
 
+        /* Base style for AI response block */
         .message-container.ai .ai-content-block {
-            font-family: 'Söhne', system-ui, -apple-system, sans-serif;
+            font-family: inherit;
             font-weight: 400;
             line-height: 1.75;
             color: var(--text-color);
-            word-wrap: break-word;
-            box-sizing: border-box;
-            font-feature-settings: "ss01" on, "cv02" on;
             text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* === HEADINGS (NEW HIERARCHY & RHYTHM) === */
+        /* === HEADINGS (NEW HIERARCHY) === */
         
-        .message-container.ai .ai-content-block h1,
-        .message-container.ai .ai-content-block h2,
-        .message-container.ai .ai-content-block h3 {
+        .message-container.ai h1,
+        .message-container.ai h2,
+        .message-container.ai h3 {
+            font-family: inherit;
             line-height: 1.3;
+            text-decoration: none !important;
+            border: none !important;
+            list-style: none !important;
+            color: var(--text-color);
         }
 
-        .message-container.ai .ai-content-block h1 {
-            font-size: 2.2rem;
+        /* The Massive, Main Title (Guidebook Name) */
+        .message-container.ai h1 {
+            font-size: 3.4rem;
             font-weight: 700;
+            letter-spacing: -0.03em;
             margin: 3rem 0 1.5rem;
-            letter-spacing: -0.02em;
         }
 
-        .message-container.ai .ai-content-block h2 {
-            font-size: 1.6rem;
+        /* The Main Sub-heading (Section Title) */
+        .message-container.ai h2 {
+            font-size: 2.4rem;
             font-weight: 600;
-            margin: 2rem 0 1.25rem;
+            letter-spacing: -0.02em;
+            margin: 2.5rem 0 1.25rem;
         }
 
-        .message-container.ai .ai-content-block h3 {
-            font-size: 1.25rem;
+        /* The Supporting Sub-heading */
+        .message-container.ai h3 {
+            font-size: 1.75rem;
             font-weight: 500;
-            margin: 1.5rem 0 1rem;
+            margin: 2rem 0 1rem;
+        }
+
+        /* Special style for emojis inside headings */
+        .message-container.ai h1 > .emoji,
+        .message-container.ai h2 > .emoji,
+        .message-container.ai h3 > .emoji {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5em;
+            height: 1.5em;
+            margin-right: 0.6em;
+            background-color: var(--sidebar-bg);
+            border-radius: 0.5em;
+            font-size: 0.8em;
+            line-height: 1;
+            position: relative;
+            top: -0.1em;
         }
 
         /* === PARAGRAPHS & TEXT === */
 
-        .message-container.ai .ai-content-block p {
-            font-size: 1rem;
+        .message-container.ai p {
+            font-size: 0.95rem;
             line-height: 1.75;
-            letter-spacing: 0.01em;
             margin: 1em 0 !important;
+            font-weight: 400 !important;
         }
 
-        .message-container.ai .ai-content-block strong,
-        .message-container.ai .ai-content-block b {
+        .message-container.ai strong,
+        .message-container.ai b {
             font-weight: 600;
         }
 
         /* === LISTS (FLAWLESS & STRAIGHT ALIGNMENT) === */
 
-        .message-container.ai .ai-content-block ul,
-        .message-container.ai .ai-content-block ol {
-            padding-left: 1.25em;
-            list-style-position: outside;
+        .message-container.ai ul,
+        .message-container.ai ol {
             margin: 1em 0;
+            padding-left: 1.75em;
+            font-weight: 400;
+            list-style-position: outside;
         }
-
-        .message-container.ai .ai-content-block li {
-            margin: 0.4em 0;
-            line-height: 1.6;
+        
+        .message-container.ai ul li,
+        .message-container.ai ol li {
+            line-height: 1.7;
+            margin: 0.6em 0;
+            padding-left: 0.5em;
+            font-size: 0.95rem;
             font-weight: 400;
         }
-
-        .message-container.ai .ai-content-block li:empty {
+        
+        .message-container.ai li:empty {
             display: none;
         }
-
-        .message-container.ai .ai-content-block li::marker {
-            opacity: 0.4;
-            font-size: 0.85em;
+        
+        .message-container.ai ul li {
+            list-style-type: disc;
+        }
+        
+        .message-container.ai ol li {
+            list-style-type: decimal;
         }
 
-        .message-container.ai .ai-content-block li > ul,
-        .message-container.ai .ai-content-block li > ol {
-            padding-left: 1.25em;
-            margin: 0.3em 0;
+        .message-container.ai li::marker {
+            color: var(--text-color);
+            font-size: 0.9em;
+            content: unset;
+        }
+
+        .message-container.ai ul li::marker {
+            opacity: 0.6;
+        }
+
+        .message-container.ai ol li::marker {
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        /* Nested lists indentation */
+        .message-container.ai li > ul,
+        .message-container.ai li > ol {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+            padding-left: 1.5em;
+        }
+        
+        .message-container.ai li::before,
+        .message-container.ai li::after {
+            content: none !important;
         }
 
         /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
 
-        .message-container.ai .ai-content-block blockquote {
-            background-color: rgba(74, 144, 226, 0.1);
-            border-left: 4px solid #4a90e2;
-            padding: 1rem 1.5rem 1rem 3rem;
-            border-radius: 8px;
-            position: relative;
+        .message-container.ai blockquote {
             margin: 1.5em 0;
-        }
-
-        .message-container.ai .ai-content-block blockquote::before {
-            content: '💡';
-            position: absolute;
-            left: 1rem;
-            top: 1rem;
-            font-size: 1.2rem;
+            padding: 0.1em 0 0.1em 1.25rem;
+            background-color: transparent;
+            border-left: 3px solid var(--primary-accent);
+            opacity: 0.85;
         }
         
-        .message-container.ai .ai-content-block blockquote p {
-            margin: 0 !important;
+        .message-container.ai blockquote p {
+            margin: 1em 0 !important;
         }
 
-        .message-container.ai .ai-content-block code:not(pre > code) {
-            font-family: 'Fira Code', 'Courier New', monospace;
-            font-size: 0.9rem;
-            background: var(--code-bg);
-            padding: 0.25em 0.5em;
+        .message-container.ai code:not(pre > code) {
+            font-size: 0.875rem;
+            padding: 0.2em 0.4em;
+            background-color: var(--code-bg);
             border-radius: 4px;
+            font-family: 'Fira Code', 'SF Mono', monospace;
             border: 1px solid var(--border-color);
         }
 
-        .message-container.ai .ai-content-block hr {
+        .message-container.ai hr {
             border: 0;
             height: 1px;
             background-color: var(--border-color);
@@ -462,7 +513,11 @@
             margin: 1.25em 0;
         }
         
-        .message-container.ai .ai-content-block pre {
+        body.dark-theme .message-container.ai pre code.hljs {
+            color: var(--code-text-color);
+        }
+
+        .message-container.ai pre {
             background-color: var(--code-bg);
             color: var(--code-text-color);
             padding: 1rem;
@@ -476,7 +531,7 @@
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
 
-        .message-container.ai .ai-content-block pre code.hljs {
+        .message-container.ai pre code.hljs {
             padding: 0;
             background: transparent;
         }
@@ -507,6 +562,8 @@
             border-radius: 0;
             margin: 1.5em 0;
             overflow: auto;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         .table-wrapper table {
@@ -518,37 +575,38 @@
             box-shadow: none;
         }
 
-        .message-container.ai .ai-content-block th,
-        .message-container.ai .ai-content-block td {
+        .message-container.ai th,
+        .message-container.ai td {
             padding: 0.5rem 0.75rem;
             text-align: left;
             vertical-align: top;
             border: none;
             border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.3s, background-color 0.3s;
         }
         
-        .message-container.ai .ai-content-block thead th {
+        .message-container.ai thead th {
             font-size: 0.8rem;
             font-weight: 600;
             background-color: transparent;
             border-bottom: 1.5px solid rgba(0, 0, 0, 0.12);
         }
 
-        body.dark-theme .message-container.ai .ai-content-block thead th {
+        body.dark-theme .message-container.ai thead th {
             border-bottom-color: rgba(255, 255, 255, 0.18);
         }
 
-        .message-container.ai .ai-content-block tbody td {
+        .message-container.ai tbody td {
             font-size: 0.8rem;
             color: var(--text-color);
             opacity: 1;
         }
 
-        .message-container.ai .ai-content-block tbody tr:last-child td {
+        .message-container.ai tbody tr:last-child td {
             border-bottom: none;
         }
         
-        .message-container.ai .ai-content-block tbody tr:nth-of-type(even) {
+        .message-container.ai tbody tr:nth-of-type(even) {
             background-color: transparent;
         }
         /* --- END: SLEEK & MINIMALIST TABLE STYLES --- */
@@ -677,37 +735,23 @@
                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 return m;
             }
-            
-            // NEW: Client-side emoji processing for consistency
-            function processSemanticEmojis(container) {
-                let lastEmoji = null;
+
+            function styleSpecialElements(container) {
                 const emojiRegex = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26ff]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/;
 
-                const insertSemanticEmoji = (text) => {
-                    const mapping = { "example": "💡", "overview": "📘", "analysis": "🔍", "warning": "⚠️", "note": "📝", "idea": "💭", "faq": "❓", "technique": "🛠️", "benefits": "✅", "practice": "🧘" };
-                    const lowerText = text.toLowerCase();
-                    const match = Object.entries(mapping).find(([key]) => lowerText.startsWith(key));
-                    return match ? match[1] : null;
-                };
-
-                container.querySelectorAll('h2, h3').forEach(h => {
-                    const hasExistingEmoji = emojiRegex.test(h.textContent.trim().substring(0, 2));
-                    if (hasExistingEmoji) {
-                        lastEmoji = h.textContent.trim().match(emojiRegex)[0];
-                        return;
-                    }
+                container.querySelectorAll('h1, h2, h3').forEach(heading => {
+                    const trimmedText = heading.innerHTML.trim();
+                    const match = trimmedText.match(emojiRegex);
                     
-                    const emoji = insertSemanticEmoji(h.textContent);
-                    if (emoji && emoji !== lastEmoji) {
-                        h.innerHTML = `${emoji} ${h.innerHTML}`;
-                        lastEmoji = emoji;
+                    if (match) {
+                        const emoji = match[0];
+                        const restOfText = trimmedText.substring(emoji.length).trim();
+                        heading.innerHTML = `<span class="emoji">${emoji}</span> ${restOfText}`;
                     }
                 });
             }
 
             function attachFeaturesToAiMessage(container) {
-                processSemanticEmojis(container); // Process for emojis first
-
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
@@ -724,6 +768,8 @@
                     table.parentNode.insertBefore(wrapper, table);
                     wrapper.appendChild(table);
                 });
+
+                styleSpecialElements(container);
             }
 
             async function loadChat(chatId) {
@@ -743,12 +789,9 @@
                     if (msg.role === 'user') {
                         addMessageToUI('user', msg.text);
                     } else if (msg.role === 'model') {
-                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
-                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                        if(contentBlock) {
-                            contentBlock.innerHTML = marked.parse(msg.text || "");
-                            attachFeaturesToAiMessage(aiMsgContainer);
-                        }
+                        const renderedHtml = marked.parse(msg.text || "");
+                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block">${renderedHtml}</div>`, true);
+                        attachFeaturesToAiMessage(aiMsgContainer);
                     }
                 });
                 
@@ -794,13 +837,14 @@
 
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 
+                // --- NEW: Animation Engine State ---
                 let accumulatedResponseText = '';
                 let animationQueue = '';
                 let displayedText = '';
                 let isAnimating = false;
                 let isStreamFinished = false;
                 let animationFrameId = null;
-                const charsPerFrame = 2; // Slower for more legible effect
+                const charsPerFrame = 4; // Adjust for speed
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -815,7 +859,12 @@
                         }
                     }
 
+                    if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
+                        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                    }
+
                     if (animationQueue.length === 0 && isStreamFinished) {
+                        // Final save of the complete message
                         localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                         saveChat();
                         cancelAnimationFrame(animationFrameId);
@@ -843,7 +892,7 @@
                             const { value, done } = await reader.read();
                             if (done) {
                                 isStreamFinished = true;
-                                if (!isAnimating) {
+                                if (!isAnimating) { // If stream ends before animation starts
                                     cancelAnimationFrame(animationFrameId);
                                     localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                     saveChat();
@@ -865,9 +914,9 @@
                                             animationQueue += textPart;
                                             if (!isAnimating) {
                                                 isAnimating = true;
+                                                // Clear the "thinking" indicator before starting
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                                                 if(contentBlock) contentBlock.innerHTML = '';
-                                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                                                 animateText();
                                             }
                                         }

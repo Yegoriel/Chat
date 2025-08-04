@@ -342,13 +342,15 @@
 
       /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
 
-        /* Universal reset for AI content to ensure consistency */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
         }
       
         .message-container.ai .ai-content-block {
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: start;
             font-feature-settings: "ss01" on, "cv02" on;
             text-rendering: optimizeLegibility;
         }
@@ -386,19 +388,10 @@
             padding-left: 0.25rem;
         }
 
-        /* Style for emojis placed in headings by the JS */
         .message-container.ai h1 .emoji,
         .message-container.ai h2 .emoji,
         .message-container.ai h3 .emoji {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
             margin-right: 0.5em;
-            font-size: 1em;
-            line-height: 1;
-            position: relative;
-            top: -0.05em;
-            background-color: transparent; /* MODIFICATION: Removed background */
         }
 
         /* === PARAGRAPHS & TEXT === */
@@ -419,9 +412,9 @@
         .message-container.ai ol {
             margin-block-start: 1em;
             margin-block-end: 1em;
-            padding-inline-start: 1.4em;
+            padding-inline-start: 1.5em;
             list-style-position: outside;
-            padding-left: 1.65rem; /* Combined padding for alignment */
+            padding-left: 1.75rem;
         }
         
         .message-container.ai ul li,
@@ -429,19 +422,31 @@
             line-height: 1.7;
             margin: 0.25em 0;
             padding-left: 0.5em;
-            font-size: 1rem;
         }
         
         .message-container.ai li:empty { display: none; }
         
         .message-container.ai ul li { list-style-type: disc; }
-        .message-container.ai ul ul li { list-style-type: circle; } /* Nested list style */
-        .message-container.ai ul ul ul li { list-style-type: square; } /* Deeper nested list style */
         .message-container.ai ol li { list-style-type: decimal; }
+        
+        /* Nested lists use standard bullets for clarity */
+        .message-container.ai ul ul li,
+        .message-container.ai ol ul li,
+        .message-container.ai ol ol li {
+            list-style-type: disc;
+        }
 
         .message-container.ai li::marker {
             font-size: 0.9em;
-            opacity: 0.6;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+        
+        /* Nested list markers are slightly more subtle */
+        .message-container.ai ul ul li::marker,
+        .message-container.ai ol ul li::marker,
+        .message-container.ai ol ol li::marker {
+            opacity: 0.5;
         }
 
         .message-container.ai ol li::marker { font-weight: 600; }
@@ -536,7 +541,7 @@
         
         /* === TABLES (SLEEK & COMPACT) === */
         .table-wrapper {
-            border: 1px solid var(--border-color);
+            border: none; /* MODIFICATION: Removed wrapper border */
             border-radius: 8px;
             margin: 1.5em 0;
             overflow: auto;
@@ -550,7 +555,7 @@
 
         .message-container.ai th,
         .message-container.ai td {
-            padding: 0.5rem 0.75rem; /* MODIFICATION: Reduced padding */
+            padding: 0.5rem 0.75rem;
             text-align: left;
             vertical-align: top;
             border: none;
@@ -558,14 +563,14 @@
         }
         
         .message-container.ai thead th {
-            font-size: 0.8rem; /* MODIFICATION: Reduced font size */
+            font-size: 0.8rem;
             font-weight: 600;
-            background-color: transparent; /* MODIFICATION: Removed background */
+            background-color: transparent;
             border-bottom: 1.5px solid var(--border-color);
         }
 
         .message-container.ai tbody td {
-            font-size: 0.8rem; /* MODIFICATION: Reduced font size */
+            font-size: 0.8rem;
         }
 
         .message-container.ai tbody tr:last-child td {

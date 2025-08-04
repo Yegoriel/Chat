@@ -342,76 +342,66 @@
 
       /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
 
-        /* Base style for AI response block */
         .message-container.ai .ai-content-block {
-            font-family: inherit;
-            font-weight: 400;
-            line-height: 1.75;
-            color: var(--text-color);
+            font-feature-settings: "ss01" on, "cv02" on;
             text-rendering: optimizeLegibility;
         }
 
-        /* === HEADINGS (NEW HIERARCHY) === */
-        
+        /* === HEADINGS & VERTICAL RHYTHM === */
         .message-container.ai h1,
         .message-container.ai h2,
-        .message-container.ai h3 {
-            font-family: inherit;
+        .message-container.ai h3,
+        .message-container.ai h4,
+        .message-container.ai h5,
+        .message-container.ai h6 {
             line-height: 1.3;
-            text-decoration: none !important;
-            border: none !important;
-            list-style: none !important;
             color: var(--text-color);
+            border: none;
         }
 
-        /* The Massive, Main Title (Guidebook Name) */
         .message-container.ai h1 {
-            font-size: 3.4rem;
+            font-size: 2rem;
             font-weight: 700;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.02em;
             margin: 3rem 0 1.5rem;
         }
 
-        /* The Main Sub-heading (Section Title) */
         .message-container.ai h2 {
-            font-size: 2.4rem;
+            font-size: 1.5rem;
             font-weight: 600;
-            letter-spacing: -0.02em;
-            margin: 2.5rem 0 1.25rem;
+            margin: 2rem 0 1.25rem;
         }
 
-        /* The Supporting Sub-heading */
         .message-container.ai h3 {
-            font-size: 1.75rem;
+            font-size: 1.25rem;
             font-weight: 500;
-            margin: 2rem 0 1rem;
+            margin: 1.5rem 0 1rem;
         }
 
-        /* Special style for emojis inside headings */
-        .message-container.ai h1 > .emoji,
-        .message-container.ai h2 > .emoji,
-        .message-container.ai h3 > .emoji {
+        /* Style for emojis placed in headings by the JS */
+        .message-container.ai h1 .emoji,
+        .message-container.ai h2 .emoji,
+        .message-container.ai h3 .emoji {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 1.5em;
-            height: 1.5em;
-            margin-right: 0.6em;
+            width: 1.4em;
+            height: 1.4em;
+            margin-right: 0.5em;
             background-color: var(--sidebar-bg);
-            border-radius: 0.5em;
-            font-size: 0.8em;
+            border-radius: 0.4em;
+            font-size: 0.85em;
             line-height: 1;
             position: relative;
             top: -0.1em;
         }
 
         /* === PARAGRAPHS & TEXT === */
-
         .message-container.ai p {
-            font-size: 0.95rem;
+            font-size: 1rem;
             line-height: 1.75;
-            margin: 1em 0 !important;
-            font-weight: 400 !important;
+            margin: 1em 0;
+            hanging-punctuation: first;
         }
 
         .message-container.ai strong,
@@ -420,47 +410,37 @@
         }
 
         /* === LISTS (FLAWLESS & STRAIGHT ALIGNMENT) === */
-
         .message-container.ai ul,
         .message-container.ai ol {
             margin: 1em 0;
-            padding-left: 1.75em;
-            font-weight: 400;
-            list-style-position: outside;
+            padding-left: 1.5em; /* Controls indentation */
+            list-style-position: outside; /* Ensures markers are outside the text flow */
         }
         
         .message-container.ai ul li,
         .message-container.ai ol li {
             line-height: 1.7;
-            margin: 0.6em 0;
-            padding-left: 0.5em;
-            font-size: 0.95rem;
-            font-weight: 400;
+            margin: 0.5em 0;
+            padding-left: 0.5em; /* Space between marker and text */
+            font-size: 1rem;
         }
         
+        /* Hide empty list items that can sometimes be generated */
         .message-container.ai li:empty {
             display: none;
         }
         
-        .message-container.ai ul li {
-            list-style-type: disc;
-        }
-        
-        .message-container.ai ol li {
-            list-style-type: decimal;
-        }
+        .message-container.ai ul li { list-style-type: disc; }
+        .message-container.ai ol li { list-style-type: decimal; }
 
-        .message-container.ai li::marker {
-            color: var(--text-color);
-            font-size: 0.9em;
-            content: unset;
-        }
-
+        /* Style the actual list markers */
         .message-container.ai ul li::marker {
-            opacity: 0.6;
+            color: var(--text-color);
+            opacity: 0.5;
         }
 
         .message-container.ai ol li::marker {
+            color: var(--text-color);
             font-weight: 600;
             opacity: 0.8;
         }
@@ -470,16 +450,16 @@
         .message-container.ai li > ol {
             margin-top: 0.5em;
             margin-bottom: 0.5em;
-            padding-left: 1.5em;
+            padding-left: 1.25em;
         }
         
+        /* Reset pseudo-elements to prevent conflicts */
         .message-container.ai li::before,
         .message-container.ai li::after {
             content: none !important;
         }
 
         /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
-
         .message-container.ai blockquote {
             margin: 1.5em 0;
             padding: 0.1em 0 0.1em 1.25rem;
@@ -492,6 +472,7 @@
             margin: 1em 0 !important;
         }
 
+        /* Inline code */
         .message-container.ai code:not(pre > code) {
             font-size: 0.875rem;
             padding: 0.2em 0.4em;
@@ -508,15 +489,12 @@
             margin: 2.5rem 0;
         }
 
+        /* Code Blocks */
         .code-block-wrapper {
             position: relative;
             margin: 1.25em 0;
         }
         
-        body.dark-theme .message-container.ai pre code.hljs {
-            color: var(--code-text-color);
-        }
-
         .message-container.ai pre {
             background-color: var(--code-bg);
             color: var(--code-text-color);
@@ -534,6 +512,10 @@
         .message-container.ai pre code.hljs {
             padding: 0;
             background: transparent;
+        }
+        
+        body.dark-theme .message-container.ai pre code.hljs {
+            color: var(--code-text-color);
         }
 
         .copy-btn {
@@ -556,50 +538,38 @@
         body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
         .copy-btn:active { transform: scale(0.95); }
         
-        /* --- START: SLEEK & MINIMALIST TABLE STYLES (FINAL VERSION) --- */
+        /* === TABLES (SLEEK & MINIMALIST) === */
         .table-wrapper {
-            border: none;
-            border-radius: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             margin: 1.5em 0;
             overflow: auto;
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
         }
 
         .table-wrapper table {
             width: 100%;
             border-collapse: collapse;
             border-spacing: 0;
-            margin: 0;
-            border: none;
-            box-shadow: none;
         }
 
         .message-container.ai th,
         .message-container.ai td {
-            padding: 0.5rem 0.75rem;
+            padding: 0.6rem 0.8rem;
             text-align: left;
             vertical-align: top;
             border: none;
             border-bottom: 1px solid var(--border-color);
-            transition: border-color 0.3s, background-color 0.3s;
         }
         
         .message-container.ai thead th {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            background-color: transparent;
-            border-bottom: 1.5px solid rgba(0, 0, 0, 0.12);
-        }
-
-        body.dark-theme .message-container.ai thead th {
-            border-bottom-color: rgba(255, 255, 255, 0.18);
+            background-color: var(--sidebar-bg);
+            border-bottom: 1.5px solid var(--border-color);
         }
 
         .message-container.ai tbody td {
-            font-size: 0.8rem;
-            color: var(--text-color);
-            opacity: 1;
+            font-size: 0.9rem;
         }
 
         .message-container.ai tbody tr:last-child td {
@@ -607,9 +577,8 @@
         }
         
         .message-container.ai tbody tr:nth-of-type(even) {
-            background-color: transparent;
+            background-color: transparent; /* Keeping it minimal */
         }
-        /* --- END: SLEEK & MINIMALIST TABLE STYLES --- */
 
       /* --- END: FLAWLESS TYPOGRAPHY SYSTEM --- */
     </style>
@@ -835,9 +804,6 @@
                     await db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                // --- MODIFICATION START ---
-                // Add a placeholder for the AI's response to the local history.
-                // This placeholder will be updated as the AI response streams in.
                 localChatHistory.push({ role: 'model', text: '' });
                 
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
@@ -848,7 +814,7 @@
                 let isAnimating = false;
                 let isStreamFinished = false;
                 let animationFrameId = null;
-                const charsPerFrame = 4; // Adjust for speed
+                const charsPerFrame = 4;
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -863,10 +829,7 @@
                         }
                     }
 
-                    // REMOVED: Autoscroll logic is gone.
-
                     if (animationQueue.length === 0 && isStreamFinished) {
-                        // Final render to ensure the displayed text matches the full response
                         const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                         if (contentBlock) {
                             contentBlock.innerHTML = marked.parse(accumulatedResponseText);
@@ -883,7 +846,7 @@
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }) // Exclude user's latest and our placeholder
+                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) })
                     });
 
                     if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
@@ -897,8 +860,6 @@
                             const { value, done } = await reader.read();
                             if (done) {
                                 isStreamFinished = true;
-                                // The stream is finished, save the final, complete message.
-                                // This is the crucial fix for data persistence.
                                 saveChat();
                                 break;
                             }
@@ -914,7 +875,6 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            // Update the placeholder in our local history with the new text.
                                             localChatHistory[localChatHistory.length - 1].text = accumulatedResponseText;
                                             
                                             animationQueue += textPart;
@@ -937,14 +897,11 @@
                     if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                     cancelAnimationFrame(animationFrameId);
 
-                    // If the API call fails, remove the optimistic placeholder and save the chat
-                    // to revert to the state before the failed message.
                     if (localChatHistory.length > 0 && localChatHistory[localChatHistory.length - 1].role === 'model') {
                         localChatHistory.pop();
                         saveChat();
                     }
                 }
-                // --- MODIFICATION END ---
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());

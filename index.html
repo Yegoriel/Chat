@@ -252,8 +252,6 @@
             animation: fadeIn 0.5s ease forwards;
             font-feature-settings: "ss01" on, "cv02" on;
             text-rendering: optimizeLegibility;
-           -webkit-font-smoothing: antialiased;
-           -moz-osx-font-smoothing: grayscale;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -805,29 +803,28 @@
                 let lastSaveTime = 0;
                 const saveThreshold = 1500;
 
+                // MODIFIED: Robust saving logic
                 const throttledSave = () => {
-                    if (!isStreamFinished) {
-                        const now = Date.now();
-                        if (now - lastSaveTime > saveThreshold) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                    if (isStreamFinished) return;
+                    const now = Date.now();
+                    if (now - lastSaveTime > saveThreshold) {
+                        const aiMessage = localChatHistory[localChatHistory.length - 1];
+                        if (aiMessage && aiMessage.role === 'model') {
+                            aiMessage.text = accumulatedResponseText;
                             saveChat();
-                            localChatHistory.pop();
-                            lastSaveTime = now;
                         }
+                        lastSaveTime = now;
                     }
                 };
 
                 const finalizeAndSave = () => {
                     cancelAnimationFrame(animationFrameId);
                     isAnimating = false;
-                    
-                    const finalMessage = localChatHistory.find(m => m.role === 'model');
-                    if (finalMessage) {
-                        finalMessage.text = accumulatedResponseText;
-                    } else {
-                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                    const aiMessage = localChatHistory[localChatHistory.length - 1];
+                    if (aiMessage && aiMessage.role === 'model') {
+                        aiMessage.text = accumulatedResponseText;
+                        saveChat();
                     }
-                    saveChat();
                 };
 
                 const handleVisibilityChange = () => {
@@ -875,10 +872,13 @@
                 };
 
                 try {
+                    // MODIFIED: Add placeholder for AI message immediately
+                    localChatHistory.push({ role: 'model', text: '' });
+
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
+                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2) }) // Exclude the placeholder
                     });
 
                     if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
@@ -930,6 +930,7 @@
                     console.error("AI Streaming Error:", error);
                     const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                     if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                    localChatHistory.pop(); // Remove the failed placeholder
                     cancelAnimationFrame(animationFrameId);
                     document.removeEventListener('visibilitychange', handleVisibilityChange);
                 }

@@ -403,23 +403,6 @@
             padding-left: var(--space-xs);
         }
 
-        .message-container.ai h1 > .emoji,
-        .message-container.ai h2 > .emoji,
-        .message-container.ai h3 > .emoji {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 1.5em;
-            height: 1.5em;
-            margin-right: 0.6em;
-            background-color: var(--sidebar-bg);
-            border-radius: 0.5em;
-            font-size: 0.8em;
-            line-height: 1;
-            position: relative;
-            top: -0.1em;
-        }
-
         .message-container.ai p {
             font-size: var(--font-size-body);
             line-height: var(--line-height-body);
@@ -725,13 +708,6 @@
                 return m;
             }
 
-            function insertSemanticEmoji(text) {
-                const mapping = { "example": "💡", "overview": "📘", "analysis": "🔍", "warning": "⚠️", "note": "📝", "idea": "💭", "faq": "❓", "tip": "📌" };
-                const firstWord = text.split(' ')[0].toLowerCase().replace(/[:.]/g, '');
-                const match = Object.entries(mapping).find(([key]) => firstWord.includes(key));
-                return match ? `${match[1]} ${text}` : text;
-            }
-
             function attachFeaturesToAiMessage(container) {
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
@@ -748,12 +724,6 @@
                     wrapper.className = 'table-wrapper';
                     table.parentNode.insertBefore(wrapper, table);
                     wrapper.appendChild(table);
-                });
-
-                container.querySelectorAll('h2, h3').forEach(h => {
-                    if (h.dataset.emojiApplied) return;
-                    h.innerHTML = insertSemanticEmoji(h.innerHTML);
-                    h.dataset.emojiApplied = 'true';
                 });
             }
 
@@ -830,9 +800,8 @@
                 let animationFrameId = null;
                 const charsPerFrame = 2;
                 
-                // --- NEW: Throttled Saving State ---
                 let lastSaveTime = 0;
-                const saveThreshold = 1500; // Save every 1.5 seconds
+                const saveThreshold = 1500;
 
                 const throttledSave = () => {
                     if (!isStreamFinished) {
@@ -840,7 +809,7 @@
                         if (now - lastSaveTime > saveThreshold) {
                             localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                             saveChat();
-                            localChatHistory.pop(); // Remove after saving to avoid duplication
+                            localChatHistory.pop();
                             lastSaveTime = now;
                         }
                     }
@@ -859,15 +828,14 @@
                     saveChat();
                 };
 
-                // --- NEW: Page Visibility Handler ---
                 const handleVisibilityChange = () => {
-                    if (document.hidden) return; // Only act when returning to the tab
+                    if (document.hidden) return;
                     if (isAnimating && animationQueue.length > 0) {
                         cancelAnimationFrame(animationFrameId);
                         isAnimating = false;
                         
-                        displayedText += animationQueue; // Instantly add remaining text
-                        animationQueue = ''; // Clear the queue
+                        displayedText += animationQueue;
+                        animationQueue = '';
                         
                         const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                         if (contentBlock) {
@@ -897,7 +865,7 @@
 
                     if (animationQueue.length === 0 && isStreamFinished) {
                         finalizeAndSave();
-                        document.removeEventListener('visibilitychange', handleVisibilityChange); // Clean up listener
+                        document.removeEventListener('visibilitychange', handleVisibilityChange);
                         return;
                     }
                     
@@ -941,7 +909,7 @@
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
                                             animationQueue += textPart;
-                                            throttledSave(); // Save periodically
+                                            throttledSave();
                                             if (!isAnimating) {
                                                 isAnimating = true;
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');

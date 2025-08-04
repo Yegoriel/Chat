@@ -366,7 +366,6 @@
             font-weight: 400;
             line-height: 1.75;
             color: var(--text-color);
-            /* MODIFIED: Added advanced font rendering */
             text-rendering: optimizeLegibility;
             font-feature-settings: "ss01" on, "cv02" on;
         }
@@ -396,14 +395,14 @@
             font-weight: 600;
             letter-spacing: -0.02em;
             margin: var(--space-xxl) 0 var(--space-lg);
-            padding-left: 0.25rem; /* MODIFIED: Added for rectangular alignment */
+            padding-left: 0.25rem;
         }
 
         .message-container.ai h3 {
             font-size: var(--font-size-h3);
             font-weight: 500;
             margin: var(--space-xl) 0 var(--space-md);
-            padding-left: 0.25rem; /* MODIFIED: Added for rectangular alignment */
+            padding-left: 0.25rem;
         }
 
         .message-container.ai h1 > .emoji,
@@ -483,6 +482,12 @@
             opacity: 0.8;
         }
 
+        /* MODIFIED: Fix for nested list numbering */
+        .message-container.ai ol ol,
+        .message-container.ai ol ul {
+            list-style-type: disc;
+        }
+
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin-top: var(--space-sm);
@@ -514,7 +519,7 @@
             padding: 0.2em 0.4em;
             background-color: var(--code-bg);
             border-radius: 4px;
-            font-family: 'Fira Code', 'SF Mono', monospace; /* MODIFIED: Refined font stack */
+            font-family: 'Fira Code', 'SF Mono', monospace;
             border: 1px solid var(--border-color);
         }
 
@@ -749,7 +754,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // MODIFIED: Only autoscroll for user messages
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }

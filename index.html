@@ -837,14 +837,13 @@
 
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 
-                // --- NEW: Animation Engine State ---
                 let accumulatedResponseText = '';
                 let animationQueue = '';
                 let displayedText = '';
                 let isAnimating = false;
                 let isStreamFinished = false;
                 let animationFrameId = null;
-                const charsPerFrame = 4; // Adjust for speed
+                const charsPerFrame = 2; // MODIFIED: Reduced for smoother, more legible animation
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -859,12 +858,9 @@
                         }
                     }
 
-                    if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
-                        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                    }
+                    // MODIFIED: Autoscroll removed from the animation loop
 
                     if (animationQueue.length === 0 && isStreamFinished) {
-                        // Final save of the complete message
                         localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                         saveChat();
                         cancelAnimationFrame(animationFrameId);
@@ -892,7 +888,7 @@
                             const { value, done } = await reader.read();
                             if (done) {
                                 isStreamFinished = true;
-                                if (!isAnimating) { // If stream ends before animation starts
+                                if (!isAnimating) {
                                     cancelAnimationFrame(animationFrameId);
                                     localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                     saveChat();
@@ -914,9 +910,9 @@
                                             animationQueue += textPart;
                                             if (!isAnimating) {
                                                 isAnimating = true;
-                                                // Clear the "thinking" indicator before starting
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                                                 if(contentBlock) contentBlock.innerHTML = '';
+                                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' }); // MODIFIED: Scroll once at the very beginning
                                                 animateText();
                                             }
                                         }

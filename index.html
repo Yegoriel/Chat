@@ -708,7 +708,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // MODIFIED: Only autoscroll for user messages
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
@@ -781,6 +780,7 @@
                 updateActiveChatSelection(chatId);
             }
 
+            // --- CRITICAL FIX: Decoupled Save Logic ---
             function saveChat() {
                 if (!currentUser || !currentChatId) return;
                 db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
@@ -811,7 +811,7 @@
                     updateActiveChatSelection(currentChatId);
                 } else {
                     localChatHistory.push({ role: 'user', text: userMessage });
-                    db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
+                    await db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
@@ -820,9 +820,8 @@
                 let animationQueue = '';
                 let displayedText = '';
                 let isAnimating = false;
-                let isStreamFinished = false;
                 let animationFrameId = null;
-                const charsPerFrame = 2;
+                const charsPerFrame = 4;
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -837,14 +836,9 @@
                         }
                     }
 
-                    if (animationQueue.length === 0 && isStreamFinished) {
-                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                        saveChat();
-                        cancelAnimationFrame(animationFrameId);
-                        return;
+                    if (animationFrameId) {
+                       animationFrameId = requestAnimationFrame(animateText);
                     }
-                    
-                    animationFrameId = requestAnimationFrame(animateText);
                 };
 
                 try {
@@ -859,16 +853,23 @@
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     let sseBuffer = '';
+                    
+                    // --- CRITICAL FIX: Placeholder for immediate data storage ---
+                    localChatHistory.push({ role: 'model', text: '' });
 
                     const processStream = async () => {
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
-                                isStreamFinished = true;
-                                if (!isAnimating) {
-                                    cancelAnimationFrame(animationFrameId);
-                                    localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                                    saveChat();
+                                // --- CRITICAL FIX: Save is called as soon as the stream ends, not when animation ends ---
+                                saveChat();
+                                cancelAnimationFrame(animationFrameId);
+                                animationFrameId = null;
+                                // Final render to ensure everything is perfect
+                                const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                                if (contentBlock) {
+                                    contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                                    attachFeaturesToAiMessage(aiMsgContainer);
                                 }
                                 break;
                             }
@@ -884,12 +885,16 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
+                                            // --- CRITICAL FIX: Update local data immediately ---
+                                            localChatHistory[localChatHistory.length - 1].text = accumulatedResponseText;
+                                            
                                             animationQueue += textPart;
                                             if (!isAnimating) {
                                                 isAnimating = true;
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                                                 if(contentBlock) contentBlock.innerHTML = '';
-                                                animateText();
+                                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                                                animationFrameId = requestAnimationFrame(animateText);
                                             }
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
@@ -903,6 +908,12 @@
                     const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                     if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                     cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                    // --- CRITICAL FIX: Clean up failed attempt ---
+                    if (localChatHistory.length > 0 && localChatHistory[localChatHistory.length - 1].role === 'model') {
+                        localChatHistory.pop();
+                        saveChat();
+                    }
                 }
             }
             

@@ -11,20 +11,6 @@
     <style>
         :root {
             --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            
-            /* MODIFIED: Added Modular Spacing & Font Variables */
-            --space-sm: 0.5rem;
-            --space-md: 1rem;
-            --space-lg: 1.25rem;
-            --space-xl: 1.5rem;
-            --space-xxl: 2rem;
-            --space-xxxl: 3rem;
-
-            --font-size-body: 0.95rem;
-            --font-size-h1: 3.4rem;
-            --font-size-h2: 2.4rem;
-            --font-size-h3: 1.75rem;
-            
             /* Light Theme Colors */
             --background-color: #ffffff;
             --text-color: #202020;
@@ -356,18 +342,13 @@
 
       /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
 
-        .message-container.ai * {
-            box-sizing: border-box;
-            word-wrap: break-word;
-        }
-      
+        /* Base style for AI response block */
         .message-container.ai .ai-content-block {
             font-family: inherit;
             font-weight: 400;
             line-height: 1.75;
             color: var(--text-color);
             text-rendering: optimizeLegibility;
-            font-feature-settings: "ss01" on, "cv02" on;
         }
 
         /* === HEADINGS (NEW HIERARCHY) === */
@@ -383,28 +364,30 @@
             color: var(--text-color);
         }
 
+        /* The Massive, Main Title (Guidebook Name) */
         .message-container.ai h1 {
-            font-size: var(--font-size-h1);
+            font-size: 3.4rem;
             font-weight: 700;
             letter-spacing: -0.03em;
-            margin: var(--space-xxxl) 0 var(--space-xl);
+            margin: 3rem 0 1.5rem;
         }
 
+        /* The Main Sub-heading (Section Title) */
         .message-container.ai h2 {
-            font-size: var(--font-size-h2);
+            font-size: 2.4rem;
             font-weight: 600;
             letter-spacing: -0.02em;
-            margin: var(--space-xxl) 0 var(--space-lg);
-            padding-left: 0.25rem;
+            margin: 2.5rem 0 1.25rem;
         }
 
+        /* The Supporting Sub-heading */
         .message-container.ai h3 {
-            font-size: var(--font-size-h3);
+            font-size: 1.75rem;
             font-weight: 500;
-            margin: var(--space-xl) 0 var(--space-md);
-            padding-left: 0.25rem;
+            margin: 2rem 0 1rem;
         }
 
+        /* Special style for emojis inside headings */
         .message-container.ai h1 > .emoji,
         .message-container.ai h2 > .emoji,
         .message-container.ai h3 > .emoji {
@@ -425,9 +408,9 @@
         /* === PARAGRAPHS & TEXT === */
 
         .message-container.ai p {
-            font-size: var(--font-size-body);
+            font-size: 0.95rem;
             line-height: 1.75;
-            margin: var(--space-md) 0 !important;
+            margin: 1em 0 !important;
             font-weight: 400 !important;
         }
 
@@ -440,7 +423,7 @@
 
         .message-container.ai ul,
         .message-container.ai ol {
-            margin: var(--space-md) 0;
+            margin: 1em 0;
             padding-left: 1.75em;
             font-weight: 400;
             list-style-position: outside;
@@ -451,7 +434,7 @@
             line-height: 1.7;
             margin: 0.6em 0;
             padding-left: 0.5em;
-            font-size: var(--font-size-body);
+            font-size: 0.95rem;
             font-weight: 400;
         }
         
@@ -482,16 +465,11 @@
             opacity: 0.8;
         }
 
-        /* MODIFIED: Fix for nested list numbering */
-        .message-container.ai ol ol,
-        .message-container.ai ol ul {
-            list-style-type: disc;
-        }
-
+        /* Nested lists indentation */
         .message-container.ai li > ul,
         .message-container.ai li > ol {
-            margin-top: var(--space-sm);
-            margin-bottom: var(--space-sm);
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
             padding-left: 1.5em;
         }
         
@@ -503,7 +481,7 @@
         /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
 
         .message-container.ai blockquote {
-            margin: var(--space-xl) 0;
+            margin: 1.5em 0;
             padding: 0.1em 0 0.1em 1.25rem;
             background-color: transparent;
             border-left: 3px solid var(--primary-accent);
@@ -511,7 +489,7 @@
         }
         
         .message-container.ai blockquote p {
-            margin: var(--space-md) 0 !important;
+            margin: 1em 0 !important;
         }
 
         .message-container.ai code:not(pre > code) {
@@ -542,7 +520,7 @@
         .message-container.ai pre {
             background-color: var(--code-bg);
             color: var(--code-text-color);
-            padding: var(--space-md);
+            padding: 1rem;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             overflow-x: auto;
@@ -754,9 +732,7 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                if (sender === 'user') {
-                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                }
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 return m;
             }
 
@@ -861,13 +837,14 @@
 
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 
+                // --- NEW: Animation Engine State ---
                 let accumulatedResponseText = '';
                 let animationQueue = '';
                 let displayedText = '';
                 let isAnimating = false;
                 let isStreamFinished = false;
                 let animationFrameId = null;
-                const charsPerFrame = 2;
+                const charsPerFrame = 4; // Adjust for speed
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -882,7 +859,12 @@
                         }
                     }
 
+                    if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
+                        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                    }
+
                     if (animationQueue.length === 0 && isStreamFinished) {
+                        // Final save of the complete message
                         localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                         saveChat();
                         cancelAnimationFrame(animationFrameId);
@@ -910,7 +892,7 @@
                             const { value, done } = await reader.read();
                             if (done) {
                                 isStreamFinished = true;
-                                if (!isAnimating) {
+                                if (!isAnimating) { // If stream ends before animation starts
                                     cancelAnimationFrame(animationFrameId);
                                     localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                                     saveChat();
@@ -932,9 +914,9 @@
                                             animationQueue += textPart;
                                             if (!isAnimating) {
                                                 isAnimating = true;
+                                                // Clear the "thinking" indicator before starting
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                                                 if(contentBlock) contentBlock.innerHTML = '';
-                                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                                                 animateText();
                                             }
                                         }

@@ -34,7 +34,7 @@ const systemPrompt = `
 **Formatting Rules:**
 - When a user's idea has multiple parts, use a Markdown horizontal rule ('---') to create a clear division between each part of your analysis.
 - When you are genuinely excited by a user's prompt, you might use a single emoji on its own line to add emphasis before continuing.
-- Use different stylings of formatted text, including **bold** for key concepts and *italics* for emphasis, semi-transparancy for additions and size increase for headers.
+
 - **Table Formatting:**
 - To display tabular data, you MUST use GitHub Flavored Markdown tables.
 - **Crucial Rule: A single table row must NOT contain any newline characters. All data for a row must be on one single line.**

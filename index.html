@@ -12,7 +12,7 @@
         :root {
             --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             
-            /* Typographic & Spacing System */
+            /* MODIFIED: Typographic & Spacing System */
             --space-xs: 0.25rem;
             --space-sm: 0.5rem;
             --space-md: 1rem;
@@ -45,8 +45,8 @@
 
             --sidebar-width: 256px;
             --sidebar-collapsed-width: 64px;
-            --chat-content-narrow-width: 42rem;
-            --chat-content-expanded-width: 50rem;
+            --chat-content-narrow-width: 65ch; /* MODIFIED: Optimal text width */
+            --chat-content-expanded-width: 80ch;
         }
 
         body.dark-theme {
@@ -244,16 +244,15 @@
             width: 100%;
         }
         
+        /* MODIFIED: AI Content Block Styling */
         .ai-content-block {
-            display: grid;
+            display: grid; /* ADDED: For layout stability */
             grid-template-columns: 1fr;
             align-items: start;
             padding: 0.75rem 0.1rem;
             animation: fadeIn 0.5s ease forwards;
-            font-feature-settings: "ss01" on, "cv02" on;
+            font-feature-settings: "ss01" on, "cv02" on; /* ADDED: Typographic ligatures */
             text-rendering: optimizeLegibility;
-           -webkit-font-smoothing: antialiased;
-           -moz-osx-font-smoothing: grayscale;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -377,32 +376,49 @@
             border: none !important;
             list-style: none !important;
             color: var(--text-color);
-            line-height: var(--line-height-heading);
+            line-height: var(--line-height-heading); /* MODIFIED */
         }
 
         .message-container.ai h1 {
             font-size: var(--font-size-h1);
             font-weight: 700;
             letter-spacing: -0.03em;
-            margin: var(--space-xxl) 0 var(--space-lg);
+            margin: var(--space-xxl) 0 var(--space-lg); /* MODIFIED */
         }
 
         .message-container.ai h2 {
             font-size: var(--font-size-h2);
             font-weight: 600;
             letter-spacing: -0.02em;
-            margin: var(--space-xl) 0 var(--space-md);
+            margin: var(--space-xl) 0 var(--space-md); /* MODIFIED */
         }
 
         .message-container.ai h3 {
             font-size: var(--font-size-h3);
             font-weight: 500;
-            margin: var(--space-lg) 0 var(--space-sm);
+            margin: var(--space-lg) 0 var(--space-sm); /* MODIFIED */
         }
 
         .message-container.ai h2,
         .message-container.ai h3 {
-            padding-left: var(--space-xs);
+            padding-left: var(--space-xs); /* ADDED: Rectangular alignment */
+        }
+
+        .message-container.ai h1 > .emoji,
+        .message-container.ai h2 > .emoji,
+        .message-container.ai h3 > .emoji {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5em;
+            height: 1.5em;
+            margin-right: 0.6em;
+            background-color: var(--sidebar-bg);
+            border-radius: 0.5em;
+            font-size: 0.8em;
+            line-height: 1;
+            position: relative;
+            top: -0.1em;
         }
 
         .message-container.ai p {
@@ -410,7 +426,7 @@
             line-height: var(--line-height-body);
             margin: var(--space-md) 0 !important;
             font-weight: 400 !important;
-            hanging-punctuation: first;
+            hanging-punctuation: first; /* ADDED */
             text-indent: 0;
         }
 
@@ -421,12 +437,12 @@
 
         .message-container.ai ul,
         .message-container.ai ol {
-            margin-block-start: var(--space-md);
-            margin-block-end: var(--space-md);
-            padding-inline-start: 1.75em;
+            margin-block-start: var(--space-md); /* MODIFIED */
+            margin-block-end: var(--space-md); /* MODIFIED */
+            padding-inline-start: 1.75em; /* MODIFIED */
             font-weight: 400;
             list-style-position: outside;
-            padding-left: 1.75em;
+            padding-left: 1.75em; /* Fallback for older browsers */
         }
         
         .message-container.ai ul li,
@@ -464,6 +480,7 @@
         .message-container.ai li::before,
         .message-container.ai li::after { content: none !important; }
 
+        /* MODIFIED: New Blockquote Style */
         .message-container.ai blockquote {
             background-color: var(--blockquote-bg);
             border-left: 4px solid var(--blockquote-border);
@@ -710,6 +727,14 @@
                 return m;
             }
 
+            // ADDED: Semantic Emoji Function
+            function insertSemanticEmoji(text) {
+                const mapping = { "example": "💡", "overview": "📘", "analysis": "🔍", "warning": "⚠️", "note": "📝", "idea": "💭", "faq": "❓", "tip": "📌" };
+                const firstWord = text.split(' ')[0].toLowerCase().replace(/[:.]/g, '');
+                const match = Object.entries(mapping).find(([key]) => firstWord.includes(key));
+                return match ? `${match[1]} ${text}` : text;
+            }
+
             function attachFeaturesToAiMessage(container) {
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
@@ -726,6 +751,13 @@
                     wrapper.className = 'table-wrapper';
                     table.parentNode.insertBefore(wrapper, table);
                     wrapper.appendChild(table);
+                });
+
+                // MODIFIED: Apply semantic emojis to headers
+                container.querySelectorAll('h2, h3').forEach(h => {
+                    if (h.dataset.emojiApplied) return;
+                    h.innerHTML = insertSemanticEmoji(h.innerHTML);
+                    h.dataset.emojiApplied = 'true';
                 });
             }
 
@@ -801,56 +833,6 @@
                 let isStreamFinished = false;
                 let animationFrameId = null;
                 const charsPerFrame = 2;
-                
-                let lastSaveTime = 0;
-                const saveThreshold = 1500;
-
-                const throttledSave = () => {
-                    if (!isStreamFinished) {
-                        const now = Date.now();
-                        if (now - lastSaveTime > saveThreshold) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                            saveChat();
-                            localChatHistory.pop();
-                            lastSaveTime = now;
-                        }
-                    }
-                };
-
-                const finalizeAndSave = () => {
-                    cancelAnimationFrame(animationFrameId);
-                    isAnimating = false;
-                    
-                    const finalMessage = localChatHistory.find(m => m.role === 'model');
-                    if (finalMessage) {
-                        finalMessage.text = accumulatedResponseText;
-                    } else {
-                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                    }
-                    saveChat();
-                };
-
-                const handleVisibilityChange = () => {
-                    if (document.hidden) return;
-                    if (isAnimating && animationQueue.length > 0) {
-                        cancelAnimationFrame(animationFrameId);
-                        isAnimating = false;
-                        
-                        displayedText += animationQueue;
-                        animationQueue = '';
-                        
-                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                        if (contentBlock) {
-                            contentBlock.innerHTML = marked.parse(displayedText);
-                            attachFeaturesToAiMessage(aiMsgContainer);
-                        }
-                        
-                        if (isStreamFinished) {
-                            finalizeAndSave();
-                        }
-                    }
-                };
-                document.addEventListener('visibilitychange', handleVisibilityChange);
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -866,8 +848,9 @@
                     }
 
                     if (animationQueue.length === 0 && isStreamFinished) {
-                        finalizeAndSave();
-                        document.removeEventListener('visibilitychange', handleVisibilityChange);
+                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                        saveChat();
+                        cancelAnimationFrame(animationFrameId);
                         return;
                     }
                     
@@ -893,8 +876,9 @@
                             if (done) {
                                 isStreamFinished = true;
                                 if (!isAnimating) {
-                                    finalizeAndSave();
-                                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                                    cancelAnimationFrame(animationFrameId);
+                                    localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                                    saveChat();
                                 }
                                 break;
                             }
@@ -911,7 +895,6 @@
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
                                             animationQueue += textPart;
-                                            throttledSave();
                                             if (!isAnimating) {
                                                 isAnimating = true;
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
@@ -931,7 +914,6 @@
                     const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                     if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                     cancelAnimationFrame(animationFrameId);
-                    document.removeEventListener('visibilitychange', handleVisibilityChange);
                 }
             }
             

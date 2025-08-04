@@ -832,12 +832,16 @@
                     updateActiveChatSelection(currentChatId);
                 } else {
                     localChatHistory.push({ role: 'user', text: userMessage });
-                    db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
+                    await db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
+                // --- MODIFICATION START ---
+                // Add a placeholder for the AI's response to the local history.
+                // This placeholder will be updated as the AI response streams in.
+                localChatHistory.push({ role: 'model', text: '' });
+                
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 
-                // --- NEW: Animation Engine State ---
                 let accumulatedResponseText = '';
                 let animationQueue = '';
                 let displayedText = '';
@@ -859,14 +863,15 @@
                         }
                     }
 
-                    if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
-                        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                    }
+                    // REMOVED: Autoscroll logic is gone.
 
                     if (animationQueue.length === 0 && isStreamFinished) {
-                        // Final save of the complete message
-                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                        saveChat();
+                        // Final render to ensure the displayed text matches the full response
+                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                        if (contentBlock) {
+                            contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                            attachFeaturesToAiMessage(aiMsgContainer);
+                        }
                         cancelAnimationFrame(animationFrameId);
                         return;
                     }
@@ -878,7 +883,7 @@
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
+                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }) // Exclude user's latest and our placeholder
                     });
 
                     if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
@@ -892,11 +897,9 @@
                             const { value, done } = await reader.read();
                             if (done) {
                                 isStreamFinished = true;
-                                if (!isAnimating) { // If stream ends before animation starts
-                                    cancelAnimationFrame(animationFrameId);
-                                    localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                                    saveChat();
-                                }
+                                // The stream is finished, save the final, complete message.
+                                // This is the crucial fix for data persistence.
+                                saveChat();
                                 break;
                             }
                             sseBuffer += decoder.decode(value, { stream: true });
@@ -911,10 +914,12 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
+                                            // Update the placeholder in our local history with the new text.
+                                            localChatHistory[localChatHistory.length - 1].text = accumulatedResponseText;
+                                            
                                             animationQueue += textPart;
                                             if (!isAnimating) {
                                                 isAnimating = true;
-                                                // Clear the "thinking" indicator before starting
                                                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                                                 if(contentBlock) contentBlock.innerHTML = '';
                                                 animateText();
@@ -931,7 +936,15 @@
                     const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                     if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                     cancelAnimationFrame(animationFrameId);
+
+                    // If the API call fails, remove the optimistic placeholder and save the chat
+                    // to revert to the state before the failed message.
+                    if (localChatHistory.length > 0 && localChatHistory[localChatHistory.length - 1].role === 'model') {
+                        localChatHistory.pop();
+                        saveChat();
+                    }
                 }
+                // --- MODIFICATION END ---
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());

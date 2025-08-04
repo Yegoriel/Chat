@@ -10,21 +10,21 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --system-font: 'Söhne', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             
-            /* --- Refined Modular Spacing & Font Variables for ChatGPT-like rhythm --- */
+            /* --- MODULAR SPACING & FONT SYSTEM --- */
             --space-sm: 0.5rem;
             --space-md: 1rem;
             --space-lg: 1.25rem;
             --space-xl: 1.5rem;
-            --space-xxl: 2.5rem; /* Increased for more breathing room */
-            --space-xxxl: 3.5rem; /* Increased for more breathing room */
+            --space-xxl: 2.5rem;
+            --space-xxxl: 3.5rem;
 
             --font-size-body: 1rem;
-            --font-size-h1: 2.4rem; /* Increased */
-            --font-size-h2: 1.75rem; /* Increased */
-            --font-size-h3: 1.35rem; /* Increased */
-
+            --font-size-h1: 2.4rem;
+            --font-size-h2: 1.75rem;
+            --font-size-h3: 1.35rem;
+            
             /* Light Theme Colors */
             --background-color: #ffffff;
             --text-color: #202020;
@@ -369,7 +369,6 @@
             text-rendering: optimizeLegibility;
         }
 
-        /* === HEADINGS & VERTICAL RHYTHM === */
         .message-container.ai h1,
         .message-container.ai h2,
         .message-container.ai h3,
@@ -379,7 +378,7 @@
             line-height: 1.3;
             color: var(--text-color);
             border: none;
-            padding-left: 0; /* MODIFICATION: Removed padding */
+            padding-left: 0;
         }
 
         .message-container.ai h1 {
@@ -397,18 +396,17 @@
 
         .message-container.ai h3 {
             font-size: var(--font-size-h3);
-            font-weight: 600; /* MODIFICATION: Increased weight for prominence */
+            font-weight: 600;
             margin: var(--space-xl) 0 var(--space-md);
         }
 
         .message-container.ai .emoji {
-            font-size: 0.8em; /* Relative size to heading */
+            font-size: 0.8em;
             margin-right: var(--space-sm);
             position: relative;
-            top: -0.08em; /* Fine-tune vertical alignment */
+            top: -0.08em;
         }
 
-        /* === PARAGRAPHS & TEXT === */
         .message-container.ai p {
             font-size: var(--font-size-body);
             line-height: 1.75;
@@ -421,7 +419,6 @@
             font-weight: 600;
         }
 
-        /* === LISTS (FLAWLESS & STRAIGHT ALIGNMENT) === */
         .message-container.ai ul,
         .message-container.ai ol {
             margin-block-start: var(--space-md);
@@ -473,7 +470,6 @@
         .message-container.ai li::before,
         .message-container.ai li::after { content: none !important; }
 
-        /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
         .message-container.ai blockquote {
             background-color: rgba(74, 144, 226, 0.08);
             border-left: 3px solid #4a90e2;
@@ -509,7 +505,6 @@
             margin: var(--space-xxl) 0;
         }
 
-        /* Code Blocks */
         .code-block-wrapper {
             position: relative;
             margin: var(--space-lg) 0;
@@ -551,7 +546,6 @@
         body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
         .copy-btn:active { transform: scale(0.95); }
         
-        /* === TABLES (SLEEK & COMPACT) === */
         .table-wrapper {
             border: none;
             border-radius: 8px;
@@ -714,7 +708,10 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                // MODIFIED: Only autoscroll for user messages
+                if (sender === 'user') {
+                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                }
                 return m;
             }
 
@@ -814,11 +811,9 @@
                     updateActiveChatSelection(currentChatId);
                 } else {
                     localChatHistory.push({ role: 'user', text: userMessage });
-                    await db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
+                    db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                localChatHistory.push({ role: 'model', text: '' });
-                
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 
                 let accumulatedResponseText = '';
@@ -827,7 +822,7 @@
                 let isAnimating = false;
                 let isStreamFinished = false;
                 let animationFrameId = null;
-                const charsPerFrame = 4;
+                const charsPerFrame = 2;
 
                 const animateText = () => {
                     if (animationQueue.length > 0) {
@@ -843,11 +838,8 @@
                     }
 
                     if (animationQueue.length === 0 && isStreamFinished) {
-                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                        if (contentBlock) {
-                            contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                            attachFeaturesToAiMessage(aiMsgContainer);
-                        }
+                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                        saveChat();
                         cancelAnimationFrame(animationFrameId);
                         return;
                     }
@@ -859,7 +851,7 @@
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) })
+                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
                     });
 
                     if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
@@ -873,7 +865,11 @@
                             const { value, done } = await reader.read();
                             if (done) {
                                 isStreamFinished = true;
-                                saveChat();
+                                if (!isAnimating) {
+                                    cancelAnimationFrame(animationFrameId);
+                                    localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                                    saveChat();
+                                }
                                 break;
                             }
                             sseBuffer += decoder.decode(value, { stream: true });
@@ -888,8 +884,6 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            localChatHistory[localChatHistory.length - 1].text = accumulatedResponseText;
-                                            
                                             animationQueue += textPart;
                                             if (!isAnimating) {
                                                 isAnimating = true;
@@ -909,11 +903,6 @@
                     const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                     if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                     cancelAnimationFrame(animationFrameId);
-
-                    if (localChatHistory.length > 0 && localChatHistory[localChatHistory.length - 1].role === 'model') {
-                        localChatHistory.pop();
-                        saveChat();
-                    }
                 }
             }
             

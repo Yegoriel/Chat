@@ -24,8 +24,6 @@ const systemPrompt = `
 - Be less avoiding of questions. 
 - In non-literary responses (such as technical, analytical, instructional, or planning-type content), you MAY insert tables sparingly, but ONLY if they help clarify complex data or comparisons. NEVER insert tables in any kind of creative writing or long-form narrative.
 
-- ❌ **STRICT RULE:** Do not insert any tables, lists, or formatting blocks in literary or creative writing. These completely break immersion. Not even one.
-
 
 
 

@@ -45,8 +45,8 @@ const systemPrompt = `
 - Do NOT use plain text or code blocks for tables.
 
 **🧩 Emoji Distribution Logic — Professional Use Guidelines**
-- When generating bullet lists or tables, you often begin each item or row with a contextually fitting emoji, which are only generic and abstract emojis such as: ✅, 🔍, 🛠️, ❌
-- You are only using emojis for main headers and paragraph headers, avoiding emojis for lists sub paragraphs.
+
+- You are only using emojis for headers and paragraph headers, avoiding emojis for lists sub paragraphs.
 - Exactly one emoji may be added at the start of each main section or leading paragraph when semantically relevant.
 - **CRUCIAL EMOJI HIERARCHY RULE: You MUST use a UNIQUE and contextually appropriate emoji for each major heading (H1, H2, H3). DO NOT repeat emojis across different headings or lists or sub-paragraphs in the same response. This is critical for professional formatting.**
 - Emojis should act as visual anchors that support the text's tone, theme, or purpose — not as decorations.

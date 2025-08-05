@@ -19,7 +19,7 @@
             --space-xxl: 2rem;
             --space-xxxl: 3rem;
 
-            --font-size-body: 1rem; /* MODIFIED: Set to 1rem for consistency as requested */
+            --font-size-body: 1rem;
             --font-size-h1: 2.8rem; 
             --font-size-h2: 2.4rem;
             --font-size-h3: 1.75rem;
@@ -370,7 +370,6 @@
               -moz-osx-font-smoothing: grayscale;
         }
 
-        /* MODIFIED: Added to create tighter spacing like ChatGPT */
         .message-container.ai .ai-content-block > *:first-child {
             margin-top: 0 !important;
         }
@@ -426,7 +425,8 @@
         .message-container.ai ul,
         .message-container.ai ol {
             margin: var(--space-md) 0;
-            padding-left: 1.75em;
+            /* MODIFIED: Reduced padding for a more vertical, ChatGPT-like alignment */
+            padding-left: 1.25em; 
             font-weight: 400;
             list-style-position: outside;
         }
@@ -434,8 +434,9 @@
         .message-container.ai ul li,
         .message-container.ai ol li {
             line-height: 1.7;
-            margin: 0.6em 0;
-            padding-left: 0.5em;
+            margin: 0.5em 0;
+            /* MODIFIED: Reduced padding for tighter alignment between bullet and text */
+            padding-left: 0.25em;
             font-size: var(--font-size-body);
             font-weight: 400;
         }
@@ -445,6 +446,7 @@
         }
         
         .message-container.ai ul li {
+            /* MODIFIED: Ensure all unordered lists use a solid bullet, as per screenshot */
             list-style-type: disc;
         }
         
@@ -459,19 +461,22 @@
         }
 
         .message-container.ai ul li::marker {
-            opacity: 0.6;
+            /* MODIFIED: Ensure standard appearance */
+            font-weight: normal;
+            opacity: 1;
         }
 
         .message-container.ai ol li::marker {
-            font-weight: 600;
-            opacity: 0.8;
+            /* MODIFIED: Ensure standard appearance */
+            font-weight: normal;
+            opacity: 1;
         }
 
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin-top: var(--space-sm);
             margin-bottom: var(--space-sm);
-            padding-left: 1.5em;
+            padding-left: 1.2em; /* MODIFIED: Slightly adjust nested list indentation */
         }
         
         .message-container.ai li::before,
@@ -479,24 +484,13 @@
             content: none !important;
         }
 
-        /* MODIFIED: The definitive fix for nested ordered lists to prevent number pile-ups */
-        .message-container.ai ul ul li,
-        .message-container.ai ol ul li {
-            list-style-type: circle;
-        }
-        
-        .message-container.ai ul ol li,
-        .message-container.ai ol ol li {
+        /* MODIFIED: The definitive, simplified fix for nested lists. */
+        /* Any ordered list inside another list will use bullets instead of numbers. */
+        .message-container.ai ol ol,
+        .message-container.ai ul ol {
             list-style-type: disc;
         }
         
-        .message-container.ai ul ul ul li,
-        .message-container.ai ol ul ul li,
-        .message-container.ai ul ol ul li,
-        .message-container.ai ol ol ul li {
-             list-style-type: square;
-        }
-
         .message-container.ai blockquote {
             margin: var(--space-xl) 0;
             padding: 0.1em 0 0.1em 1.25rem;

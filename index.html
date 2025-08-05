@@ -12,7 +12,6 @@
         :root {
             --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             
-            /* MODIFIED: Added Modular Spacing & Font Variables */
             --space-sm: 0.5rem;
             --space-md: 1rem;
             --space-lg: 1.25rem;
@@ -21,7 +20,7 @@
             --space-xxxl: 3rem;
 
             --font-size-body: 0.95rem;
-            --font-size-h1: 3.4rem;
+            --font-size-h1: 2.8rem; 
             --font-size-h2: 2.4rem;
             --font-size-h3: 1.75rem;
             
@@ -238,13 +237,12 @@
             padding: 0;
             width: 100%;
         }
+        
         .ai-content-block {
             padding: 0.75rem 0.1rem;
-            animation: fadeIn 0.5s ease forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: start;
         }
         
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
@@ -366,13 +364,12 @@
             font-weight: 400;
             line-height: 1.75;
             color: var(--text-color);
-            /* MODIFIED: Added advanced font rendering */
-            text-rendering: optimizeLegibility;
-            font-feature-settings: "ss01" on, "cv02" on;
+             font-feature-settings: "ss01" on, "cv02" on;
+              text-rendering: optimizeLegibility;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
         }
 
-        /* === HEADINGS (NEW HIERARCHY) === */
-        
         .message-container.ai h1,
         .message-container.ai h2,
         .message-container.ai h3 {
@@ -396,34 +393,15 @@
             font-weight: 600;
             letter-spacing: -0.02em;
             margin: var(--space-xxl) 0 var(--space-lg);
-            padding-left: 0.25rem; /* MODIFIED: Added for rectangular alignment */
+            padding-left: 0.25rem;
         }
 
         .message-container.ai h3 {
             font-size: var(--font-size-h3);
             font-weight: 500;
             margin: var(--space-xl) 0 var(--space-md);
-            padding-left: 0.25rem; /* MODIFIED: Added for rectangular alignment */
+            padding-left: 0.25rem;
         }
-
-        .message-container.ai h1 > .emoji,
-        .message-container.ai h2 > .emoji,
-        .message-container.ai h3 > .emoji {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 1.5em;
-            height: 1.5em;
-            margin-right: 0.6em;
-            background-color: var(--sidebar-bg);
-            border-radius: 0.5em;
-            font-size: 0.8em;
-            line-height: 1;
-            position: relative;
-            top: -0.1em;
-        }
-
-        /* === PARAGRAPHS & TEXT === */
 
         .message-container.ai p {
             font-size: var(--font-size-body);
@@ -436,8 +414,6 @@
         .message-container.ai b {
             font-weight: 600;
         }
-
-        /* === LISTS (FLAWLESS & STRAIGHT ALIGNMENT) === */
 
         .message-container.ai ul,
         .message-container.ai ol {
@@ -495,12 +471,20 @@
             content: none !important;
         }
 
-        /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
+        /* MODIFIED: The definitive fix for nested ordered lists */
+        .message-container.ai ol ol {
+            list-style-type: disc;
+        }
+
+        .message-container.ai ol ol li::marker {
+            font-weight: 400;
+            opacity: 0.6;
+        }
 
         .message-container.ai blockquote {
             margin: var(--space-xl) 0;
             padding: 0.1em 0 0.1em 1.25rem;
-            background-color: transparent;
+            background-color: none;
             border-left: 3px solid var(--primary-accent);
             opacity: 0.85;
         }
@@ -510,11 +494,11 @@
         }
 
         .message-container.ai code:not(pre > code) {
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             padding: 0.2em 0.4em;
             background-color: var(--code-bg);
             border-radius: 4px;
-            font-family: 'Fira Code', 'SF Mono', monospace; /* MODIFIED: Refined font stack */
+            font-family: 'Fira Code', 'SF Mono', monospace;
             border: 1px solid var(--border-color);
         }
 
@@ -542,7 +526,7 @@
             border: 1px solid var(--border-color);
             overflow-x: auto;
             font-family: 'SF Mono', 'Fira Code', 'monospace';
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             line-height: 1.6;
             margin: 0;
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
@@ -563,7 +547,7 @@
             padding: 0.3rem 0.6rem;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             opacity: 0;
             transition: opacity 0.2s;
         }
@@ -573,7 +557,6 @@
         body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
         .copy-btn:active { transform: scale(0.95); }
         
-        /* --- START: SLEEK & MINIMALIST TABLE STYLES (FINAL VERSION) --- */
         .table-wrapper {
             border: none;
             border-radius: 0;
@@ -626,8 +609,6 @@
         .message-container.ai tbody tr:nth-of-type(even) {
             background-color: transparent;
         }
-        /* --- END: SLEEK & MINIMALIST TABLE STYLES --- */
-
       /* --- END: FLAWLESS TYPOGRAPHY SYSTEM --- */
     </style>
 </head>
@@ -704,7 +685,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Firebase and variable setup (unchanged) ---
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
                 authDomain: "ai-chatbot-b38da.firebaseapp.com",
@@ -749,29 +729,43 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // MODIFIED: Only autoscroll for user messages
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
                 return m;
             }
 
-            function styleSpecialElements(container) {
+            function finalizeMessageFormatting(container) {
+                const usedEmojis = new Set();
                 const emojiRegex = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26ff]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/;
-
+                
                 container.querySelectorAll('h1, h2, h3').forEach(heading => {
-                    const trimmedText = heading.innerHTML.trim();
-                    const match = trimmedText.match(emojiRegex);
-                    
+                    if (heading.dataset.emojiApplied) return;
+                    const originalHtml = heading.innerHTML.trim();
+                    const match = originalHtml.match(emojiRegex);
                     if (match) {
                         const emoji = match[0];
-                        const restOfText = trimmedText.substring(emoji.length).trim();
-                        heading.innerHTML = `<span class="emoji">${emoji}</span> ${restOfText}`;
+                        const restOfHtml = originalHtml.substring(emoji.length).trim();
+                        if (!usedEmojis.has(emoji)) {
+                            usedEmojis.add(emoji);
+                            heading.innerHTML = `${emoji} ${restOfHtml}`;
+                        } else {
+                            heading.innerHTML = restOfHtml;
+                        }
+                    }
+                    heading.dataset.emojiApplied = 'true';
+                });
+
+                container.querySelectorAll('li, blockquote').forEach(el => {
+                    const firstChild = el.firstChild;
+                    if (firstChild && firstChild.nodeType === Node.TEXT_NODE) {
+                        const match = firstChild.textContent.trim().match(emojiRegex);
+                        if (match && firstChild.textContent.trim().startsWith(match[0])) {
+                            firstChild.textContent = firstChild.textContent.replace(match[0], '').trimStart();
+                        }
                     }
                 });
-            }
 
-            function attachFeaturesToAiMessage(container) {
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
@@ -780,16 +774,12 @@
                     wrapper.appendChild(btn); 
                 });
                 
-                container.querySelectorAll('pre code').forEach(hljs.highlightElement);
+                container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'table-wrapper';
-                    table.parentNode.insertBefore(wrapper, table);
-                    wrapper.appendChild(table);
+                    const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
+                    table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
                 });
-
-                styleSpecialElements(container);
             }
 
             async function loadChat(chatId) {
@@ -809,9 +799,10 @@
                     if (msg.role === 'user') {
                         addMessageToUI('user', msg.text);
                     } else if (msg.role === 'model') {
-                        const renderedHtml = marked.parse(msg.text || "");
-                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block">${renderedHtml}</div>`, true);
-                        attachFeaturesToAiMessage(aiMsgContainer);
+                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
+                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                        contentBlock.innerHTML = marked.parse(msg.text || "");
+                        finalizeMessageFormatting(contentBlock);
                     }
                 });
                 
@@ -856,63 +847,51 @@
                 }
 
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
+                const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 let accumulatedResponseText = '';
                 let animationQueue = '';
                 let displayedText = '';
-                let isAnimating = false;
                 let isStreamFinished = false;
                 let animationFrameId = null;
-                const charsPerFrame = 2;
 
-                const animateText = () => {
+                const renderAndAnimate = () => {
                     if (animationQueue.length > 0) {
-                        const chunk = animationQueue.substring(0, charsPerFrame);
-                        animationQueue = animationQueue.substring(charsPerFrame);
-                        displayedText += chunk;
-                        
-                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                        if (contentBlock) {
-                            contentBlock.innerHTML = marked.parse(displayedText);
-                            attachFeaturesToAiMessage(aiMsgContainer);
-                        }
+                        displayedText += animationQueue;
+                        animationQueue = '';
+                        contentBlock.innerHTML = marked.parse(displayedText);
+                        finalizeMessageFormatting(contentBlock);
                     }
 
-                    if (animationQueue.length === 0 && isStreamFinished) {
-                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                        saveChat();
+                    if (isStreamFinished && animationQueue.length === 0) {
                         cancelAnimationFrame(animationFrameId);
                         return;
                     }
                     
-                    animationFrameId = requestAnimationFrame(animateText);
+                    animationFrameId = requestAnimationFrame(renderAndAnimate);
                 };
 
-                try {
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
-                    });
+                const fetchAndProcessStream = async () => {
+                    try {
+                        const response = await fetch('/api/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
+                        });
 
-                    if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
-                    
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let sseBuffer = '';
+                        if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
+                        
+                        contentBlock.innerHTML = '';
+                        renderAndAnimate();
 
-                    const processStream = async () => {
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let sseBuffer = '';
+
                         while (true) {
                             const { value, done } = await reader.read();
-                            if (done) {
-                                isStreamFinished = true;
-                                if (!isAnimating) {
-                                    cancelAnimationFrame(animationFrameId);
-                                    localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                                    saveChat();
-                                }
-                                break;
-                            }
+                            if (done) break;
+                            
                             sseBuffer += decoder.decode(value, { stream: true });
                             const lines = sseBuffer.split('\n');
                             sseBuffer = lines.pop() || '';
@@ -926,26 +905,29 @@
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
                                             animationQueue += textPart;
-                                            if (!isAnimating) {
-                                                isAnimating = true;
-                                                const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                                                if(contentBlock) contentBlock.innerHTML = '';
-                                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                                                animateText();
-                                            }
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
                         }
-                    };
-                    await processStream();
-                } catch (error) {
-                    console.error("AI Streaming Error:", error);
-                    const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                    if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
-                    cancelAnimationFrame(animationFrameId);
-                }
+                    } catch (error) {
+                        console.error("AI Streaming Error:", error);
+                        contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                    } finally {
+                        isStreamFinished = true;
+                        if (accumulatedResponseText.trim()) {
+                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            saveChat();
+                        }
+                        if (document.visibilityState !== 'visible') {
+                             cancelAnimationFrame(animationFrameId);
+                             contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                             finalizeMessageFormatting(contentBlock);
+                        }
+                    }
+                };
+                
+                fetchAndProcessStream();
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());

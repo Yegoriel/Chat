@@ -10,8 +10,9 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --system-font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             
+            --space-xs: 0.25rem;
             --space-sm: 0.5rem;
             --space-md: 1rem;
             --space-lg: 1.25rem;
@@ -19,8 +20,8 @@
             --space-xxl: 2rem;
             --space-xxxl: 3rem;
 
-            --font-size-body: 0.95rem;
-            --font-size-h1: 2.8rem; 
+            --font-size-body: 1rem; /* ИЗМЕНЕНО */
+            --font-size-h1: 3.4rem; 
             --font-size-h2: 2.4rem;
             --font-size-h3: 1.75rem;
             
@@ -177,7 +178,7 @@
 
         #chat-content-wrapper {
             width: 100%;
-            max-width: var(--chat-content-narrow-width);
+            /* max-width УБРАН ОТСЮДА, чтобы поле ввода было широким */
             margin-right: auto;
             margin-left: auto;
             display: flex;
@@ -205,6 +206,8 @@
             display: flex;
             flex-direction: column;
             width: 100%;
+            max-width: 68ch; /* ИЗМЕНЕНО: Ограничиваем ширину только для сообщений */
+            margin: 0 auto;   /* ИЗМЕНЕНО: Центрируем блок сообщений */
             box-sizing: border-box;
             scrollbar-width: none;
             -ms-overflow-style: none;

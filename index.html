@@ -425,7 +425,6 @@
         .message-container.ai ul,
         .message-container.ai ol {
             margin: var(--space-md) 0;
-            /* MODIFIED: Reduced padding for a more vertical, ChatGPT-like alignment */
             padding-left: 1.25em; 
             font-weight: 400;
             list-style-position: outside;
@@ -435,7 +434,6 @@
         .message-container.ai ol li {
             line-height: 1.7;
             margin: 0.5em 0;
-            /* MODIFIED: Reduced padding for tighter alignment between bullet and text */
             padding-left: 0.25em;
             font-size: var(--font-size-body);
             font-weight: 400;
@@ -446,7 +444,6 @@
         }
         
         .message-container.ai ul li {
-            /* MODIFIED: Ensure all unordered lists use a solid bullet, as per screenshot */
             list-style-type: disc;
         }
         
@@ -454,29 +451,30 @@
             list-style-type: decimal;
         }
 
+        /* MODIFIED: Base marker styling */
         .message-container.ai li::marker {
             color: var(--text-color);
             font-size: 0.9em;
             content: unset;
         }
 
+        /* MODIFIED: Soft black bullet points for all ULs */
         .message-container.ai ul li::marker {
-            /* MODIFIED: Ensure standard appearance */
+            opacity: 0.7;
             font-weight: normal;
-            opacity: 1;
         }
 
-        .message-container.ai ol li::marker {
-            /* MODIFIED: Ensure standard appearance */
-            font-weight: normal;
-            opacity: 1;
+        /* MODIFIED: Bolder, soft black numbers for TOP-LEVEL OLs only */
+        .message-container.ai ol > li::marker {
+            font-weight: 600;
+            opacity: 0.9;
         }
 
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin-top: var(--space-sm);
             margin-bottom: var(--space-sm);
-            padding-left: 1.2em; /* MODIFIED: Slightly adjust nested list indentation */
+            padding-left: 1.2em;
         }
         
         .message-container.ai li::before,
@@ -484,11 +482,15 @@
             content: none !important;
         }
 
-        /* MODIFIED: The definitive, simplified fix for nested lists. */
-        /* Any ordered list inside another list will use bullets instead of numbers. */
-        .message-container.ai ol ol,
-        .message-container.ai ul ol {
+        /* MODIFIED: THE DEFINITIVE FIX. An OL inside an OL becomes a UL (disc). */
+        .message-container.ai ol ol {
             list-style-type: disc;
+        }
+
+        /* MODIFIED: Ensure markers of the newly converted list are styled as bullets, not bold numbers. */
+        .message-container.ai ol ol li::marker {
+             font-weight: normal;
+             opacity: 0.7;
         }
         
         .message-container.ai blockquote {

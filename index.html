@@ -37,6 +37,8 @@
             --scroll-btn-bg: var(--background-color);
             --scroll-btn-color: #666;
             --scroll-btn-hover-bg: var(--sidebar-bg);
+            --scrollbar-thumb-color: #ccc;
+            --scrollbar-thumb-hover-color: #aaa;
 
             --sidebar-width: 256px;
             --sidebar-collapsed-width: 64px;
@@ -57,6 +59,8 @@
             --scroll-btn-bg: #2c2c2c;
             --scroll-btn-color: #e0e0e0;
             --scroll-btn-hover-bg: #3a3a3a;
+            --scrollbar-thumb-color: #555;
+            --scrollbar-thumb-hover-color: #777;
         }
 
         html { scroll-behavior: smooth; }
@@ -457,7 +461,6 @@
             content: unset;
         }
 
-        /* MODIFIED: Make bullet points bold and gray, exactly like ChatGPT */
         .message-container.ai ul li::marker {
             font-weight: 700;
             opacity: 0.6;
@@ -480,7 +483,6 @@
             content: none !important;
         }
 
-        /* MODIFIED: The definitive fix for nested ordered lists to prevent number pile-ups */
         .message-container.ai ol ol {
             list-style-type: lower-alpha;
         }
@@ -517,9 +519,19 @@
             margin: 2.5rem 0;
         }
 
-        .code-block-wrapper {
+        .code-block-wrapper,
+        .table-wrapper {
+            max-width: 100%;
+            overflow-x: auto;
             position: relative;
             margin: 1.25em 0;
+        }
+
+        .table-wrapper {
+            border: none;
+            border-radius: 0;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
         
         body.dark-theme .message-container.ai pre code.hljs {
@@ -565,15 +577,6 @@
         body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
         .copy-btn:active { transform: scale(0.95); }
         
-        .table-wrapper {
-            border: none;
-            border-radius: 0;
-            margin: 1.5em 0;
-            overflow: auto;
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
-        }
-
         .table-wrapper table {
             width: 100%;
             border-collapse: collapse;
@@ -617,6 +620,40 @@
         .message-container.ai tbody tr:nth-of-type(even) {
             background-color: transparent;
         }
+
+        /* --- START: Thin Organic Scrollbar for Code/Tables --- */
+        .code-block-wrapper::-webkit-scrollbar,
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .code-block-wrapper::-webkit-scrollbar-track,
+        .table-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-block-wrapper::-webkit-scrollbar-thumb,
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb-color);
+            border-radius: 10px;
+            border: 2px solid var(--code-bg); 
+        }
+        body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb,
+        body.dark-theme .table-wrapper::-webkit-scrollbar-thumb {
+            border-color: var(--code-bg);
+        }
+
+        .code-block-wrapper::-webkit-scrollbar-thumb:hover,
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background-color: var(--scrollbar-thumb-hover-color);
+        }
+
+        /* Support for Firefox */
+        .code-block-wrapper, .table-wrapper {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb-color) transparent;
+        }
+        /* --- END: Thin Organic Scrollbar --- */
       /* --- END: FLAWLESS TYPOGRAPHY SYSTEM --- */
     </style>
 </head>

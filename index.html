@@ -11,19 +11,6 @@
     <style>
         :root {
             --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            
-            --space-sm: 0.5rem;
-            --space-md: 1rem;
-            --space-lg: 1.25rem;
-            --space-xl: 1.5rem;
-            --space-xxl: 2rem;
-            --space-xxxl: 3rem;
-
-            --font-size-body: 1rem;
-            --font-size-h1: 2.8rem; 
-            --font-size-h2: 2.4rem;
-            --font-size-h3: 1.75rem;
-            
             /* Light Theme Colors */
             --background-color: #ffffff;
             --text-color: #202020;
@@ -237,12 +224,13 @@
             padding: 0;
             width: 100%;
         }
-        
         .ai-content-block {
             padding: 0.75rem 0.1rem;
-            display: grid;
-            grid-template-columns: 1fr;
-            align-items: start;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
@@ -354,29 +342,17 @@
 
       /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
 
-        .message-container.ai * {
-            box-sizing: border-box;
-            word-wrap: break-word;
-        }
-      
+        /* Base style for AI response block */
         .message-container.ai .ai-content-block {
             font-family: inherit;
             font-weight: 400;
             line-height: 1.75;
             color: var(--text-color);
-             font-feature-settings: "ss01" on, "cv02" on;
-              text-rendering: optimizeLegibility;
-              -webkit-font-smoothing: antialiased;
-              -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
 
-        .message-container.ai .ai-content-block > *:first-child {
-            margin-top: 0 !important;
-        }
-        .message-container.ai .ai-content-block > *:last-child {
-            margin-bottom: 0 !important;
-        }
-
+        /* === HEADINGS (NEW HIERARCHY) === */
+        
         .message-container.ai h1,
         .message-container.ai h2,
         .message-container.ai h3 {
@@ -388,32 +364,53 @@
             color: var(--text-color);
         }
 
+        /* The Massive, Main Title (Guidebook Name) */
         .message-container.ai h1 {
-            font-size: var(--font-size-h1);
+            font-size: 3.4rem;
             font-weight: 700;
             letter-spacing: -0.03em;
-            margin: var(--space-xxxl) 0 var(--space-xl);
+            margin: 3rem 0 1.5rem;
         }
 
+        /* The Main Sub-heading (Section Title) */
         .message-container.ai h2 {
-            font-size: var(--font-size-h2);
+            font-size: 2.4rem;
             font-weight: 600;
             letter-spacing: -0.02em;
-            margin: var(--space-xxl) 0 var(--space-lg);
-            padding-left: 0.25rem;
+            margin: 2.5rem 0 1.25rem;
         }
 
+        /* The Supporting Sub-heading */
         .message-container.ai h3 {
-            font-size: var(--font-size-h3);
+            font-size: 1.75rem;
             font-weight: 500;
-            margin: var(--space-xl) 0 var(--space-md);
-            padding-left: 0.25rem;
+            margin: 2rem 0 1rem;
         }
+
+        /* Special style for emojis inside headings */
+        .message-container.ai h1 > .emoji,
+        .message-container.ai h2 > .emoji,
+        .message-container.ai h3 > .emoji {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5em;
+            height: 1.5em;
+            margin-right: 0.6em;
+            background-color: var(--sidebar-bg);
+            border-radius: 0.5em;
+            font-size: 0.8em;
+            line-height: 1;
+            position: relative;
+            top: -0.1em;
+        }
+
+        /* === PARAGRAPHS & TEXT === */
 
         .message-container.ai p {
-            font-size: var(--font-size-body);
+            font-size: 0.95rem;
             line-height: 1.75;
-            margin: var(--space-md) 0 !important;
+            margin: 1em 0 !important;
             font-weight: 400 !important;
         }
 
@@ -422,20 +419,22 @@
             font-weight: 600;
         }
 
+        /* === LISTS (FLAWLESS & STRAIGHT ALIGNMENT) === */
+
         .message-container.ai ul,
         .message-container.ai ol {
-            margin: var(--space-md) 0;
-            padding-left: 1.25em; 
+            margin: 1em 0;
+            padding-left: 1.75em; /* MODIFIED */
             font-weight: 400;
             list-style-position: outside;
         }
         
         .message-container.ai ul li,
         .message-container.ai ol li {
-            line-height: 1.7;
-            margin: 0.5em 0;
-            padding-left: 0.25em;
-            font-size: var(--font-size-body);
+            line-height: 1.7; /* MODIFIED */
+            margin: 0.6em 0; /* MODIFIED */
+            padding-left: 0.5em;
+            font-size: 0.95rem;
             font-weight: 400;
         }
         
@@ -444,37 +443,34 @@
         }
         
         .message-container.ai ul li {
-            list-style-type: disc;
+            list-style-type: disc; /* MODIFIED */
         }
         
         .message-container.ai ol li {
-            list-style-type: decimal;
+            list-style-type: decimal; /* MODIFIED */
         }
 
-        /* MODIFIED: Base marker styling */
         .message-container.ai li::marker {
             color: var(--text-color);
             font-size: 0.9em;
             content: unset;
         }
 
-        /* MODIFIED: Soft black bullet points for all ULs */
         .message-container.ai ul li::marker {
-            opacity: 0.7;
-            font-weight: normal;
+            opacity: 0.6; /* MODIFIED */
         }
 
-        /* MODIFIED: Bolder, soft black numbers for TOP-LEVEL OLs only */
-        .message-container.ai ol > li::marker {
-            font-weight: 600;
-            opacity: 0.9;
+        .message-container.ai ol li::marker {
+            font-weight: 600; /* MODIFIED */
+            opacity: 0.8; /* MODIFIED */
         }
 
+        /* Nested lists indentation */
         .message-container.ai li > ul,
         .message-container.ai li > ol {
-            margin-top: var(--space-sm);
-            margin-bottom: var(--space-sm);
-            padding-left: 1.2em;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+            padding-left: 1.5em;
         }
         
         .message-container.ai li::before,
@@ -482,31 +478,22 @@
             content: none !important;
         }
 
-        /* MODIFIED: THE DEFINITIVE FIX. An OL inside an OL becomes a UL (disc). */
-        .message-container.ai ol ol {
-            list-style-type: disc;
-        }
+        /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
 
-        /* MODIFIED: Ensure markers of the newly converted list are styled as bullets, not bold numbers. */
-        .message-container.ai ol ol li::marker {
-             font-weight: normal;
-             opacity: 0.7;
-        }
-        
         .message-container.ai blockquote {
-            margin: var(--space-xl) 0;
+            margin: 1.5em 0;
             padding: 0.1em 0 0.1em 1.25rem;
-            background-color: none;
+            background-color: transparent;
             border-left: 3px solid var(--primary-accent);
             opacity: 0.85;
         }
         
         .message-container.ai blockquote p {
-            margin: var(--space-md) 0 !important;
+            margin: 1em 0 !important;
         }
 
         .message-container.ai code:not(pre > code) {
-            font-size: 0.75rem;
+            font-size: 0.875rem;
             padding: 0.2em 0.4em;
             background-color: var(--code-bg);
             border-radius: 4px;
@@ -533,12 +520,12 @@
         .message-container.ai pre {
             background-color: var(--code-bg);
             color: var(--code-text-color);
-            padding: var(--space-md);
+            padding: 1rem;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             overflow-x: auto;
             font-family: 'SF Mono', 'Fira Code', 'monospace';
-            font-size: 0.75rem;
+            font-size: 0.875rem;
             line-height: 1.6;
             margin: 0;
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
@@ -559,7 +546,7 @@
             padding: 0.3rem 0.6rem;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             opacity: 0;
             transition: opacity 0.2s;
         }
@@ -569,6 +556,7 @@
         body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
         .copy-btn:active { transform: scale(0.95); }
         
+        /* --- START: SLEEK & MINIMALIST TABLE STYLES (FINAL VERSION) --- */
         .table-wrapper {
             border: none;
             border-radius: 0;
@@ -621,6 +609,8 @@
         .message-container.ai tbody tr:nth-of-type(even) {
             background-color: transparent;
         }
+        /* --- END: SLEEK & MINIMALIST TABLE STYLES --- */
+
       /* --- END: FLAWLESS TYPOGRAPHY SYSTEM --- */
     </style>
 </head>
@@ -697,6 +687,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- Firebase and variable setup (unchanged) ---
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
                 authDomain: "ai-chatbot-b38da.firebaseapp.com",
@@ -741,43 +732,26 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                if (sender === 'user') {
-                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                }
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 return m;
             }
 
-            function finalizeMessageFormatting(container) {
-                const usedEmojis = new Set();
+            function styleSpecialElements(container) {
                 const emojiRegex = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26ff]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/;
-                
+
                 container.querySelectorAll('h1, h2, h3').forEach(heading => {
-                    if (heading.dataset.emojiApplied) return;
-                    const originalHtml = heading.innerHTML.trim();
-                    const match = originalHtml.match(emojiRegex);
+                    const trimmedText = heading.innerHTML.trim();
+                    const match = trimmedText.match(emojiRegex);
+                    
                     if (match) {
                         const emoji = match[0];
-                        const restOfHtml = originalHtml.substring(emoji.length).trim();
-                        if (!usedEmojis.has(emoji)) {
-                            usedEmojis.add(emoji);
-                            heading.innerHTML = `${emoji} ${restOfHtml}`;
-                        } else {
-                            heading.innerHTML = restOfHtml;
-                        }
-                    }
-                    heading.dataset.emojiApplied = 'true';
-                });
-
-                container.querySelectorAll('li, blockquote').forEach(el => {
-                    const firstChild = el.firstChild;
-                    if (firstChild && firstChild.nodeType === Node.TEXT_NODE) {
-                        const match = firstChild.textContent.trim().match(emojiRegex);
-                        if (match && firstChild.textContent.trim().startsWith(match[0])) {
-                            firstChild.textContent = firstChild.textContent.replace(match[0], '').trimStart();
-                        }
+                        const restOfText = trimmedText.substring(emoji.length).trim();
+                        heading.innerHTML = `<span class="emoji">${emoji}</span> ${restOfText}`;
                     }
                 });
+            }
 
+            function attachFeaturesToAiMessage(container) {
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
@@ -786,12 +760,16 @@
                     wrapper.appendChild(btn); 
                 });
                 
-                container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
+                container.querySelectorAll('pre code').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
-                    const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
-                    table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'table-wrapper';
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
                 });
+
+                styleSpecialElements(container);
             }
 
             async function loadChat(chatId) {
@@ -811,10 +789,9 @@
                     if (msg.role === 'user') {
                         addMessageToUI('user', msg.text);
                     } else if (msg.role === 'model') {
-                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
-                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                        contentBlock.innerHTML = marked.parse(msg.text || "");
-                        finalizeMessageFormatting(contentBlock);
+                        const renderedHtml = marked.parse(msg.text || "");
+                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block">${renderedHtml}</div>`, true);
+                        attachFeaturesToAiMessage(aiMsgContainer);
                     }
                 });
                 
@@ -859,51 +836,29 @@
                 }
 
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
-                const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                
                 let accumulatedResponseText = '';
-                let animationQueue = '';
-                let displayedText = '';
-                let isStreamFinished = false;
-                let animationFrameId = null;
 
-                const renderAndAnimate = () => {
-                    if (animationQueue.length > 0) {
-                        displayedText += animationQueue;
-                        animationQueue = '';
-                        contentBlock.innerHTML = marked.parse(displayedText);
-                        finalizeMessageFormatting(contentBlock);
-                    }
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
+                    });
 
-                    if (isStreamFinished && animationQueue.length === 0) {
-                        cancelAnimationFrame(animationFrameId);
-                        return;
-                    }
+                    if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
                     
-                    animationFrameId = requestAnimationFrame(renderAndAnimate);
-                };
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let sseBuffer = '';
 
-                const fetchAndProcessStream = async () => {
-                    try {
-                        const response = await fetch('/api/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
-                        });
-
-                        if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
-                        
-                        contentBlock.innerHTML = '';
-                        renderAndAnimate();
-
-                        const reader = response.body.getReader();
-                        const decoder = new TextDecoder();
-                        let sseBuffer = '';
-
+                    const processStream = async () => {
                         while (true) {
                             const { value, done } = await reader.read();
-                            if (done) break;
-                            
+                            if (done) {
+                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                                saveChat();
+                                break;
+                            }
                             sseBuffer += decoder.decode(value, { stream: true });
                             const lines = sseBuffer.split('\n');
                             sseBuffer = lines.pop() || '';
@@ -916,30 +871,26 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            animationQueue += textPart;
+                                            const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                                            if (contentBlock) {
+                                                contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                                                attachFeaturesToAiMessage(aiMsgContainer);
+                                            }
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
+                            if (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 150) {
+                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                            }
                         }
-                    } catch (error) {
-                        console.error("AI Streaming Error:", error);
-                        contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
-                    } finally {
-                        isStreamFinished = true;
-                        if (accumulatedResponseText.trim()) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                            saveChat();
-                        }
-                        if (document.visibilityState !== 'visible') {
-                             cancelAnimationFrame(animationFrameId);
-                             contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                             finalizeMessageFormatting(contentBlock);
-                        }
-                    }
-                };
-                
-                fetchAndProcessStream();
+                    };
+                    await processStream();
+                } catch (error) {
+                    console.error("AI Streaming Error:", error);
+                    const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                    if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                }
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());

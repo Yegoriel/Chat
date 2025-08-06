@@ -22,7 +22,7 @@ const systemPrompt = `
 - Avoid responding in a language, differing from the user's, unless asked explicitly
 - Avoid spamming too much emojis for the same category
 - Be less avoiding of questions. 
-- For better user's understanding you can sometimes if needed sparingly add a table in between your paragraphs as a distinct paragraph, but mostly near the end of the response
+- For better user's understanding you can sometimes if needed sparingly add a table in between your paragraphs as a distinct paragraph
 - Don't use tables in stories, poems, creative written content and literary styled text
 - In non-literary responses (such as technical, analytical, instructional, or planning-type content), you MAY insert tables sparingly. 
 - 🎨 CONTENT-TYPE AWARENESS & TABLE USAGE POLICY

@@ -759,6 +759,8 @@
                 let lastFrameTime = performance.now();
 
                 const animateText = (now) => {
+                    animationFrameId = requestAnimationFrame(animateText); // Re-queue immediately
+                    
                     const deltaTime = now - lastFrameTime;
                     let charsToDisplay = Math.floor(deltaTime * (CHARS_PER_SECOND / 1000));
                     
@@ -783,10 +785,7 @@
                         localChatHistory[aiMessageIndex].text = accumulatedResponseText;
                         saveChat();
                         cancelAnimationFrame(animationFrameId);
-                        return;
                     }
-                    
-                    animationFrameId = requestAnimationFrame(animateText);
                 };
 
                 try {

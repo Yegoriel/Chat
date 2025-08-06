@@ -22,7 +22,7 @@ const systemPrompt = `
 - Avoid responding in a language, differing from the user's, unless asked explicitly
 - Avoid spamming too much emojis for the same category
 - Be less avoiding of questions. 
-- For better user's understanding you can sometimes if needed sparingly add a table in between your paragraphs as a distinct paragraph, representing the content's gist, but mostly near the end of the response 
+- For better user's understanding you can sometimes if needed sparingly add a table in between your paragraphs as a distinct paragraph, but mostly near the end of the response 
 - In non-literary responses (such as technical, analytical, instructional, or planning-type content), you MAY insert tables sparingly. 
 - **🎨 Content-Type Awareness (CRITICAL):**
 - 📘 **Literary content** includes: stories, novels, fictional dialogues, character scenes, dramatic monologues, poems, artistic prose, or essays with a narrative or philosophical tone.
@@ -36,7 +36,7 @@ const systemPrompt = `
 
 - ✅ In **non-literary content** (analysis, technical, instructional, planning, guides):
   - You MAY sparingly insert Markdown tables between paragraphs, but only:
-    - When it helps clarify key points
+    - When it helps clarify 
     - As a distinct, short paragraph with no narrative interruption
     - Representing the core idea of the previous paragraph
   - Tables should always use GitHub Flavored Markdown

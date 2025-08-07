@@ -358,7 +358,7 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: RE-ENGINEERED TYPOGRAPHY SYSTEM --- */
+      /* --- START: RE-ENGINEERED TYPOGRAPHY SYSTEM (ChatGPT-Aligned) --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
@@ -407,7 +407,7 @@
             padding-inline-start: 1.5em; /* Smaller indent for nested lists */
         }
 
-        .message-container.ai ul { list-style-type: disc; }
+        .message-container.ai ul { list-style-type: disc; } /* Ensured bullet points */
         .message-container.ai ol { list-style-type: decimal; }
         .message-container.ai ul ul { list-style-type: disc; } 
         .message-container.ai ol ol { list-style-type: lower-alpha; }
@@ -958,16 +958,20 @@
             
             const dragStart = (e) => {
                 if (!document.body.classList.contains('is-mobile')) return;
-                // Allow native scrolling on code/table blocks to work.
-                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
-                    if (el.scrollWidth > el.clientWidth) {
-                        return; 
-                    }
-                }
+
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
-                // Only start a potential drag if it's near the edge of the screen or if the sidebar is already open.
-                if (!isOpen && t.clientX > 50) return;
+                
+                // Only consider starting a drag for the sidebar if the touch is near the edge,
+                // or if the sidebar is already open (to allow dragging it closed).
+                if (!isOpen && t.clientX > 40) return;
+
+                // NEW: Do not interfere if the user is trying to scroll a code block horizontally.
+                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
+                    if (el.scrollWidth > el.clientWidth) {
+                        if (isOpen) { /* allow closing */ } else { return; }
+                    }
+                }
                 
                 isDragging = true;
                 startX = t.clientX;
@@ -989,17 +993,15 @@
                     // more vertically than horizontally, we abort our drag logic entirely and
                     // let the browser handle the native vertical scroll.
                     if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                        dragDirection = 'vertical';
-                        isDragging = false; // ABORT!
+                        isDragging = false; // ABORT! This gesture is a vertical scroll.
                         return;
                     } else {
                         dragDirection = 'horizontal';
                     }
                 }
 
-                // Only if the determined direction is horizontal, we proceed with the sidebar logic.
                 if (dragDirection === 'horizontal') {
-                    e.preventDefault(); // Prevent browser from doing anything else (like page navigation).
+                    e.preventDefault(); 
                     document.body.classList.add('is-dragging');
                     const newTranslate = currentTranslate + deltaX;
                     const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));

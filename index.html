@@ -768,7 +768,9 @@
                     if (animationQueue.length > 0) {
                         displayedText += animationQueue;
                         animationQueue = '';
-                        contentBlock.innerHTML = marked.parse(displayedText);
+                        // BUG FIX: Trim whitespace before parsing to prevent creating empty leading elements.
+                        // This ensures the first visible element is always formatted correctly without extra margins.
+                        contentBlock.innerHTML = marked.parse(displayedText.trim());
                         finalizeMessageFormatting(contentBlock);
                     }
 

@@ -449,6 +449,9 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
+            /* Give a hint to the browser that this element can be panned horizontally. */
+            /* This helps prevent conflicts with vertical page scrolling on touch devices. */
+            touch-action: pan-x;
         }
         .message-container.ai pre {
             background-color: var(--code-bg);
@@ -961,7 +964,26 @@
             }
             
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
-            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches[0] : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
+            const dragStart = (e) => {
+                // BUG FIX: Check if the touch starts inside a horizontally scrollable element.
+                // If so, do not initiate the sidebar drag, allowing native browser scrolling.
+                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
+                    if (el.scrollWidth > el.clientWidth) {
+                        return; // Let the browser handle the scroll.
+                    }
+                }
+
+                if (!document.body.classList.contains('is-mobile')) return;
+                const t = e.type === 'touchstart' ? e.touches[0] : e;
+                const isOpen = document.body.classList.contains('sidebar-open');
+                if (!isOpen && t.clientX > 50) return;
+                isDragging = true;
+                startX = t.clientX;
+                startY = t.clientY;
+                dragDirection = null;
+                sidebar.classList.add('no-transition');
+                currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
+            };
             const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
             const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);

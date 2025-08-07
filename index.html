@@ -514,8 +514,8 @@
           .message-container.ai .table-wrapper th,
           .message-container.ai .table-wrapper td,
           .message-container.ai pre {
-              /* Compensate for the smaller base font to keep code/tables readable */
-              font-size: 1.1em;
+              /* Use a consistent, stable `rem` unit to ensure even font size */
+              font-size: 0.8rem;
           }
       }
       /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
@@ -959,24 +959,23 @@
             const dragStart = (e) => {
                 if (!document.body.classList.contains('is-mobile')) return;
 
+                // URGENT BUG FIX: If the touch starts on a scrollable element, DO NOT initiate a drag.
+                // This allows the browser to handle vertical and horizontal scrolling natively.
+                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
+                    if (el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight) {
+                        return; // Let the browser handle all scrolling within this element.
+                    }
+                }
+
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
-                // Only consider starting a drag for the sidebar if the touch is near the edge,
-                // or if the sidebar is already open (to allow dragging it closed).
-                if (!isOpen && t.clientX > 40) return;
-
-                // NEW: Do not interfere if the user is trying to scroll a code block horizontally.
-                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
-                    if (el.scrollWidth > el.clientWidth) {
-                        if (isOpen) { /* allow closing */ } else { return; }
-                    }
-                }
+                if (!isOpen && t.clientX > 40) return; // Only allow starting drag from screen edge.
                 
                 isDragging = true;
                 startX = t.clientX;
                 startY = t.clientY;
-                dragDirection = null; // Reset direction on new touch.
+                dragDirection = null;
                 sidebar.classList.add('no-transition');
                 currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
             };
@@ -989,11 +988,8 @@
                 const deltaY = t.clientY - startY;
 
                 if (dragDirection === null) {
-                    // URGENT BUG FIX: Prioritize vertical scroll. If the user moves their finger
-                    // more vertically than horizontally, we abort our drag logic entirely and
-                    // let the browser handle the native vertical scroll.
                     if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                        isDragging = false; // ABORT! This gesture is a vertical scroll.
+                        isDragging = false; // It's a vertical scroll, abort.
                         return;
                     } else {
                         dragDirection = 'horizontal';

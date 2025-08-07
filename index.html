@@ -384,32 +384,28 @@
         .message-container.ai h3 { font-size: var(--font-size-h3); font-weight: 600; }
         .message-container.ai strong { font-weight: 600; }
 
-        /* === ROBUST NATIVE LIST STYLING (CHATGPT-ACCURATE) === */
+        /* === FLAT, COMPACT & BUG-FREE LIST STYLING (BASED ON USER FEEDBACK) === */
         .message-container.ai ul,
         .message-container.ai ol {
-            list-style-position: outside; /* KEY: Ensures markers don't overlap text */
-            padding-left: 1.75em; /* KEY: Creates a safe "gutter" for markers of any length */
+            margin: 0;
+            padding-left: 0; /* KEY: Remove browser default indentation */
+            list-style-position: inside; /* KEY: Bring markers into the element's box */
         }
         .message-container.ai li {
-            margin: 0.3em 0;
-            padding-left: 0.25em; /* A small gap between the marker and the text */
+            margin: 0.2em 0;
+            padding-left: 0; /* Let text-indent do the work */
+            /* KEY: Pulls the first line of text back to the marker.
+               Subsequent lines will wrap naturally underneath, creating a clean alignment. */
+            text-indent: -1.5ch;
+            padding-left: 1.5ch;
         }
-        /* Mitigates issues with AI generating <p> tags inside <li> */
-        .message-container.ai li p { margin: 0.2em 0; }
-        .message-container.ai li > *:first-child { margin-top: 0; }
-        .message-container.ai li > *:last-child { margin-bottom: 0; }
+        /* Further compacts lists generated with <p> tags inside */
+        .message-container.ai li p { margin: 0; }
         
-        /* Nested lists get their own indentation relative to the parent text */
-        .message-container.ai li > ul,
-        .message-container.ai li > ol {
-            margin: 0.5em 0;
-            padding-left: 1.5em; /* Indent nested lists further */
-        }
-
-        /* Define list marker styles */
+        /* Define marker styles */
         .message-container.ai ul { list-style-type: disc; }
         .message-container.ai ol { list-style-type: decimal; }
-        .message-container.ai ul ul { list-style-type: square; }
+        .message-container.ai ul ul { list-style-type: circle; } /* Use circle for nested for clarity */
         .message-container.ai ol ol { list-style-type: lower-alpha; }
         .message-container.ai ol ol ol { list-style-type: lower-roman; }
         

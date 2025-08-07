@@ -186,6 +186,21 @@
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
+        /* FIX: Dedicated drag handle for mobile sidebar */
+        #sidebar-drag-handle {
+            display: none; /* Hidden by default */
+        }
+        .is-mobile #sidebar-drag-handle {
+            display: block;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 20px; /* Touch-friendly width */
+            height: 100%;
+            z-index: 998; /* Below overlay, above content */
+            -webkit-tap-highlight-color: transparent;
+        }
+
         #chat-content-wrapper {
             width: 100%;
             max-width: var(--chat-content-narrow-width);
@@ -510,9 +525,10 @@
       
       /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
-          .message-container.ai .ai-content-block,
-          .welcome-message p {
-              font-size: 0.9rem;
+          /* FIX: Set a consistent base font size for all message types on mobile */
+          .is-mobile .ai-content-block,
+          .is-mobile .welcome-message p {
+              font-size: 0.95rem !important; /* Use !important to override any conflicting styles and ensure consistency */
           }
 
           .message-container.ai h1 { font-size: 1.8rem; }
@@ -540,6 +556,7 @@
 <body>
     <div id="app-container">
         <div id="sidebar-overlay"></div>
+        <div id="sidebar-drag-handle"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
                 <h2>Chat History</h2>
@@ -925,6 +942,70 @@
                     document.getElementById('menu-toggle').onclick = openSidebar;
                     document.getElementById('sidebar-close-btn').onclick = closeSidebar;
                     sidebarOverlay.onclick = closeSidebar;
+                    
+                    // --- START: DEFINITIVE GESTURE HANDLING FIX ---
+                    const dragHandle = document.getElementById('sidebar-drag-handle');
+                    let startX = null, startY = null, isDragging = false, dragDirection = null, currentTranslate = 0;
+
+                    const dragStart = (e) => {
+                        startX = e.touches[0].clientX;
+                        startY = e.touches[0].clientY;
+                        dragDirection = null;
+                        isDragging = false;
+                    };
+
+                    const dragMove = (e) => {
+                        if (startX === null) return;
+
+                        const deltaX = e.touches[0].clientX - startX;
+                        const deltaY = e.touches[0].clientY - startY;
+
+                        if (dragDirection === null) {
+                            if (Math.abs(deltaX) > Math.abs(deltaY) + 5) {
+                                dragDirection = 'horizontal';
+                                isDragging = true;
+                                sidebar.classList.add('no-transition');
+                                document.body.classList.add('is-dragging');
+                                currentTranslate = document.body.classList.contains('sidebar-open') ? 0 : -sidebar.offsetWidth;
+                            } else if (Math.abs(deltaY) > Math.abs(deltaX) + 5) {
+                                dragDirection = 'vertical';
+                                startX = null; startY = null; // Abort drag
+                            }
+                        }
+
+                        if (isDragging) {
+                            e.preventDefault();
+                            const newTranslate = currentTranslate + deltaX;
+                            const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
+                            sidebar.style.transform = `translateX(${s}px)`;
+                            sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
+                        }
+                    };
+
+                    const dragEnd = () => {
+                        if (isDragging) {
+                            sidebar.classList.remove('no-transition');
+                            document.body.classList.remove('is-dragging');
+                            const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
+                            if (t > -sidebar.offsetWidth / 2) {
+                                openSidebar();
+                            } else {
+                                closeSidebar();
+                            }
+                        }
+                        startX = null; startY = null; isDragging = false; dragDirection = null;
+                    };
+
+                    // Attach listeners to dedicated handles
+                    dragHandle.addEventListener('touchstart', dragStart, { passive: true });
+                    dragHandle.addEventListener('touchmove', dragMove, { passive: false });
+                    dragHandle.addEventListener('touchend', dragEnd);
+                    
+                    sidebar.addEventListener('touchstart', dragStart, { passive: true });
+                    sidebar.addEventListener('touchmove', dragMove, { passive: false });
+                    sidebar.addEventListener('touchend', dragEnd);
+                    // --- END: DEFINITIVE GESTURE HANDLING FIX ---
+
                 } else {
                     document.body.classList.add('is-desktop');
                     const pinBtn = document.getElementById('pin-sidebar-btn');
@@ -961,83 +1042,6 @@
                     };
                 }
             }
-            
-            // --- START: DEFINITIVE GESTURE HANDLING FIX ---
-            let startX = null, startY = null, isDragging = false, dragDirection = null, currentTranslate = 0;
-            
-            const dragStart = (e) => {
-                if (!document.body.classList.contains('is-mobile')) return;
-                
-                const t = e.type === 'touchstart' ? e.touches[0] : e;
-                const isOpen = document.body.classList.contains('sidebar-open');
-
-                // A drag is only POSSIBLE if it starts on the open sidebar, or on the very edge of the screen.
-                if (isOpen && e.target.closest('#sidebar')) {
-                    // Valid start on open sidebar
-                } else if (!isOpen && t.clientX < 40) {
-                    // Valid start from screen edge
-                } else {
-                    return; // Not a valid start for a sidebar drag, so do nothing.
-                }
-
-                startX = t.clientX;
-                startY = t.clientY;
-            };
-
-            const dragMove = (e) => {
-                // Abort if we don't have a valid starting point.
-                if (startX === null || startY === null) return;
-
-                const t = e.type === 'touchmove' ? e.touches[0] : e;
-                const deltaX = t.clientX - startX;
-                const deltaY = t.clientY - startY;
-
-                // If we haven't decided on a direction yet...
-                if (dragDirection === null) {
-                    // Check if the gesture is decisively horizontal or vertical
-                    if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { // Horizontal gesture
-                        dragDirection = 'horizontal';
-                        isDragging = true;
-                        sidebar.classList.add('no-transition');
-                        document.body.classList.add('is-dragging');
-                        currentTranslate = document.body.classList.contains('sidebar-open') ? 0 : -sidebar.offsetWidth;
-                    } else if (Math.abs(deltaY) > Math.abs(deltaX) + 3) { // Vertical gesture
-                        dragDirection = 'vertical'; // It's a scroll, so we will ignore it.
-                    }
-                }
-
-                if (isDragging) {
-                    e.preventDefault(); // Only prevent default if we are confirmed to be dragging the sidebar.
-                    const newTranslate = currentTranslate + deltaX;
-                    const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
-                    sidebar.style.transform = `translateX(${s}px)`;
-                    sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
-                }
-            };
-
-            const dragEnd = () => {
-                if (isDragging) {
-                    sidebar.classList.remove('no-transition');
-                    document.body.classList.remove('is-dragging');
-                    const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
-                    if (t > -sidebar.offsetWidth / 2) {
-                        openSidebar();
-                    } else {
-                        closeSidebar();
-                    }
-                }
-                // Reset state completely for the next touch.
-                startX = null;
-                startY = null;
-                isDragging = false;
-                dragDirection = null;
-            };
-            // --- END: DEFINITIVE GESTURE HANDLING FIX ---
-
-            document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
-            document.body.addEventListener('touchstart', dragStart, { passive: true }); // Use passive:true for start to allow immediate scroll
-            document.body.addEventListener('touchmove', dragMove, { passive: false }); // Must be false to allow preventDefault
-            document.body.addEventListener('touchend', dragEnd);
             
             function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 12; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
             

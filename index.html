@@ -385,49 +385,46 @@
         .message-container.ai h3 { font-size: var(--font-size-h3); font-weight: 600; }
         .message-container.ai strong { font-weight: 600; }
         .message-container.ai p + ul, .message-container.ai p + ol {
-            margin-top: 0.25em; /* Compact spacing after a "strong parent word" */
+            margin-top: 0.25em; /* Compact spacing after a paragraph */
         }
 
-        /* === FLAT, COMPACT & BUG-FREE LIST STYLING (THE DEFINITIVE VERSION) === */
+        /* === ROBUST NATIVE LIST STYLING (THE DEFINITIVE VERSION) === */
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-left: 0; /* No indent on the list container */
-            list-style: none; /* We will create custom, perfectly aligned markers */
-            counter-reset: list-counter;
+            list-style-position: outside; /* KEY: Ensures markers don't overlap text content */
+            padding-left: 2em; /* KEY: Creates a safe "gutter" for markers of any length */
         }
         .message-container.ai li {
-            position: relative;
-            padding-left: 1.75em; /* Creates the "gutter" for the marker */
             margin: 0.4em 0;
+            padding-left: 0.4em; /* A small gap between the marker and the text */
         }
+        .message-container.ai li p { margin: 0; }
         .message-container.ai li > *:first-child { margin-top: 0; }
         .message-container.ai li > *:last-child { margin-bottom: 0; }
-        .message-container.ai li p { margin: 0; }
         
-        .message-container.ai li::before {
-            content: ''; 
-            position: absolute;
-            left: 0;
-            top: 0; /* Aligned to the top of the line-height */
-            width: 1.25em; /* Consistent space for the marker content */
-            text-align: right; /* Aligns numbers 1. and 10. correctly */
+        /* Nested lists get their own indentation relative to the parent text */
+        .message-container.ai li > ul,
+        .message-container.ai li > ol {
+            margin: 0.5em 0;
+            padding-left: 1.5em; /* Indent nested lists further */
+        }
+
+        /* Define list marker styles */
+        .message-container.ai ul { list-style-type: disc; }
+        .message-container.ai ol { list-style-type: decimal; }
+        /* Keep all nested ULs as standard discs for a clean look */
+        .message-container.ai ul ul { list-style-type: disc; } 
+        .message-container.ai ol ol { list-style-type: lower-alpha; }
+        .message-container.ai ol ol ol { list-style-type: lower-roman; }
+        
+        .message-container.ai ::marker {
             font-weight: 600;
             color: rgba(0, 0, 0, 0.65);
         }
-        body.dark-theme .message-container.ai li::before {
+        body.dark-theme .message-container.ai ::marker {
             color: rgba(255, 255, 255, 0.65);
         }
-        
-        /* Unordered lists - all levels get the same solid bullet */
-        .message-container.ai ul li::before {
-            content: '•';
-            text-align: center; /* Center the bullet in its allocated width */
-        }
 
-        /* Numbered lists - use CSS counters for perfect numbering */
-        .message-container.ai ol > li { counter-increment: list-counter; }
-        .message-container.ai ol > li::before { content: counter(list-counter) "."; }
-        
         /* === Other Elements === */
         .message-container.ai blockquote {
             padding: 0.1em 0 0.1em 1.25rem;

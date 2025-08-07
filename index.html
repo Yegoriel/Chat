@@ -358,7 +358,7 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: FINAL PRODUCTION-GRADE TYPOGRAPHY SYSTEM --- */
+      /* --- START: RE-ENGINEERED TYPOGRAPHY SYSTEM --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
@@ -371,11 +371,12 @@
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
         
-        .message-container.ai p, .message-container.ai ul, .message-container.ai ol,
+        .message-container.ai p,
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
             margin: 0.75em 0;
         }
+
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3 {
             margin: 1.5em 0 0.7em 0;
             line-height: 1.3;
@@ -384,35 +385,30 @@
         .message-container.ai h2 { font-size: var(--font-size-h2); font-weight: 600; }
         .message-container.ai h3 { font-size: var(--font-size-h3); font-weight: 600; }
         .message-container.ai strong { font-weight: 600; }
-        .message-container.ai p + ul, .message-container.ai p + ol {
-            margin-top: 0.25em; /* Compact spacing after a paragraph */
-        }
 
-        /* === ROBUST NATIVE LIST STYLING (THE DEFINITIVE VERSION) === */
+        /* === The New, Robust List System === */
         .message-container.ai ul,
         .message-container.ai ol {
-            list-style-position: outside; /* KEY: Ensures markers don't overlap text content */
-            padding-left: 1.75em; /* KEY: Creates a safe "gutter" for markers of any length */
+            list-style-position: outside;
+            margin: 0.75em 0;
+            padding-inline-start: 2em; /* Modern property for indentation */
         }
         .message-container.ai li {
-            margin: 0.4em 0;
-            padding-left: 0.4em; /* A small gap between the marker and the text */
+            margin: 0.5em 0;
+            padding-left: 0; /* Padding is now on the list container */
         }
         .message-container.ai li p { margin: 0; }
         .message-container.ai li > *:first-child { margin-top: 0; }
         .message-container.ai li > *:last-child { margin-bottom: 0; }
         
-        /* Nested lists get their own indentation relative to the parent text */
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin: 0.5em 0;
-            padding-left: 1.5em; /* Indent nested lists further */
+            padding-inline-start: 1.5em; /* Smaller indent for nested lists */
         }
 
-        /* Define list marker styles */
         .message-container.ai ul { list-style-type: disc; }
         .message-container.ai ol { list-style-type: decimal; }
-        /* Keep all nested ULs as standard discs for a clean look */
         .message-container.ai ul ul { list-style-type: disc; } 
         .message-container.ai ol ol { list-style-type: lower-alpha; }
         .message-container.ai ol ol ol { list-style-type: lower-roman; }
@@ -449,9 +445,7 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            /* Give a hint to the browser that this element can be panned horizontally. */
-            /* This helps prevent conflicts with vertical page scrolling on touch devices. */
-            touch-action: pan-x;
+            touch-action: pan-x; /* Fix mobile horizontal scroll bug */
         }
         .message-container.ai pre {
             background-color: var(--code-bg);
@@ -461,7 +455,7 @@
             border: 1px solid var(--border-color);
             overflow-x: auto;
             font-family: 'SF Mono', 'Fira Code', 'monospace';
-            font-size: 0.85rem; /* Slightly smaller for code blocks */
+            font-size: 0.85rem;
             line-height: 1.6;
             margin: 0;
         }
@@ -479,10 +473,10 @@
         .table-wrapper table { width: 100%; border-collapse: collapse; }
         .message-container.ai th,
         .message-container.ai td { 
-            padding: 0.4rem 0.6rem; /* Compact padding */
+            padding: 0.4rem 0.6rem;
             text-align: left; 
             border-bottom: 1px solid var(--border-color);
-            font-size: 0.9em; /* Smaller, more compact font */
+            font-size: 0.9em;
         }
         .message-container.ai thead th { 
             font-weight: 600; 
@@ -499,33 +493,29 @@
         body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
         .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-      /* --- END: FINAL TYPOGRAPHY SYSTEM --- */
+      /* --- END: RE-ENGINEERED TYPOGRAPHY SYSTEM --- */
       
-      /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
+      /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
           .message-container.ai .ai-content-block {
-              /* As requested, reduce base font size on mobile devices. */
-              font-size: 0.75rem;
+              font-size: 0.875rem; /* A comfortable, smaller font for mobile */
           }
 
           .message-container.ai ol {
-              /* THE DEFINITIVE FIX: Use a large, stable `rem` unit for padding. */
-              /* This creates a fixed-width gutter that guarantees even 3-digit */
-              /* numbers will not be clipped, solving the core issue permanently. */
-              padding-left: 2.5rem; 
+              /* A stable `rem` based indent that guarantees no number clipping */
+              padding-inline-start: 2.2rem; 
           }
 
           .message-container.ai ul {
-              /* Apply a corresponding padding to unordered lists for consistency. */
-              padding-left: 1.5rem;
+              /* Consistent smaller indent for unordered lists */
+              padding-inline-start: 1.5rem;
           }
 
           .message-container.ai .table-wrapper th,
           .message-container.ai .table-wrapper td,
           .message-container.ai pre {
-              /* Compensate for the reduced base font-size to keep these elements readable. */
-              /* 1.15em * 0.75rem base = ~0.86rem, which is close to the desktop size. */
-              font-size: 1.15em;
+              /* Compensate for the smaller base font to keep code/tables readable */
+              font-size: 1.1em;
           }
       }
       /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
@@ -769,7 +759,6 @@
                         displayedText += animationQueue;
                         animationQueue = '';
                         // BUG FIX: Trim whitespace before parsing to prevent creating empty leading elements.
-                        // This ensures the first visible element is always formatted correctly without extra margins.
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
                         finalizeMessageFormatting(contentBlock);
                     }
@@ -966,28 +955,73 @@
             }
             
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
+            
             const dragStart = (e) => {
-                // BUG FIX: Check if the touch starts inside a horizontally scrollable element.
-                // If so, do not initiate the sidebar drag, allowing native browser scrolling.
+                if (!document.body.classList.contains('is-mobile')) return;
+                // Allow native scrolling on code/table blocks to work.
                 for (let el = e.target; el && el !== document.body; el = el.parentElement) {
                     if (el.scrollWidth > el.clientWidth) {
-                        return; // Let the browser handle the scroll.
+                        return; 
                     }
                 }
-
-                if (!document.body.classList.contains('is-mobile')) return;
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
+                // Only start a potential drag if it's near the edge of the screen or if the sidebar is already open.
                 if (!isOpen && t.clientX > 50) return;
+                
                 isDragging = true;
                 startX = t.clientX;
                 startY = t.clientY;
-                dragDirection = null;
+                dragDirection = null; // Reset direction on new touch.
                 sidebar.classList.add('no-transition');
                 currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
             };
-            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
-            const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
+
+            const dragMove = (e) => {
+                if (!isDragging) return;
+
+                const t = e.type === 'touchmove' ? e.touches[0] : e;
+                const deltaX = t.clientX - startX;
+                const deltaY = t.clientY - startY;
+
+                if (dragDirection === null) {
+                    // URGENT BUG FIX: Prioritize vertical scroll. If the user moves their finger
+                    // more vertically than horizontally, we abort our drag logic entirely and
+                    // let the browser handle the native vertical scroll.
+                    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                        dragDirection = 'vertical';
+                        isDragging = false; // ABORT!
+                        return;
+                    } else {
+                        dragDirection = 'horizontal';
+                    }
+                }
+
+                // Only if the determined direction is horizontal, we proceed with the sidebar logic.
+                if (dragDirection === 'horizontal') {
+                    e.preventDefault(); // Prevent browser from doing anything else (like page navigation).
+                    document.body.classList.add('is-dragging');
+                    const newTranslate = currentTranslate + deltaX;
+                    const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
+                    sidebar.style.transform = `translateX(${s}px)`;
+                    sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
+                }
+            };
+
+            const dragEnd = () => {
+                if (!isDragging || dragDirection !== 'horizontal') {
+                    isDragging = false;
+                    dragDirection = null;
+                    return;
+                }
+                isDragging = false;
+                dragDirection = null;
+                sidebar.classList.remove('no-transition');
+                document.body.classList.remove('is-dragging');
+                const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
+                t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar();
+            };
+
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
             

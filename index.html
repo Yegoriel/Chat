@@ -21,9 +21,9 @@
 
             /* Prominent Heading Hierarchy */
             --font-size-body: 0.975rem;
-            --font-size-h1: 2rem;
-            --font-size-h2: 1.5rem;
-            --font-size-h3: 1.25rem;
+            --font-size-h1: 1.8rem;
+            --font-size-h2: 1.4rem;
+            --font-size-h3: 1.15rem;
             
             /* Light Theme Colors */
             --background-color: #ffffff;
@@ -499,17 +499,17 @@
       /* --- END: FINAL TYPOGRAPHY SYSTEM --- */
       
       /* --- START: MOBILE-SPECIFIC TYPOGRAPHY ADJUSTMENTS --- */
-      @media (max-width: 768px) {
+      @media (max-width: 600px) {
           .message-container.ai .ai-content-block {
-              /* Reduce base font size on small screens for better readability */
-              font-size: 0.75rem;
+              /* Further reduce font size on small screens for better readability and to help with marker spacing. */
+              font-size: 0.875rem;
           }
 
           .message-container.ai ul,
           .message-container.ai ol {
-              /* Adjust padding to ensure 2 and 3-digit list markers do not get clipped. */
-              /* This provides a robust, definitive fix for the mobile experience. */
-              padding-left: 2.3em;
+              /* Use a stable `rem` unit for padding to create a fixed-width gutter that is not affected by font-size changes. */
+              /* This provides a robust, definitive fix for the clipped number markers on mobile. */
+              padding-left: 2.2rem;
           }
       }
       /* --- END: MOBILE-SPECIFIC TYPOGRAPHY ADJUSTMENTS --- */

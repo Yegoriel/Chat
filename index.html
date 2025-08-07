@@ -391,25 +391,28 @@
         /* === ROBUST NATIVE LIST STYLING (THE DEFINITIVE VERSION) === */
         .message-container.ai ul,
         .message-container.ai ol {
-            list-style-position: outside;
-            padding-left: 2.5em; /* Generous gutter for 3+ digit numbers */
+            list-style-position: outside; /* KEY: Ensures markers don't overlap text content */
+            padding-left: 1.75em; /* KEY: Creates a safe "gutter" for markers of any length */
         }
         .message-container.ai li {
             margin: 0.4em 0;
-            padding-left: 0.4em;
+            padding-left: 0.4em; /* A small gap between the marker and the text */
         }
         .message-container.ai li p { margin: 0; }
         .message-container.ai li > *:first-child { margin-top: 0; }
         .message-container.ai li > *:last-child { margin-bottom: 0; }
         
+        /* Nested lists get their own indentation relative to the parent text */
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin: 0.5em 0;
             padding-left: 1.5em; /* Indent nested lists further */
         }
 
+        /* Define list marker styles */
         .message-container.ai ul { list-style-type: disc; }
         .message-container.ai ol { list-style-type: decimal; }
+        /* Keep all nested ULs as standard discs for a clean look */
         .message-container.ai ul ul { list-style-type: disc; } 
         .message-container.ai ol ol { list-style-type: lower-alpha; }
         .message-container.ai ol ol ol { list-style-type: lower-roman; }
@@ -422,19 +425,14 @@
             color: rgba(255, 255, 255, 0.65);
         }
 
-        /* === Other Elements & Mobile Adjustments === */
-        @media (max-width: 768px) {
-            .message-container.ai .ai-content-block {
-                font-size: 0.75rem; /* Make text slightly smaller on mobile */
-            }
-        }
+        /* === Other Elements === */
         .message-container.ai blockquote {
-            padding: 0.1em 0 0.1em 1rem;
+            padding: 0.1em 0 0.1em 1.25rem;
             border-left: 3px solid var(--primary-accent);
             opacity: 0.85;
         }
         .message-container.ai code:not(pre > code) {
-            font-size: 0.7em;
+            font-size: 0.85em;
             padding: 0.2em 0.4em;
             background-color: var(--code-bg);
             border-radius: 4px;
@@ -460,7 +458,7 @@
             border: 1px solid var(--border-color);
             overflow-x: auto;
             font-family: 'SF Mono', 'Fira Code', 'monospace';
-            font-size: 0.85rem; /* Smaller for code blocks */
+            font-size: 0.85rem; /* Slightly smaller for code blocks */
             line-height: 1.6;
             margin: 0;
         }
@@ -478,7 +476,7 @@
         .table-wrapper table { width: 100%; border-collapse: collapse; }
         .message-container.ai th,
         .message-container.ai td { 
-            padding: 0.4rem 0.6rem; 
+            padding: 0.4rem 0.6rem; /* Compact padding */
             text-align: left; 
             border-bottom: 1px solid var(--border-color);
             font-size: 0.9em; /* Smaller, more compact font */
@@ -499,6 +497,35 @@
         .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
       /* --- END: FINAL TYPOGRAPHY SYSTEM --- */
+      
+      /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
+      @media (max-width: 768px) {
+          .message-container.ai .ai-content-block {
+              /* As requested, reduce base font size on mobile devices. */
+              font-size: 0.75rem;
+          }
+
+          .message-container.ai ol {
+              /* THE DEFINITIVE FIX: Use a large, stable `rem` unit for padding. */
+              /* This creates a fixed-width gutter that guarantees even 3-digit */
+              /* numbers will not be clipped, solving the core issue permanently. */
+              padding-left: 2.5rem; 
+          }
+
+          .message-container.ai ul {
+              /* Apply a corresponding padding to unordered lists for consistency. */
+              padding-left: 1.5rem;
+          }
+
+          .message-container.ai .table-wrapper th,
+          .message-container.ai .table-wrapper td,
+          .message-container.ai pre {
+              /* Compensate for the reduced base font-size to keep these elements readable. */
+              /* 1.15em * 0.75rem base = ~0.86rem, which is close to the desktop size. */
+              font-size: 1.15em;
+          }
+      }
+      /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
     </style>
 </head>
 <body>

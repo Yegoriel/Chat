@@ -962,28 +962,26 @@
                 }
             }
             
+            // --- START: RE-ENGINEERED GESTURE HANDLING ---
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
             
             const dragStart = (e) => {
                 if (!document.body.classList.contains('is-mobile')) return;
                 
-                // FIX: Prevent sidebar drag only when touch starts inside a scrollable content block.
-                // This allows native browser scrolling for tables and code blocks to work correctly.
-                if (e.target.closest('.code-block-wrapper, .table-wrapper')) {
-                    return;
-                }
-
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
-                
+
+                // Allow drag from anywhere if sidebar is open, but only from the edge if it's closed.
                 if (!isOpen && t.clientX > 40) return;
                 
+                // CRITICAL FIX: Do not initiate a drag if the touch starts on an element
+                // that is meant to be scrolled vertically, like the main chat area.
+                if (!isOpen && e.target.closest('#chat-messages')) return;
+
                 isDragging = true;
                 startX = t.clientX;
                 startY = t.clientY;
-                dragDirection = null;
-                sidebar.classList.add('no-transition');
-                currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
+                dragDirection = null; // Reset direction on new touch
             };
 
             const dragMove = (e) => {
@@ -993,17 +991,21 @@
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;
 
-                if (dragDirection === null) {
+                if (dragDirection === null) { // First move event, determine the gesture's intent
+                    // Use a higher threshold for vertical movement to be sure it's a scroll
                     if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                        isDragging = false; // Abort: This is a vertical scroll gesture.
+                        isDragging = false; // It's a vertical scroll, abort our drag.
                         return;
                     } else {
+                        // It's a horizontal gesture, commit to the drag.
                         dragDirection = 'horizontal';
+                        sidebar.classList.add('no-transition');
+                        currentTranslate = document.body.classList.contains('sidebar-open') ? 0 : -sidebar.offsetWidth;
                     }
                 }
 
                 if (dragDirection === 'horizontal') {
-                    e.preventDefault(); 
+                    e.preventDefault(); // ONLY prevent default for horizontal drags.
                     document.body.classList.add('is-dragging');
                     const newTranslate = currentTranslate + deltaX;
                     const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
@@ -1025,6 +1027,7 @@
                 const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
                 t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar();
             };
+            // --- END: RE-ENGINEERED GESTURE HANDLING ---
 
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);

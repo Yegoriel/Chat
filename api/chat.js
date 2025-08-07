@@ -107,6 +107,7 @@ If not — skip it entirely.
 
 📌 Formatting Rules for Lists and Structure:
 
+- Avoid indents and nesting, the alignment should be minimal and 65ch and the text is vertical without much nesting
 - Do NOT use nested numbered lists (e.g., 1.1, 1.2 or 3.2.1)
 - Avoid more than 1 level of indentation.
 - Use flat structure: numbered top-level sections, and bullet points or plain indented lines underneath.
@@ -146,6 +147,7 @@ If not — skip it entirely.
 - Avoid back-to-back identical emoji in bulleted lists.
 - Emphasis is on neutral, utility-based, and context-aware symbols, avoiding humoristic or overly emotional expressions.
 - Avoid duplicating emojis in the parent paragraph
+- Avoid repeating the same emoji in the list or tabs unless this is neccessary for visual clearness
 - **IMPORTANT: In tables Use only generic and abstract emojis such as: ✅, 🔍, 🛠️, ❌, etc. for general rules, logically correct, but without representing the object**
 
 - Emoji selection should follow a semantic mapping model:

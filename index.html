@@ -20,7 +20,7 @@
             --space-xxxl: 3rem;
 
             /* Prominent Heading Hierarchy */
-            --font-size-body: 0.85rem;
+            --font-size-body: 0.975rem;
             --font-size-h1: 1.8rem;
             --font-size-h2: 1.4rem;
             --font-size-h3: 1.15rem;
@@ -391,25 +391,23 @@
         /* === ROBUST NATIVE LIST STYLING (THE DEFINITIVE VERSION) === */
         .message-container.ai ul,
         .message-container.ai ol {
-            list-style-position: outside; /* KEY: Ensures markers don't overlap text content */
-            padding-left: 2.5em; /* KEY: Creates a safe "gutter" for markers of any length */
+            list-style-position: outside;
+            padding-left: 2.5em; /* Generous gutter for 3+ digit numbers */
         }
         .message-container.ai li {
             margin: 0.4em 0;
-            padding-left: 0.4em; /* A small gap between the marker and the text */
+            padding-left: 0.4em;
         }
         .message-container.ai li p { margin: 0; }
         .message-container.ai li > *:first-child { margin-top: 0; }
         .message-container.ai li > *:last-child { margin-bottom: 0; }
         
-        /* Nested lists get their own indentation relative to the parent text */
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin: 0.5em 0;
             padding-left: 1.5em; /* Indent nested lists further */
         }
 
-        /* Define list marker styles */
         .message-container.ai ul { list-style-type: disc; }
         .message-container.ai ol { list-style-type: decimal; }
         .message-container.ai ul ul { list-style-type: disc; } 
@@ -424,7 +422,12 @@
             color: rgba(255, 255, 255, 0.65);
         }
 
-        /* === Other Elements === */
+        /* === Other Elements & Mobile Adjustments === */
+        @media (max-width: 768px) {
+            .message-container.ai .ai-content-block {
+                font-size: 0.9rem; /* Make text slightly smaller on mobile */
+            }
+        }
         .message-container.ai blockquote {
             padding: 0.1em 0 0.1em 1.25rem;
             border-left: 3px solid var(--primary-accent);
@@ -457,7 +460,7 @@
             border: 1px solid var(--border-color);
             overflow-x: auto;
             font-family: 'SF Mono', 'Fira Code', 'monospace';
-            font-size: 0.85rem; /* Slightly smaller for code blocks */
+            font-size: 0.85rem; /* Smaller for code blocks */
             line-height: 1.6;
             margin: 0;
         }
@@ -475,17 +478,17 @@
         .table-wrapper table { width: 100%; border-collapse: collapse; }
         .message-container.ai th,
         .message-container.ai td { 
-            padding: 0.4rem 0.6rem; /* Compact padding */
+            padding: 0.4rem 0.6rem; 
             text-align: left; 
             border-bottom: 1px solid var(--border-color);
             font-size: 0.9em; /* Smaller, more compact font */
         }
         .message-container.ai thead th { 
-            font-weight: 600; /* Consistent bolding */
+            font-weight: 600; 
             background-color: transparent; 
         }
         .message-container.ai tbody td {
-            font-weight: 400; /* Ensure body text is not bold */
+            font-weight: 400; 
         }
         .message-container.ai tbody tr:last-child td { border-bottom: none; }
         

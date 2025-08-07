@@ -10,9 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            font-family: ui-sans-serif, -apple-system, system-ui, Segoe UI, Helvetica, Apple Color Emoji, Arial, sans-serif, Segoe UI Emoji, Segoe UI Symbol;
-            font-variation-settings: normal;
-
+            --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             
             --space-sm: 0.5rem;
             --space-md: 1rem;
@@ -21,10 +19,10 @@
             --space-xxl: 2rem;
             --space-xxxl: 3rem;
 
-            --font-size-body: 0.95rem; 
-            --font-size-h1: 2.6rem; 
-            --font-size-h2: 2.2rem; 
-            --font-size-h3: 1.5rem;
+            --font-size-body: 1rem; 
+            --font-size-h1: 2.8rem; 
+            --font-size-h2: 2.4rem;
+            --font-size-h3: 1.75rem;
             
             /* Light Theme Colors */
             --background-color: #ffffff;
@@ -369,7 +367,7 @@
         .message-container.ai .ai-content-block {
             font-family: inherit;
             font-weight: 400;
-            line-height: 1.5;
+            line-height: 1.75;
             color: var(--text-color);
              font-feature-settings: "ss01" on, "cv02" on;
               text-rendering: optimizeLegibility;
@@ -432,66 +430,79 @@
         .message-container.ai ul,
         .message-container.ai ol {
             margin: var(--space-md) 0;
-            padding-left: 1.5em; /* Adjusted for better visual alignment */
+            padding-left: 0; /* Remove default padding */
             font-weight: 400;
-            list-style-position: outside; /* Keeps markers from being clipped */
         }
-        
-        .message-container.ai ul li,
-        .message-container.ai ol li {
+
+        /* === ADVANCED LIST STYLING WITH CSS COUNTERS === */
+
+        /* 1. Setup for all lists */
+        .message-container.ai li {
             line-height: 1.7;
             margin: 0.6em 0;
-            padding-left: 0.5em;
             font-size: var(--font-size-body);
             font-weight: 400;
+            list-style-type: none; /* Turn off all default markers */
+            position: relative; /* Needed for positioning the custom marker */
+            padding-left: 2.25em; /* Create space for our custom number/bullet */
+        }
+
+        /* 2. Unordered Lists (Bulleted) */
+        .message-container.ai ul > li::before {
+            content: '•'; /* Use a standard bullet character */
+            position: absolute;
+            left: 0.75em; /* Position the bullet inside the padding */
+            top: 0;
+            color: var(--text-color);
+            font-weight: 700;
+            opacity: 0.6;
+        }
+
+        /* 3. Ordered Lists (Numbered) - The Core Logic */
+        .message-container.ai ol {
+            counter-reset: list-counter; /* Create a new counter for each <ol> */
+        }
+
+        .message-container.ai ol > li {
+            counter-increment: list-counter; /* Increment the counter for each <li> */
+        }
+
+        .message-container.ai ol > li::before {
+            content: counter(list-counter) "."; /* Display 'counter. ' e.g., "1." */
+            position: absolute;
+            left: 0;
+            width: 1.75em; /* Fixed width to hold up to 2 digits + dot */
+            text-align: right; /* Aligns numbers 1-9 and 10-99 correctly */
+            top: 0;
+            color: var(--text-color);
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        /* 4. Nested Lists Styling */
+        .message-container.ai li > ul,
+        .message-container.ai li > ol {
+            margin-top: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            padding-left: 1.5em; /* Indent nested lists */
+        }
+
+        /* Nested ordered lists get letters */
+        .message-container.ai ol ol {
+            counter-reset: sublist-counter;
+        }
+        .message-container.ai ol ol > li::before {
+            counter-increment: sublist-counter;
+            content: counter(sublist-counter, lower-alpha) "."; /* e.g., "a." */
+            width: auto; /* Auto-width for letters */
+            text-align: left;
+            left: 0;
         }
         
         .message-container.ai li:empty {
             display: none;
         }
         
-        /* Use standard bullets for unordered lists */
-        .message-container.ai ul li {
-            list-style-type: disc;
-        }
-        
-        /* Hide markers for top-level ordered lists, relying on emojis from content */
-        .message-container.ai ol > li {
-            list-style-type: none;
-        }
-
-        /* Style nested ordered lists to prevent number-after-number */
-        .message-container.ai ol ol > li {
-            list-style-type: lower-alpha;
-        }
-
-        .message-container.ai ol ol ol > li {
-            list-style-type: lower-roman;
-        }
-
-        .message-container.ai li::marker {
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        .message-container.ai ul li::marker {
-            font-weight: 700;
-            opacity: 0.6;
-        }
-
-        .message-container.ai ol li::marker {
-            font-weight: 600;
-            opacity: 0.8;
-        }
-
-        .message-container.ai li > ul,
-        .message-container.ai li > ol {
-            margin-top: var(--space-sm);
-            margin-bottom: var(--space-sm);
-            padding-left: 1.5em;
-        }
-        
-        .message-container.ai li::before,
         .message-container.ai li::after {
             content: none !important;
         }

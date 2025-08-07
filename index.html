@@ -21,7 +21,7 @@
 
             --font-size-body: 1rem; 
             --font-size-h1: 2.8rem; 
-            --font-size-h2: 2.4rem;
+            --font-size-h2: 2.4rem; 
             --font-size-h3: 1.75rem;
             
             /* Light Theme Colors */
@@ -247,6 +247,7 @@
             display: grid;
             grid-template-columns: 1fr;
             align-items: start;
+            min-width: 0;
         }
         
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
@@ -429,9 +430,9 @@
         .message-container.ai ul,
         .message-container.ai ol {
             margin: var(--space-md) 0;
-            padding-left: 1.75em;
+            padding-left: 1.5em; /* Adjusted for better visual alignment */
             font-weight: 400;
-            list-style-position: outside;
+            list-style-position: outside; /* Keeps markers from being clipped */
         }
         
         .message-container.ai ul li,
@@ -447,18 +448,28 @@
             display: none;
         }
         
+        /* Use standard bullets for unordered lists */
         .message-container.ai ul li {
             list-style-type: disc;
         }
         
-        .message-container.ai ol li {
-            list-style-type: decimal;
+        /* Hide markers for top-level ordered lists, relying on emojis from content */
+        .message-container.ai ol > li {
+            list-style-type: none;
+        }
+
+        /* Style nested ordered lists to prevent number-after-number */
+        .message-container.ai ol ol > li {
+            list-style-type: lower-alpha;
+        }
+
+        .message-container.ai ol ol ol > li {
+            list-style-type: lower-roman;
         }
 
         .message-container.ai li::marker {
             color: var(--text-color);
             font-size: 0.9em;
-            content: unset;
         }
 
         .message-container.ai ul li::marker {
@@ -481,14 +492,6 @@
         .message-container.ai li::before,
         .message-container.ai li::after {
             content: none !important;
-        }
-
-        .message-container.ai ol ol {
-            list-style-type: lower-alpha;
-        }
-        
-        .message-container.ai ol ol ol {
-            list-style-type: lower-roman;
         }
 
         .message-container.ai blockquote {

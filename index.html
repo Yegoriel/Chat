@@ -19,8 +19,7 @@
             --space-xxl: 2rem;
             --space-xxxl: 3rem;
 
-            /* Размеры шрифтов скорректированы для точности */
-            --font-size-body: 0.975rem; /* ~15.6px */
+            --font-size-body: 0.975rem;
             --font-size-h1: 1.75rem;
             --font-size-h2: 1.25rem;
             --font-size-h3: 1.1rem;
@@ -43,8 +42,8 @@
 
             --sidebar-width: 256px;
             --sidebar-collapsed-width: 64px;
-            --chat-content-narrow-width: 42rem; 
-            --chat-content-expanded-width: 50rem; 
+            --chat-content-narrow-width: 42rem; /* ~65ch, ideal for reading */
+            --chat-content-expanded-width: 50rem; /* Wider when sidebar is collapsed */
         }
 
         body.dark-theme {
@@ -358,83 +357,78 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: REFINED & STABILIZED TYPOGRAPHY SYSTEM (CHATGPT-ACCURATE) --- */
-
+      /* --- START: FINAL REFINED TYPOGRAPHY SYSTEM (FLAT & COMPACT) --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
         }
-
         .message-container.ai .ai-content-block {
             font-size: var(--font-size-body);
-            line-height: 1.7;
+            line-height: 1.65;
             color: var(--text-color);
         }
-
-        /* === General Element Spacing === */
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
-        
         .message-container.ai p, .message-container.ai ul, .message-container.ai ol,
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
-            margin: 0.8em 0;
+            margin: 0.75em 0;
         }
-
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3 {
             margin: 1.2em 0 0.6em 0;
             line-height: 1.3;
         }
-
         .message-container.ai h1 { font-size: var(--font-size-h1); font-weight: 600; }
         .message-container.ai h2 { font-size: var(--font-size-h2); font-weight: 600; }
         .message-container.ai h3 { font-size: var(--font-size-h3); font-weight: 600; }
         .message-container.ai strong { font-weight: 600; }
 
-        /* === The Core List Styling Logic === */
-
+        /* === FLAT LIST STYLING LOGIC === */
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-left: 2.25em; /* KEY: Generous space for markers (up to 3 digits) */
+            padding-left: 0; /* Reset parent indentation */
+            list-style: none; /* Disable default markers */
+            counter-reset: list-counter;
         }
-
         .message-container.ai li {
-            margin: 0.4em 0;
-            padding-left: 0; /* CRITICAL: Prevents double indentation. Text aligns perfectly. */
+            position: relative;
+            padding-left: 2em; /* KEY: Creates space for the marker, all text aligns here. */
+            margin: 0.3em 0;
         }
-
         .message-container.ai li > *:first-child { margin-top: 0; }
         .message-container.ai li > *:last-child { margin-bottom: 0; }
         
-        /* Nested lists get their own indentation */
-        .message-container.ai ul ul, .message-container.ai ul ol,
-        .message-container.ai ol ul, .message-container.ai ol ol {
-            margin: 0.4em 0;
+        .message-container.ai li::before {
+            position: absolute;
+            left: 0;
+            top: 0.05em; /* Fine-tune vertical alignment */
+            width: 1.5em; /* Space for the marker content */
+            text-align: right; /* Aligns 1. and 10. correctly */
+            font-weight: 600;
+            color: rgba(0, 0, 0, 0.65);
         }
-
-        /* Define list marker styles */
-        .message-container.ai ul { list-style-type: disc; }
-        .message-container.ai ol { list-style-type: decimal; }
-        .message-container.ai ul ul { list-style-type: square; } /* As per screenshot */
-        .message-container.ai ol ol { list-style-type: lower-alpha; }
-        .message-container.ai ol ol ol { list-style-type: lower-roman; }
-
-        .message-container.ai li::marker {
-            font-weight: 600; /* Soft but bold feel */
-            color: rgba(0, 0, 0, 0.65); /* Softer than pure black */
-        }
-        body.dark-theme .message-container.ai li::marker {
+        body.dark-theme .message-container.ai li::before {
             color: rgba(255, 255, 255, 0.65);
         }
+        
+        /* Numbered Lists */
+        .message-container.ai ol > li { counter-increment: list-counter; }
+        .message-container.ai ol > li::before { content: counter(list-counter) "."; }
+        .message-container.ai ol ol > li::before { content: counter(list-counter, lower-alpha) "."; }
+        .message-container.ai ol ol ol > li::before { content: counter(list-counter, lower-roman) "."; }
+
+        /* Bulleted Lists */
+        .message-container.ai ul > li::before { content: '•'; text-align: center; }
+        .message-container.ai ul ul > li::before { content: '■'; color: rgba(0, 0, 0, 0.5); }
+        body.dark-theme .message-container.ai ul ul > li::before { color: rgba(255, 255, 255, 0.5); }
+
 
         /* === Other Elements === */
-
         .message-container.ai blockquote {
             padding: 0.1em 0 0.1em 1.25rem;
             border-left: 3px solid var(--primary-accent);
             opacity: 0.85;
         }
-
         .message-container.ai code:not(pre > code) {
             font-size: 0.85em;
             padding: 0.2em 0.4em;
@@ -443,20 +437,17 @@
             font-family: 'Fira Code', 'SF Mono', monospace;
             border: 1px solid var(--border-color);
         }
-
         .message-container.ai hr {
             border: 0;
             height: 1px;
             background-color: var(--border-color);
         }
-
         .code-block-wrapper,
         .table-wrapper {
             max-width: 100%;
             overflow-x: auto;
             position: relative;
         }
-
         .message-container.ai pre {
             background-color: var(--code-bg);
             color: var(--code-text-color);
@@ -469,68 +460,30 @@
             line-height: 1.6;
             margin: 0;
         }
-
-        .message-container.ai pre code.hljs {
-            padding: 0;
-            background: transparent;
-        }
-
+        .message-container.ai pre code.hljs { padding: 0; background: transparent; }
         .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: #e9e9eb;
-            color: #555;
-            border: 1px solid var(--border-color);
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            opacity: 0;
-            transition: opacity 0.2s;
+            position: absolute; top: 8px; right: 8px; background: #e9e9eb; color: #555;
+            border: 1px solid var(--border-color); padding: 0.3rem 0.6rem; border-radius: 4px;
+            cursor: pointer; font-size: 0.7rem; opacity: 0; transition: opacity 0.2s;
         }
         body.dark-theme .copy-btn { background-color: #4a4a4a; color: #ddd; border-color: #555; }
         .code-block-wrapper:hover .copy-btn { opacity: 1; }
         .copy-btn:hover { background: #dcdce0; }
         body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
         .copy-btn:active { transform: scale(0.95); }
-        
-        .table-wrapper table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
+        .table-wrapper table { width: 100%; border-collapse: collapse; }
         .message-container.ai th,
-        .message-container.ai td {
-            padding: 0.5rem 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
+        .message-container.ai td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .message-container.ai thead th { font-weight: 600; background-color: transparent; }
+        .message-container.ai tbody tr:last-child td { border-bottom: none; }
         
-        .message-container.ai thead th {
-            font-weight: 600;
-            background-color: transparent;
-        }
-
-        .message-container.ai tbody tr:last-child td {
-            border-bottom: none;
-        }
-        
-        /* --- START: Thin Organic Scrollbar for Code/Tables --- */
-        .code-block-wrapper::-webkit-scrollbar,
-        .table-wrapper::-webkit-scrollbar { height: 8px; }
-        .code-block-wrapper::-webkit-scrollbar-track,
-        .table-wrapper::-webkit-scrollbar-track { background: transparent; }
-        .code-block-wrapper::-webkit-scrollbar-thumb,
-        .table-wrapper::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 10px; border: 2px solid var(--code-bg); }
-        body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb,
-        body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
-        .code-block-wrapper::-webkit-scrollbar-thumb:hover,
-        .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
+        .code-block-wrapper::-webkit-scrollbar, .table-wrapper::-webkit-scrollbar { height: 8px; }
+        .code-block-wrapper::-webkit-scrollbar-track, .table-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .code-block-wrapper::-webkit-scrollbar-thumb, .table-wrapper::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 10px; border: 2px solid var(--code-bg); }
+        body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
+        .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-        /* --- END: Thin Organic Scrollbar --- */
-
-      /* --- END: REFINED TYPOGRAPHY SYSTEM --- */
+      /* --- END: FINAL TYPOGRAPHY SYSTEM --- */
     </style>
 </head>
 <body>
@@ -677,9 +630,6 @@
                     }
                     heading.dataset.emojiApplied = 'true';
                 });
-
-                // Removed the faulty emoji stripping from LI elements.
-                // The new CSS handles layout correctly, so content can remain as is.
 
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';

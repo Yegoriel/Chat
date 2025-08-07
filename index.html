@@ -72,9 +72,6 @@
             font-size: 1rem;
             letter-spacing: 0.01em;
             transition: background-color 0.3s, color 0.3s;
-            /* FIX: Prevent mobile browsers from auto-adjusting font size inconsistently */
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
         body.is-dragging #chat-messages { overflow-y: hidden; }
@@ -164,6 +161,12 @@
             opacity: 0;
             transform: scaleX(0);
             pointer-events: none;
+        }
+
+        .is-desktop #sidebar.is-collapsed #logout-btn {
+            flex-grow: 0;
+            width: 100%;
+            justify-content: center;
         }
 
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
@@ -374,35 +377,33 @@
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
         
-        /* FIX: Increased paragraph spacing for "vastness" */
         .message-container.ai p {
             margin: 1em 0;
         }
-
+        
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
             margin: 0.75em 0;
         }
 
-        /* FIX: New, more prominent heading hierarchy */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 2em 0 1em 0;
-            line-height: 1.25;
-            font-weight: 700;
+            margin: 1.8em 0 0.8em 0;
+            line-height: 1.3;
+            font-weight: 600;
         }
-        .message-container.ai h1 { font-size: 2.25rem; }
-        .message-container.ai h2 { font-size: 1.75rem; }
-        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
-        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
-        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
-        .message-container.ai strong { font-weight: 700; }
+        .message-container.ai h1 { font-size: 2.2rem; margin-top: 1.2em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4em;}
+        .message-container.ai h2 { font-size: 1.7rem; }
+        .message-container.ai h3 { font-size: 1.35rem; }
+        .message-container.ai h4 { font-size: 1.15rem; }
+        .message-container.ai h5 { font-size: 1rem; font-weight: 700; }
+        .message-container.ai h6 { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.05em; }
+        .message-container.ai strong { font-weight: 600; }
 
         /* === The New, Robust List System === */
         .message-container.ai ul,
         .message-container.ai ol {
             list-style-position: outside;
-            margin: 1em 0;
+            margin: 0.75em 0;
             padding-inline-start: 2em; /* Modern property for indentation */
         }
         .message-container.ai li {
@@ -457,7 +458,7 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            touch-action: pan-x; /* Fix mobile horizontal scroll bug */
+            touch-action: pan-x;
         }
         .message-container.ai pre {
             background-color: var(--code-bg);
@@ -509,31 +510,28 @@
       
       /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
-          .message-container.ai .ai-content-block {
-              font-size: 1rem; /* FIX: Set a consistent base font size for mobile */
+          .message-container.ai .ai-content-block,
+          .welcome-message p {
+              font-size: 0.9rem;
           }
 
-          /* FIX: Responsive, prominent headings for mobile */
           .message-container.ai h1 { font-size: 1.8rem; }
           .message-container.ai h2 { font-size: 1.5rem; }
           .message-container.ai h3 { font-size: 1.25rem; }
-          .message-container.ai h4 { font-size: 1.15rem; }
+          .message-container.ai h4 { font-size: 1.1rem; }
 
           .message-container.ai ol {
-              /* A stable `rem` based indent that guarantees no number clipping */
               padding-inline-start: 2.2rem; 
           }
 
           .message-container.ai ul {
-              /* Consistent smaller indent for unordered lists */
               padding-inline-start: 1.5rem;
           }
 
           .message-container.ai .table-wrapper th,
           .message-container.ai .table-wrapper td,
           .message-container.ai pre {
-              /* FIX: Use a consistent, stable `rem` unit to ensure even font size */
-              font-size: 0.85rem;
+              font-size: 0.825rem;
           }
       }
       /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
@@ -656,7 +654,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // Autoscroll for user's own message to ensure it's visible.
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
@@ -767,7 +764,6 @@
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
-                // --- START: FINAL STREAMING ENGINE (NO CURSOR, NO AUTOSCROLL) ---
                 let accumulatedResponseText = '';
                 let displayedText = '';
                 let streamFinished = false;
@@ -782,7 +778,7 @@
 
                     contentBlock.innerHTML = marked.parse(displayedText.trim());
                     finalizeMessageFormatting(contentBlock);
-                    
+
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
                         clearInterval(typingInterval);
                         if (accumulatedResponseText.trim()) {
@@ -840,7 +836,6 @@
                 };
                 
                 fetchAndProcessStream();
-                // --- END: FINAL STREAMING ENGINE ---
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -972,19 +967,15 @@
             const dragStart = (e) => {
                 if (!document.body.classList.contains('is-mobile')) return;
                 
-                // URGENT BUG FIX: Let the browser handle scrolling.
-                // Do NOT start a drag if the touch begins inside any element that is already scrollable.
-                // This correctly allows vertical scrolling on tables.
-                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
-                    if (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) {
-                        return; 
-                    }
+                // FIX: Prevent sidebar drag only when touch starts inside a scrollable content block.
+                // This allows native browser scrolling for tables and code blocks to work correctly.
+                if (e.target.closest('.code-block-wrapper, .table-wrapper')) {
+                    return;
                 }
 
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
-                // Only allow starting the sidebar drag from the very edge of the screen.
                 if (!isOpen && t.clientX > 40) return;
                 
                 isDragging = true;

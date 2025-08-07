@@ -754,28 +754,36 @@
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
+                // --- START: NEW STREAMING AND TYPING ENGINE ---
                 let accumulatedResponseText = '';
-                let animationQueue = '';
                 let displayedText = '';
-                let isStreamFinished = false;
-                let animationFrameId = null;
+                let streamFinished = false;
+                let typingInterval = null;
 
-                const renderAndAnimate = () => {
-                    if (animationQueue.length > 0) {
-                        displayedText += animationQueue;
-                        animationQueue = '';
-                        contentBlock.innerHTML = marked.parse(displayedText.trim());
-                        finalizeMessageFormatting(contentBlock);
+                const renderTyping = () => {
+                    // Determine the chunk of text to add in this frame
+                    const typingSpeed = 10; // Characters per interval. Higher is faster.
+                    if (displayedText.length < accumulatedResponseText.length) {
+                        const nextChunk = accumulatedResponseText.substring(displayedText.length, displayedText.length + typingSpeed);
+                        displayedText += nextChunk;
                     }
 
-                    if (isStreamFinished && animationQueue.length === 0) {
-                        cancelAnimationFrame(animationFrameId);
-                        return;
+                    // Add a cursor during generation, remove it for the final render
+                    const cursor = streamFinished ? '' : ' ▋';
+                    contentBlock.innerHTML = marked.parse(displayedText.trim() + cursor);
+                    finalizeMessageFormatting(contentBlock);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    // If the stream is done and all text is displayed, stop the animation.
+                    if (streamFinished && displayedText.length === accumulatedResponseText.length) {
+                        clearInterval(typingInterval);
+                        if (accumulatedResponseText.trim()) {
+                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            saveChat();
+                        }
                     }
-                    
-                    animationFrameId = requestAnimationFrame(renderAndAnimate);
                 };
-
+                
                 const fetchAndProcessStream = async () => {
                     try {
                         const response = await fetch('/api/chat', {
@@ -786,8 +794,8 @@
 
                         if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
                         
-                        contentBlock.innerHTML = '';
-                        renderAndAnimate();
+                        contentBlock.innerHTML = ''; // Clear "thinking" indicator
+                        typingInterval = setInterval(renderTyping, 30); // Start animation loop (30ms for smoothness)
 
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
@@ -809,7 +817,6 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            animationQueue += textPart;
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
@@ -818,21 +825,16 @@
                     } catch (error) {
                         console.error("AI Streaming Error:", error);
                         contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                        if(typingInterval) clearInterval(typingInterval);
                     } finally {
-                        isStreamFinished = true;
-                        if (accumulatedResponseText.trim()) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                            saveChat();
-                        }
-                        if (document.visibilityState !== 'visible') {
-                             cancelAnimationFrame(animationFrameId);
-                             contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                             finalizeMessageFormatting(contentBlock);
-                        }
+                        streamFinished = true;
+                        // The interval, if running, will see `streamFinished = true` and 
+                        // complete the final render and cleanup by itself.
                     }
                 };
                 
                 fetchAndProcessStream();
+                // --- END: NEW STREAMING AND TYPING ENGINE ---
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());

@@ -501,15 +501,25 @@
       /* --- START: MOBILE-SPECIFIC TYPOGRAPHY ADJUSTMENTS --- */
       @media (max-width: 600px) {
           .message-container.ai .ai-content-block {
-              /* Further reduce font size on small screens for better readability and to help with marker spacing. */
-              font-size: 0.875rem;
+              /* Reduce base font size on small screens for better readability. */
+              font-size: 0.9rem;
           }
 
-          .message-container.ai ul,
           .message-container.ai ol {
-              /* Use a stable `rem` unit for padding to create a fixed-width gutter that is not affected by font-size changes. */
-              /* This provides a robust, definitive fix for the clipped number markers on mobile. */
-              padding-left: 2.2rem;
+              /* Definitive fix for clipped numbers. This large, stable `rem` unit */
+              /* guarantees enough space for 3-digit markers (e.g., "100.") */
+              padding-left: 2.8rem;
+          }
+
+          .message-container.ai .table-wrapper th,
+          .message-container.ai .table-wrapper td {
+              /* Compensate for parent font-size reduction to maintain table readability. */
+              font-size: 0.95em;
+          }
+
+          .message-container.ai pre {
+              /* Compensate for parent font-size reduction to maintain code readability. */
+              font-size: 0.925rem;
           }
       }
       /* --- END: MOBILE-SPECIFIC TYPOGRAPHY ADJUSTMENTS --- */

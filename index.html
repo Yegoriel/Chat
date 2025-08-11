@@ -72,9 +72,6 @@
             font-size: 1rem;
             letter-spacing: 0.01em;
             transition: background-color 0.3s, color 0.3s;
-            /* FIX: Prevent mobile browsers from auto-adjusting font size inconsistently */
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
         body.is-dragging #chat-messages { overflow-y: hidden; }
@@ -166,6 +163,12 @@
             pointer-events: none;
         }
 
+        .is-desktop #sidebar.is-collapsed #logout-btn {
+            flex-grow: 0;
+            width: 100%;
+            justify-content: center;
+        }
+
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #chat-area.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
@@ -182,6 +185,20 @@
         .is-mobile.sidebar-open #sidebar { transform: translateX(0); }
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
+
+        #sidebar-drag-handle {
+            display: none;
+        }
+        .is-mobile #sidebar-drag-handle {
+            display: block;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            z-index: 998;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         #chat-content-wrapper {
             width: 100%;
@@ -374,37 +391,34 @@
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
         
-        /* FIX: Increased paragraph spacing for "vastness" */
         .message-container.ai p {
             margin: 1em 0;
         }
-
+        
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
             margin: 0.75em 0;
         }
 
-        /* FIX: New, more prominent heading hierarchy */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 2em 0 1em 0;
-            line-height: 1.25;
-            font-weight: 700;
+            margin: 1.8em 0 0.8em 0;
+            line-height: 1.3;
+            font-weight: 600;
         }
-        .message-container.ai h1 { font-size: 2.25rem; }
-        .message-container.ai h2 { font-size: 1.75rem; }
-        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
-        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
-        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
-        .message-container.ai strong { font-weight: 700; }
+        .message-container.ai h1 { font-size: 2.2rem; margin-top: 1.2em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4em;}
+        .message-container.ai h2 { font-size: 1.7rem; }
+        .message-container.ai h3 { font-size: 1.35rem; }
+        .message-container.ai h4 { font-size: 1.15rem; }
+        .message-container.ai h5 { font-size: 1rem; font-weight: 700; }
+        .message-container.ai h6 { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.05em; }
+        .message-container.ai strong { font-weight: 600; }
 
         /* === The New, Robust List System === */
         .message-container.ai ul,
         .message-container.ai ol {
-            /* FIX: Use 'inside' to prevent number clipping on all screen sizes */
-            list-style-position: inside; 
-            margin: 1em 0;
-            padding-inline-start: 1em; /* Adjust padding for 'inside' position */
+            list-style-position: outside;
+            margin: 0.75em 0;
+            padding-inline-start: 2em; /* Modern property for indentation */
         }
         .message-container.ai li {
             margin: 0.5em 0;
@@ -420,7 +434,7 @@
             padding-inline-start: 1.5em; /* Smaller indent for nested lists */
         }
 
-        .message-container.ai ul { list-style-type: disc; }
+        .message-container.ai ul { list-style-type: disc; } /* Ensured bullet points */
         .message-container.ai ol { list-style-type: decimal; }
         .message-container.ai ul ul { list-style-type: disc; } 
         .message-container.ai ol ol { list-style-type: lower-alpha; }
@@ -450,15 +464,15 @@
         }
         .message-container.ai hr {
             border: 0;
-            height: 0;
-            border-top: 1px solid var(--border-color);
+            height: 1px;
+            background-color: var(--border-color);
         }
         .code-block-wrapper,
         .table-wrapper {
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            touch-action: pan-x; /* Fix mobile horizontal scroll bug */
+            touch-action: pan-x;
         }
         .message-container.ai pre {
             background-color: var(--code-bg);
@@ -510,24 +524,29 @@
       
       /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
-          .message-container.ai .ai-content-block {
-              font-size: 1rem; /* FIX: Set a consistent base font size for mobile */
+          .is-mobile .message-container .ai-content-block,
+          .is-mobile .message-container.welcome-message p {
+              font-size: 0.95rem !important;
           }
 
-          /* FIX: Responsive, prominent headings for mobile */
           .message-container.ai h1 { font-size: 1.8rem; }
           .message-container.ai h2 { font-size: 1.5rem; }
           .message-container.ai h3 { font-size: 1.25rem; }
-          .message-container.ai h4 { font-size: 1.15rem; }
+          .message-container.ai h4 { font-size: 1.1rem; }
 
-          /* No specific 'ol' or 'ul' padding override needed here anymore,
-             the base 'inside' position and padding handles it universally. */
+          /* FIX: Provide ample padding for multi-digit list numbers */
+          .message-container.ai ol {
+              padding-inline-start: 2.5rem; 
+          }
+
+          .message-container.ai ul {
+              padding-inline-start: 1.5rem;
+          }
 
           .message-container.ai .table-wrapper th,
           .message-container.ai .table-wrapper td,
           .message-container.ai pre {
-              /* FIX: Use a consistent, stable `rem` unit to ensure even font size */
-              font-size: 0.85rem;
+              font-size: 0.825rem;
           }
       }
       /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
@@ -536,6 +555,7 @@
 <body>
     <div id="app-container">
         <div id="sidebar-overlay"></div>
+        <div id="sidebar-drag-handle"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
                 <h2>Chat History</h2>
@@ -650,7 +670,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // Autoscroll for user's own message to ensure it's visible.
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
@@ -761,7 +780,6 @@
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
-                // --- START: FINAL STREAMING ENGINE (NO CURSOR, NO AUTOSCROLL) ---
                 let accumulatedResponseText = '';
                 let displayedText = '';
                 let streamFinished = false;
@@ -776,7 +794,7 @@
 
                     contentBlock.innerHTML = marked.parse(displayedText.trim());
                     finalizeMessageFormatting(contentBlock);
-                    
+
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
                         clearInterval(typingInterval);
                         if (accumulatedResponseText.trim()) {
@@ -834,7 +852,6 @@
                 };
                 
                 fetchAndProcessStream();
-                // --- END: FINAL STREAMING ENGINE ---
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -923,7 +940,50 @@
                     document.body.classList.add('is-mobile');
                     document.getElementById('menu-toggle').onclick = openSidebar;
                     document.getElementById('sidebar-close-btn').onclick = closeSidebar;
-                    sidebarOverlay.onclick = closeSidebar;
+                    
+                    // --- START: DEFINITIVE GESTURE HANDLING FIX ---
+                    const dragHandle = document.getElementById('sidebar-drag-handle');
+                    let startX = 0, currentTranslate = 0, isDragging = false;
+
+                    const dragStart = (e) => {
+                        isDragging = true;
+                        startX = e.touches[0].clientX;
+                        sidebar.classList.add('no-transition');
+                        currentTranslate = document.body.classList.contains('sidebar-open') ? 0 : -sidebar.offsetWidth;
+                    };
+
+                    const dragMove = (e) => {
+                        if (!isDragging) return;
+                        e.preventDefault();
+                        const deltaX = e.touches[0].clientX - startX;
+                        const newTranslate = currentTranslate + deltaX;
+                        const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
+                        sidebar.style.transform = `translateX(${s}px)`;
+                        sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
+                    };
+
+                    const dragEnd = () => {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        sidebar.classList.remove('no-transition');
+                        const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
+                        if (t > -sidebar.offsetWidth / 2) {
+                            openSidebar();
+                        } else {
+                            closeSidebar();
+                        }
+                    };
+                    
+                    // Attach listeners ONLY to the dedicated drag zones.
+                    dragHandle.addEventListener('touchstart', dragStart, { passive: true });
+                    dragHandle.addEventListener('touchmove', dragMove, { passive: false });
+                    dragHandle.addEventListener('touchend', dragEnd);
+
+                    sidebarOverlay.addEventListener('touchstart', dragStart, { passive: true });
+                    sidebarOverlay.addEventListener('touchmove', dragMove, { passive: false });
+                    sidebarOverlay.addEventListener('touchend', dragEnd);
+                    // --- END: DEFINITIVE GESTURE HANDLING FIX ---
+
                 } else {
                     document.body.classList.add('is-desktop');
                     const pinBtn = document.getElementById('pin-sidebar-btn');
@@ -960,75 +1020,6 @@
                     };
                 }
             }
-            
-            let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
-            
-            const dragStart = (e) => {
-                if (!document.body.classList.contains('is-mobile')) return;
-                
-                // FIX: Check if the touch starts on a scrollable element. If so, abort the drag.
-                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
-                    if (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) {
-                        return; // Let the browser handle scrolling.
-                    }
-                }
-
-                const t = e.type === 'touchstart' ? e.touches[0] : e;
-                const isOpen = document.body.classList.contains('sidebar-open');
-                
-                // Only allow starting the sidebar drag from the very edge of the screen.
-                if (!isOpen && t.clientX > 40) return;
-                
-                isDragging = true;
-                startX = t.clientX;
-                startY = t.clientY;
-                dragDirection = null;
-                sidebar.classList.add('no-transition');
-                currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
-            };
-
-            const dragMove = (e) => {
-                if (!isDragging) return;
-
-                const t = e.type === 'touchmove' ? e.touches[0] : e;
-                const deltaX = t.clientX - startX;
-                const deltaY = t.clientY - startY;
-
-                if (dragDirection === null) {
-                    if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                        isDragging = false; // Abort: This is a vertical scroll gesture.
-                        return;
-                    } else {
-                        dragDirection = 'horizontal';
-                    }
-                }
-
-                if (dragDirection === 'horizontal') {
-                    e.preventDefault(); 
-                    document.body.classList.add('is-dragging');
-                    const newTranslate = currentTranslate + deltaX;
-                    const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
-                    sidebar.style.transform = `translateX(${s}px)`;
-                    sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
-                }
-            };
-
-            const dragEnd = () => {
-                if (!isDragging || dragDirection !== 'horizontal') {
-                    isDragging = false;
-                    dragDirection = null;
-                    return;
-                }
-                isDragging = false;
-                dragDirection = null;
-                sidebar.classList.remove('no-transition');
-                document.body.classList.remove('is-dragging');
-                const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
-                t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar();
-            };
-
-            document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
-            document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
             
             function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 12; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
             

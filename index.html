@@ -21,9 +21,6 @@
 
             /* Prominent Heading Hierarchy */
             --font-size-body: 0.975rem;
-            --font-size-h1: 1.8rem;
-            --font-size-h2: 1.4rem;
-            --font-size-h3: 1.15rem;
             
             /* Light Theme Colors */
             --background-color: #ffffff;
@@ -201,7 +198,7 @@
         }
 
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
-        /* FIX: Removed the top and bottom fade-out effect for a cleaner look. */
+        /* FIX: Confirmed removal of top and bottom fade effects. */
         #chat-messages-container::before, #chat-messages-container::after { 
             display: none;
         }
@@ -218,7 +215,6 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            /* FIX: Increased top padding to ensure user message has space when scrolled to the top. */
             padding: 2rem 0 30px 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
@@ -408,12 +404,11 @@
             margin: 0.75em 0;
         }
 
-        /* FIX: New, single source of truth for a prominent and consistent header hierarchy. */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
             margin: 1.75em 0 0.8em 0;
             line-height: 1.3;
-            font-weight: 600; /* A sleeker, semi-bold weight */
-            text-decoration: none; /* Ensure no underlines */
+            font-weight: 600;
+            text-decoration: none;
         }
         .message-container.ai h1 { font-size: 2rem; }
         .message-container.ai h2 { font-size: 1.75rem; }
@@ -422,7 +417,6 @@
         .message-container.ai h5 { font-size: 1.1rem; }
         .message-container.ai h6 { font-size: 1rem; opacity: 0.9; }
         
-        /* FIX: Sleek, modern styling for strong/bold text. */
         .message-container.ai strong { 
             font-weight: 600; 
         }
@@ -539,7 +533,6 @@
           .message-container.ai .ai-content-block {
               font-size: 1rem;
           }
-          /* FIX: Removed responsive header rules as the new system is scalable by design. */
           .message-container.ai ol {
               padding-inline-start: 2.2rem; 
           }

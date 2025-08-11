@@ -12,6 +12,7 @@
         :root {
             --system-font: 'Söhne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             
+            /* MODIFIED: Added Modular Spacing & Font Variables */
             --space-sm: 0.5rem;
             --space-md: 1rem;
             --space-lg: 1.25rem;
@@ -19,11 +20,10 @@
             --space-xxl: 2rem;
             --space-xxxl: 3rem;
 
-            /* Prominent Heading Hierarchy */
-            --font-size-body: 0.975rem;
-            --font-size-h1: 1.8rem;
-            --font-size-h2: 1.4rem;
-            --font-size-h3: 1.15rem;
+            --font-size-body: 0.95rem;
+            --font-size-h1: 3.4rem;
+            --font-size-h2: 2.4rem;
+            --font-size-h3: 1.75rem;
             
             /* Light Theme Colors */
             --background-color: #ffffff;
@@ -38,13 +38,11 @@
             --scroll-btn-bg: var(--background-color);
             --scroll-btn-color: #666;
             --scroll-btn-hover-bg: var(--sidebar-bg);
-            --scrollbar-thumb-color: #ccc;
-            --scrollbar-thumb-hover-color: #aaa;
 
             --sidebar-width: 256px;
             --sidebar-collapsed-width: 64px;
-            --chat-content-narrow-width: 42rem; /* ~65ch, ideal for reading */
-            --chat-content-expanded-width: 50rem; /* Wider when sidebar is collapsed */
+            --chat-content-narrow-width: 42rem; 
+            --chat-content-expanded-width: 50rem; 
         }
 
         body.dark-theme {
@@ -60,8 +58,6 @@
             --scroll-btn-bg: #2c2c2c;
             --scroll-btn-color: #e0e0e0;
             --scroll-btn-hover-bg: #3a3a3a;
-            --scrollbar-thumb-color: #555;
-            --scrollbar-thumb-hover-color: #777;
         }
 
         html { scroll-behavior: smooth; }
@@ -163,12 +159,6 @@
             pointer-events: none;
         }
 
-        .is-desktop #sidebar.is-collapsed #logout-btn {
-            flex-grow: 0;
-            width: 100%;
-            justify-content: center;
-        }
-
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #chat-area.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
@@ -185,20 +175,6 @@
         .is-mobile.sidebar-open #sidebar { transform: translateX(0); }
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
-
-        #sidebar-drag-handle {
-            display: none;
-        }
-        .is-mobile #sidebar-drag-handle {
-            display: block;
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 20px;
-            height: 100%;
-            z-index: 998;
-            -webkit-tap-highlight-color: transparent;
-        }
 
         #chat-content-wrapper {
             width: 100%;
@@ -262,13 +238,13 @@
             padding: 0;
             width: 100%;
         }
-        
         .ai-content-block {
             padding: 0.75rem 0.1rem;
-            display: grid;
-            grid-template-columns: 1fr;
-            align-items: start;
-            min-width: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
@@ -378,102 +354,186 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: RE-ENGINEERED TYPOGRAPHY SYSTEM (ChatGPT-Aligned) --- */
+      /* --- START: FLAWLESS TYPOGRAPHY SYSTEM (ChatGPT STYLE) --- */
+
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
         }
+      
         .message-container.ai .ai-content-block {
-            font-size: var(--font-size-body);
-            line-height: 1.65;
+            font-family: inherit;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--text-color);
+            /* MODIFIED: Added advanced font rendering */
+            text-rendering: optimizeLegibility;
+            font-feature-settings: "ss01" on, "cv02" on;
+        }
+
+        /* === HEADINGS (NEW HIERARCHY) === */
+        
+        .message-container.ai h1,
+        .message-container.ai h2,
+        .message-container.ai h3 {
+            font-family: inherit;
+            line-height: 1.3;
+            text-decoration: none !important;
+            border: none !important;
+            list-style: none !important;
             color: var(--text-color);
         }
-        .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
-        .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
-        
-        .message-container.ai p {
-            margin: 1em 0;
-        }
-        
-        .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
-        .message-container.ai .table-wrapper, .message-container.ai hr {
-            margin: 0.75em 0;
+
+        .message-container.ai h1 {
+            font-size: var(--font-size-h1);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin: var(--space-xxxl) 0 var(--space-xl);
         }
 
-        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 1.8em 0 0.8em 0;
-            line-height: 1.3;
+        .message-container.ai h2 {
+            font-size: var(--font-size-h2);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin: var(--space-xxl) 0 var(--space-lg);
+            padding-left: 0.25rem; /* MODIFIED: Added for rectangular alignment */
+        }
+
+        .message-container.ai h3 {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+            margin: var(--space-xl) 0 var(--space-md);
+            padding-left: 0.25rem; /* MODIFIED: Added for rectangular alignment */
+        }
+
+        .message-container.ai h1 > .emoji,
+        .message-container.ai h2 > .emoji,
+        .message-container.ai h3 > .emoji {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5em;
+            height: 1.5em;
+            margin-right: 0.6em;
+            background-color: var(--sidebar-bg);
+            border-radius: 0.5em;
+            font-size: 0.8em;
+            line-height: 1;
+            position: relative;
+            top: -0.1em;
+        }
+
+        /* === PARAGRAPHS & TEXT === */
+
+        .message-container.ai p {
+            font-size: var(--font-size-body);
+            line-height: 1.75;
+            margin: var(--space-md) 0 !important;
+            font-weight: 400 !important;
+        }
+
+        .message-container.ai strong,
+        .message-container.ai b {
             font-weight: 600;
         }
-        .message-container.ai h1 { font-size: 2.2rem; margin-top: 1.2em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4em;}
-        .message-container.ai h2 { font-size: 1.7rem; }
-        .message-container.ai h3 { font-size: 1.35rem; }
-        .message-container.ai h4 { font-size: 1.15rem; }
-        .message-container.ai h5 { font-size: 1rem; font-weight: 700; }
-        .message-container.ai h6 { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.05em; }
-        .message-container.ai strong { font-weight: 600; }
 
-        /* === The New, Robust List System === */
+        /* === LISTS (FLAWLESS & STRAIGHT ALIGNMENT) === */
+
         .message-container.ai ul,
         .message-container.ai ol {
+            margin: var(--space-md) 0;
+            padding-left: 1.75em;
+            font-weight: 400;
             list-style-position: outside;
-            margin: 0.75em 0;
-            padding-inline-start: 2em; /* Modern property for indentation */
         }
-        .message-container.ai li {
-            margin: 0.5em 0;
-            padding-left: 0; /* Padding is now on the list container */
-        }
-        .message-container.ai li p { margin: 0; }
-        .message-container.ai li > *:first-child { margin-top: 0; }
-        .message-container.ai li > *:last-child { margin-bottom: 0; }
         
+        .message-container.ai ul li,
+        .message-container.ai ol li {
+            line-height: 1.7;
+            margin: 0.6em 0;
+            padding-left: 0.5em;
+            font-size: var(--font-size-body);
+            font-weight: 400;
+        }
+        
+        .message-container.ai li:empty {
+            display: none;
+        }
+        
+        .message-container.ai ul li {
+            list-style-type: disc;
+        }
+        
+        .message-container.ai ol li {
+            list-style-type: decimal;
+        }
+
+        .message-container.ai li::marker {
+            color: var(--text-color);
+            font-size: 0.9em;
+            content: unset;
+        }
+
+        .message-container.ai ul li::marker {
+            opacity: 0.6;
+        }
+
+        .message-container.ai ol li::marker {
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
         .message-container.ai li > ul,
         .message-container.ai li > ol {
-            margin: 0.5em 0;
-            padding-inline-start: 1.5em; /* Smaller indent for nested lists */
+            margin-top: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            padding-left: 1.5em;
         }
-
-        .message-container.ai ul { list-style-type: disc; } /* Ensured bullet points */
-        .message-container.ai ol { list-style-type: decimal; }
-        .message-container.ai ul ul { list-style-type: disc; } 
-        .message-container.ai ol ol { list-style-type: lower-alpha; }
-        .message-container.ai ol ol ol { list-style-type: lower-roman; }
         
-        .message-container.ai ::marker {
-            font-weight: 600;
-            color: rgba(0, 0, 0, 0.65);
-        }
-        body.dark-theme .message-container.ai ::marker {
-            color: rgba(255, 255, 255, 0.65);
+        .message-container.ai li::before,
+        .message-container.ai li::after {
+            content: none !important;
         }
 
-        /* === Other Elements === */
+        /* === OTHER ELEMENTS (Blockquotes, Code, etc.) === */
+
         .message-container.ai blockquote {
+            margin: var(--space-xl) 0;
             padding: 0.1em 0 0.1em 1.25rem;
+            background-color: transparent;
             border-left: 3px solid var(--primary-accent);
             opacity: 0.85;
         }
+        
+        .message-container.ai blockquote p {
+            margin: var(--space-md) 0 !important;
+        }
+
         .message-container.ai code:not(pre > code) {
-            font-size: 0.85em;
+            font-size: 0.875rem;
             padding: 0.2em 0.4em;
             background-color: var(--code-bg);
             border-radius: 4px;
-            font-family: 'Fira Code', 'SF Mono', monospace;
+            font-family: 'Fira Code', 'SF Mono', monospace; /* MODIFIED: Refined font stack */
             border: 1px solid var(--border-color);
         }
+
         .message-container.ai hr {
             border: 0;
             height: 1px;
             background-color: var(--border-color);
+            margin: 2.5rem 0;
         }
-        .code-block-wrapper,
-        .table-wrapper {
-            max-width: 100%;
-            overflow-x: auto;
+
+        .code-block-wrapper {
             position: relative;
-            touch-action: pan-x;
+            margin: 1.25em 0;
         }
+        
+        body.dark-theme .message-container.ai pre code.hljs {
+            color: var(--code-text-color);
+        }
+
         .message-container.ai pre {
             background-color: var(--code-bg);
             color: var(--code-text-color);
@@ -482,80 +542,98 @@
             border: 1px solid var(--border-color);
             overflow-x: auto;
             font-family: 'SF Mono', 'Fira Code', 'monospace';
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             line-height: 1.6;
             margin: 0;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
-        .message-container.ai pre code.hljs { padding: 0; background: transparent; }
+
+        .message-container.ai pre code.hljs {
+            padding: 0;
+            background: transparent;
+        }
+
         .copy-btn {
-            position: absolute; top: 8px; right: 8px; background: #e9e9eb; color: #555;
-            border: 1px solid var(--border-color); padding: 0.3rem 0.6rem; border-radius: 4px;
-            cursor: pointer; font-size: 0.7rem; opacity: 0; transition: opacity 0.2s;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #e9e9eb;
+            color: #555;
+            border: 1px solid var(--border-color);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
         body.dark-theme .copy-btn { background-color: #4a4a4a; color: #ddd; border-color: #555; }
         .code-block-wrapper:hover .copy-btn { opacity: 1; }
         .copy-btn:hover { background: #dcdce0; }
         body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
         .copy-btn:active { transform: scale(0.95); }
-        .table-wrapper table { width: 100%; border-collapse: collapse; }
-        .message-container.ai th,
-        .message-container.ai td { 
-            padding: 0.4rem 0.6rem;
-            text-align: left; 
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.9em;
-        }
-        .message-container.ai thead th { 
-            font-weight: 600; 
-            background-color: transparent; 
-        }
-        .message-container.ai tbody td {
-            font-weight: 400; 
-        }
-        .message-container.ai tbody tr:last-child td { border-bottom: none; }
         
-        .code-block-wrapper::-webkit-scrollbar, .table-wrapper::-webkit-scrollbar { height: 8px; }
-        .code-block-wrapper::-webkit-scrollbar-track, .table-wrapper::-webkit-scrollbar-track { background: transparent; }
-        .code-block-wrapper::-webkit-scrollbar-thumb, .table-wrapper::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 10px; border: 2px solid var(--code-bg); }
-        body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
-        .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
-        .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-      /* --- END: RE-ENGINEERED TYPOGRAPHY SYSTEM --- */
-      
-      /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
-      @media (max-width: 768px) {
-          .is-mobile .message-container .ai-content-block,
-          .is-mobile .message-container.welcome-message p {
-              font-size: 0.95rem !important;
-          }
+        /* --- START: SLEEK & MINIMALIST TABLE STYLES (FINAL VERSION) --- */
+        .table-wrapper {
+            border: none;
+            border-radius: 0;
+            margin: 1.5em 0;
+            overflow: auto;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
 
-          .message-container.ai h1 { font-size: 1.8rem; }
-          .message-container.ai h2 { font-size: 1.5rem; }
-          .message-container.ai h3 { font-size: 1.25rem; }
-          .message-container.ai h4 { font-size: 1.1rem; }
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin: 0;
+            border: none;
+            box-shadow: none;
+        }
 
-          /* FIX: Provide ample padding for multi-digit list numbers */
-          .message-container.ai ol {
-              padding-inline-start: 2.5rem; 
-          }
+        .message-container.ai th,
+        .message-container.ai td {
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            vertical-align: top;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        
+        .message-container.ai thead th {
+            font-size: 0.8rem;
+            font-weight: 600;
+            background-color: transparent;
+            border-bottom: 1.5px solid rgba(0, 0, 0, 0.12);
+        }
 
-          .message-container.ai ul {
-              padding-inline-start: 1.5rem;
-          }
+        body.dark-theme .message-container.ai thead th {
+            border-bottom-color: rgba(255, 255, 255, 0.18);
+        }
 
-          .message-container.ai .table-wrapper th,
-          .message-container.ai .table-wrapper td,
-          .message-container.ai pre {
-              font-size: 0.825rem;
-          }
-      }
-      /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
+        .message-container.ai tbody td {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 1;
+        }
+
+        .message-container.ai tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .message-container.ai tbody tr:nth-of-type(even) {
+            background-color: transparent;
+        }
+        /* --- END: SLEEK & MINIMALIST TABLE STYLES --- */
+
+      /* --- END: FLAWLESS TYPOGRAPHY SYSTEM --- */
     </style>
 </head>
 <body>
     <div id="app-container">
         <div id="sidebar-overlay"></div>
-        <div id="sidebar-drag-handle"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
                 <h2>Chat History</h2>
@@ -626,6 +704,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- Firebase and variable setup (unchanged) ---
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
                 authDomain: "ai-chatbot-b38da.firebaseapp.com",
@@ -670,33 +749,29 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+                // MODIFIED: Only autoscroll for user messages
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
                 return m;
             }
 
-            function finalizeMessageFormatting(container) {
-                const usedEmojis = new Set();
+            function styleSpecialElements(container) {
                 const emojiRegex = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26ff]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/;
-                
+
                 container.querySelectorAll('h1, h2, h3').forEach(heading => {
-                    if (heading.dataset.emojiApplied) return;
-                    const originalHtml = heading.innerHTML.trim();
-                    const match = originalHtml.match(emojiRegex);
+                    const trimmedText = heading.innerHTML.trim();
+                    const match = trimmedText.match(emojiRegex);
+                    
                     if (match) {
                         const emoji = match[0];
-                        const restOfHtml = originalHtml.substring(emoji.length).trim();
-                        if (!usedEmojis.has(emoji)) {
-                            usedEmojis.add(emoji);
-                            heading.innerHTML = `${emoji} ${restOfHtml}`;
-                        } else {
-                            heading.innerHTML = restOfHtml;
-                        }
+                        const restOfText = trimmedText.substring(emoji.length).trim();
+                        heading.innerHTML = `<span class="emoji">${emoji}</span> ${restOfText}`;
                     }
-                    heading.dataset.emojiApplied = 'true';
                 });
+            }
 
+            function attachFeaturesToAiMessage(container) {
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
@@ -705,12 +780,16 @@
                     wrapper.appendChild(btn); 
                 });
                 
-                container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
+                container.querySelectorAll('pre code').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
-                    const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
-                    table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'table-wrapper';
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
                 });
+
+                styleSpecialElements(container);
             }
 
             async function loadChat(chatId) {
@@ -730,10 +809,9 @@
                     if (msg.role === 'user') {
                         addMessageToUI('user', msg.text);
                     } else if (msg.role === 'model') {
-                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
-                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                        contentBlock.innerHTML = marked.parse(msg.text || "");
-                        finalizeMessageFormatting(contentBlock);
+                        const renderedHtml = marked.parse(msg.text || "");
+                        const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block">${renderedHtml}</div>`, true);
+                        attachFeaturesToAiMessage(aiMsgContainer);
                     }
                 });
                 
@@ -778,53 +856,63 @@
                 }
 
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
-                const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 let accumulatedResponseText = '';
+                let animationQueue = '';
                 let displayedText = '';
-                let streamFinished = false;
-                let typingInterval = null;
+                let isAnimating = false;
+                let isStreamFinished = false;
+                let animationFrameId = null;
+                const charsPerFrame = 2;
 
-                const renderTyping = () => {
-                    const typingSpeed = 15;
-                    if (displayedText.length < accumulatedResponseText.length) {
-                        const nextChunk = accumulatedResponseText.substring(displayedText.length, displayedText.length + typingSpeed);
-                        displayedText += nextChunk;
-                    }
-
-                    contentBlock.innerHTML = marked.parse(displayedText.trim());
-                    finalizeMessageFormatting(contentBlock);
-
-                    if (streamFinished && displayedText.length === accumulatedResponseText.length) {
-                        clearInterval(typingInterval);
-                        if (accumulatedResponseText.trim()) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                            saveChat();
+                const animateText = () => {
+                    if (animationQueue.length > 0) {
+                        const chunk = animationQueue.substring(0, charsPerFrame);
+                        animationQueue = animationQueue.substring(charsPerFrame);
+                        displayedText += chunk;
+                        
+                        const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                        if (contentBlock) {
+                            contentBlock.innerHTML = marked.parse(displayedText);
+                            attachFeaturesToAiMessage(aiMsgContainer);
                         }
                     }
+
+                    if (animationQueue.length === 0 && isStreamFinished) {
+                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                        saveChat();
+                        cancelAnimationFrame(animationFrameId);
+                        return;
+                    }
+                    
+                    animationFrameId = requestAnimationFrame(animateText);
                 };
-                
-                const fetchAndProcessStream = async () => {
-                    try {
-                        const response = await fetch('/api/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
-                        });
 
-                        if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
-                        
-                        contentBlock.innerHTML = '';
-                        typingInterval = setInterval(renderTyping, 20);
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
+                    });
 
-                        const reader = response.body.getReader();
-                        const decoder = new TextDecoder();
-                        let sseBuffer = '';
+                    if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
+                    
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let sseBuffer = '';
 
+                    const processStream = async () => {
                         while (true) {
                             const { value, done } = await reader.read();
-                            if (done) break;
-                            
+                            if (done) {
+                                isStreamFinished = true;
+                                if (!isAnimating) {
+                                    cancelAnimationFrame(animationFrameId);
+                                    localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                                    saveChat();
+                                }
+                                break;
+                            }
                             sseBuffer += decoder.decode(value, { stream: true });
                             const lines = sseBuffer.split('\n');
                             sseBuffer = lines.pop() || '';
@@ -837,21 +925,27 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
+                                            animationQueue += textPart;
+                                            if (!isAnimating) {
+                                                isAnimating = true;
+                                                const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                                                if(contentBlock) contentBlock.innerHTML = '';
+                                                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                                                animateText();
+                                            }
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
                         }
-                    } catch (error) {
-                        console.error("AI Streaming Error:", error);
-                        contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
-                        if(typingInterval) clearInterval(typingInterval);
-                    } finally {
-                        streamFinished = true;
-                    }
-                };
-                
-                fetchAndProcessStream();
+                    };
+                    await processStream();
+                } catch (error) {
+                    console.error("AI Streaming Error:", error);
+                    const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                    if(contentBlock) contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                    cancelAnimationFrame(animationFrameId);
+                }
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -940,50 +1034,7 @@
                     document.body.classList.add('is-mobile');
                     document.getElementById('menu-toggle').onclick = openSidebar;
                     document.getElementById('sidebar-close-btn').onclick = closeSidebar;
-                    
-                    // --- START: DEFINITIVE GESTURE HANDLING FIX ---
-                    const dragHandle = document.getElementById('sidebar-drag-handle');
-                    let startX = 0, currentTranslate = 0, isDragging = false;
-
-                    const dragStart = (e) => {
-                        isDragging = true;
-                        startX = e.touches[0].clientX;
-                        sidebar.classList.add('no-transition');
-                        currentTranslate = document.body.classList.contains('sidebar-open') ? 0 : -sidebar.offsetWidth;
-                    };
-
-                    const dragMove = (e) => {
-                        if (!isDragging) return;
-                        e.preventDefault();
-                        const deltaX = e.touches[0].clientX - startX;
-                        const newTranslate = currentTranslate + deltaX;
-                        const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
-                        sidebar.style.transform = `translateX(${s}px)`;
-                        sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
-                    };
-
-                    const dragEnd = () => {
-                        if (!isDragging) return;
-                        isDragging = false;
-                        sidebar.classList.remove('no-transition');
-                        const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
-                        if (t > -sidebar.offsetWidth / 2) {
-                            openSidebar();
-                        } else {
-                            closeSidebar();
-                        }
-                    };
-                    
-                    // Attach listeners ONLY to the dedicated drag zones.
-                    dragHandle.addEventListener('touchstart', dragStart, { passive: true });
-                    dragHandle.addEventListener('touchmove', dragMove, { passive: false });
-                    dragHandle.addEventListener('touchend', dragEnd);
-
-                    sidebarOverlay.addEventListener('touchstart', dragStart, { passive: true });
-                    sidebarOverlay.addEventListener('touchmove', dragMove, { passive: false });
-                    sidebarOverlay.addEventListener('touchend', dragEnd);
-                    // --- END: DEFINITIVE GESTURE HANDLING FIX ---
-
+                    sidebarOverlay.onclick = closeSidebar;
                 } else {
                     document.body.classList.add('is-desktop');
                     const pinBtn = document.getElementById('pin-sidebar-btn');
@@ -1020,6 +1071,13 @@
                     };
                 }
             }
+            
+            let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
+            const dragStart = (e) => { if (!document.body.classList.contains('is-mobile')) return; const t = e.type === 'touchstart' ? e.touches[0] : e; const isOpen = document.body.classList.contains('sidebar-open'); if (!isOpen && t.clientX > 50) return; isDragging = true; startX = t.clientX; startY = t.clientY; dragDirection = null; sidebar.classList.add('no-transition'); currentTranslate = isOpen ? 0 : -sidebar.offsetWidth; };
+            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
+            const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
+            document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
+            document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
             
             function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 12; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
             

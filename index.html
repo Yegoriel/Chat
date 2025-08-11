@@ -202,6 +202,8 @@
 
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
         
+        /* FIX: Removed ::before and ::after pseudo-elements to eliminate top/bottom fades. */
+
         #chat-messages {
             height: 100%;
             flex-grow: 1;
@@ -214,7 +216,8 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            padding: 1.5rem 0 1rem 0; /* Adjusted padding */
+            /* FIX: Adjusted padding for better spacing without the fades. */
+            padding: 2rem 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -402,18 +405,21 @@
         .message-container.ai .table-wrapper, .message-container.ai hr {
             margin: 0.75em 0;
         }
-
+        
+        /* FIX: Adjusted heading hierarchy for better prominence and consistency. */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 2em 0 1em 0;
+            margin: 1.5em 0 1em 0;
             line-height: 1.25;
-            font-weight: 700;
+            font-weight: 600;
         }
-        .message-container.ai h1 { font-size: 2.25rem; }
-        .message-container.ai h2 { font-size: 1.75rem; }
-        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
-        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
-        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .message-container.ai h1 { font-size: 1.875rem; }
+        .message-container.ai h2 { font-size: 1.5rem; }
+        .message-container.ai h3 { font-size: 1.25rem; }
+        .message-container.ai h4 { font-size: 1.1rem; }
+        .message-container.ai h5 { font-size: 1rem; }
+        .message-container.ai h6 { font-size: 1rem; opacity: 0.9; }
+        
+        /* FIX: Sleeker font-weight for strong tags. */
         .message-container.ai strong { font-weight: 600; }
 
         .message-container.ai ul,
@@ -473,8 +479,6 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            /* FIX: Allow both horizontal and vertical panning. Modern browsers can distinguish the user's intent,
-               allowing for horizontal swipe on the element and vertical swipe on the page without conflict. */
             touch-action: pan-x pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -677,15 +681,7 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-
-                if (sender === 'user') {
-                    // **FIXED**: When a user sends a message, this ensures it scrolls
-                    // smoothly to the TOP of the visible chat area.
-                    m.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    // For AI messages, we just want to ensure they are visible at the bottom.
-                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                }
+                // FIX: Removed auto-scroll from here to handle it in the send function.
                 return m;
             }
 
@@ -774,7 +770,10 @@
 
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
-                addMessageToUI('user', userMessage);
+                const userMessageEl = addMessageToUI('user', userMessage);
+                
+                // FIX: Scroll the user's new message to the top of the viewport.
+                userMessageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
@@ -808,7 +807,6 @@
                         displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
                         
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
-                        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'auto' });
                     }
                     
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
@@ -819,7 +817,7 @@
                             const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
                             if (modelResponseIndex > -1) {
                                 localChatHistory[modelResponseIndex].text = accumulatedResponseText;
-                            } else if(abortController) {
+                            } else if(abortController) { 
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                             }
                             saveChat();

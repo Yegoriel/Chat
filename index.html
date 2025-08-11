@@ -3,10 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Chat (fixed)</title>
+    <title>AI Chat</title>
    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
+// --- Swipe handling patch for vertical scroll in tables/code blocks ---
+let dragState = { active:false, startX:0, startY:0, lastX:0, lastY:0, startedOnScrollable:false, locked:false };
+function isInScrollableWrapper(el){
+  for(let cur=el; cur && cur!==document.body; cur=cur.parentElement){
+    if(cur.classList && (cur.classList.contains('table-wrapper') || cur.classList.contains('code-block-wrapper'))) return true;
+    const st = getComputedStyle(cur);
+    if(['auto','scroll'].includes(st.overflowY) || ['auto','scroll'].includes(st.overflowX)){
+      if(cur.scrollHeight > cur.clientHeight || cur.scrollWidth > cur.clientWidth) return true;
+    }
+  }
+  return false;
+}
+function touchStartHandler(e){
+  const t = e.touches ? e.touches[0] : e;
+  dragState.active = true;
+  dragState.startX = t.clientX; dragState.startY = t.clientY;
+  dragState.lastX = t.clientX; dragState.lastY = t.clientY;
+  dragState.startedOnScrollable = isInScrollableWrapper(e.target);
+  dragState.locked = false;
+}
+function touchMoveHandler(e){
+  if(!dragState.active) return;
+  const t = e.touches ? e.touches[0] : e;
+  const dx = t.clientX - dragState.startX;
+  const dy = t.clientY - dragState.startY;
+  if(!dragState.locked){
+    if(Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6){
+      dragState.locked = true;
+      if(dragState.startedOnScrollable){ dragState.active = false; return; }
+    } else if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 6){
+      dragState.locked = true;
+      const nearLeft = dragState.startX < 48;
+      if(document.body.classList.contains('sidebar-closed') && !nearLeft){
+        dragState.active = false; return;
+      }
+      e.preventDefault();
+    }
+  } else {
+    if(Math.abs(dx) > Math.abs(dy)) e.preventDefault();
+  }
+  dragState.lastX = t.clientX; dragState.lastY = t.clientY;
+}
+function touchEndHandler(e){ dragState.active = false; dragState.locked = false; }
+document.addEventListener('touchstart', touchStartHandler, {passive:true});
+document.addEventListener('touchmove', touchMoveHandler, {passive:false});
+document.addEventListener('touchend', touchEndHandler, {passive:true});
+// --- End swipe patch ---
+
+
+// --- Background generation persistence patch ---
+const STREAM_KEY='ai_stream_partial_v1';
+function savePartial(t){try{localStorage.setItem(STREAM_KEY,JSON.stringify({partialText:t,ts:Date.now()}));}catch(e){}}
+function restorePartial(){
+ try{let raw=localStorage.getItem(STREAM_KEY);if(!raw)return;
+ let meta=JSON.parse(raw);if(meta.partialText){
+   const aiDiv=document.createElement('div');aiDiv.className='msg ai';
+   const inner=document.createElement('div');inner.className='ai-content';inner.innerHTML=meta.partialText;
+   aiDiv.appendChild(inner);document.getElementById('messages').appendChild(aiDiv);
+ }}catch(e){}
+}
+restorePartial();
+// Patch your streaming function to call savePartial() each time chunk arrives
+// Example: inside your onmessage/chunk handler: savePartial(accumulatedText);
+
+</script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
@@ -72,9 +137,6 @@
             font-size: 1rem;
             letter-spacing: 0.01em;
             transition: background-color 0.3s, color 0.3s;
-            /* FIX: Prevent mobile browsers from auto-adjusting font size inconsistently */
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
         body.is-dragging #chat-messages { overflow-y: hidden; }
@@ -166,6 +228,12 @@
             pointer-events: none;
         }
 
+        .is-desktop #sidebar.is-collapsed #logout-btn {
+            flex-grow: 0;
+            width: 100%;
+            justify-content: center;
+        }
+
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
         .is-desktop #chat-area.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
         .is-desktop #sidebar.is-pinned #chat-area { margin-left: var(--sidebar-width); }
@@ -182,6 +250,20 @@
         .is-mobile.sidebar-open #sidebar { transform: translateX(0); }
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
+
+        #sidebar-drag-handle {
+            display: none;
+        }
+        .is-mobile #sidebar-drag-handle {
+            display: block;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            z-index: 998;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         #chat-content-wrapper {
             width: 100%;
@@ -216,7 +298,7 @@
             box-sizing: border-box;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            touch-action: pan-y; /* Keep vertical scrolling the default interaction */
+            touch-action: pan-y;
             scroll-behavior: smooth;
             padding: 50px 0 30vh 0;
         }
@@ -252,7 +334,6 @@
             grid-template-columns: 1fr;
             align-items: start;
             min-width: 0;
-            overflow: visible; /* allow markers to overflow if needed */
         }
         
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
@@ -375,37 +456,34 @@
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
         
-        /* FIX: Increased paragraph spacing for "vastness" */
         .message-container.ai p {
             margin: 1em 0;
         }
-
+        
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
             margin: 0.75em 0;
         }
 
-        /* FIX: New, more prominent heading hierarchy */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 2em 0 1em 0;
-            line-height: 1.25;
-            font-weight: 700;
+            margin: 1.8em 0 0.8em 0;
+            line-height: 1.3;
+            font-weight: 600;
         }
-        .message-container.ai h1 { font-size: 2.25rem; }
-        .message-container.ai h2 { font-size: 1.75rem; }
-        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
-        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
-        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
-        .message-container.ai strong { font-weight: 700; }
+        .message-container.ai h1 { font-size: 2.2rem; margin-top: 1.2em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4em;}
+        .message-container.ai h2 { font-size: 1.7rem; }
+        .message-container.ai h3 { font-size: 1.35rem; }
+        .message-container.ai h4 { font-size: 1.15rem; }
+        .message-container.ai h5 { font-size: 1rem; font-weight: 700; }
+        .message-container.ai h6 { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.05em; }
+        .message-container.ai strong { font-weight: 600; }
 
         /* === The New, Robust List System === */
         .message-container.ai ul,
         .message-container.ai ol {
             list-style-position: outside;
-            margin: 1em 0;
-            /* FIX: larger stable indent so multi-digit markers never clip */
-            padding-inline-start: 2.8rem; /* Modern property for indentation */
+            margin: 0.75em 0;
+            padding-inline-start: 2em; /* Modern property for indentation */
         }
         .message-container.ai li {
             margin: 0.5em 0;
@@ -459,9 +537,7 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            /* Allow both vertical and horizontal gestures — do not forcibly block vertical panning */
-            touch-action: auto;
-            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
         }
         .message-container.ai pre {
             background-color: var(--code-bg);
@@ -513,39 +589,40 @@
       
       /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
-          .message-container.ai .ai-content-block {
-              font-size: 1rem; /* FIX: Set a consistent base font size for mobile */
+          /* FIX: Use a highly specific selector to guarantee font size consistency */
+          .is-mobile .message-container .ai-content-block,
+          .is-mobile .message-container.welcome-message p {
+              font-size: 0.95rem !important;
           }
 
-          /* FIX: Responsive, prominent headings for mobile */
           .message-container.ai h1 { font-size: 1.8rem; }
           .message-container.ai h2 { font-size: 1.5rem; }
           .message-container.ai h3 { font-size: 1.25rem; }
-          .message-container.ai h4 { font-size: 1.15rem; }
+          .message-container.ai h4 { font-size: 1.1rem; }
 
           .message-container.ai ol {
-              /* A stable `rem` based indent that guarantees no number clipping */
-              padding-inline-start: 3rem; 
+              padding-inline-start: 2.2rem; 
           }
 
           .message-container.ai ul {
-              /* Consistent smaller indent for unordered lists */
               padding-inline-start: 1.5rem;
           }
 
           .message-container.ai .table-wrapper th,
           .message-container.ai .table-wrapper td,
           .message-container.ai pre {
-              /* FIX: Use a consistent, stable `rem` unit to ensure even font size */
-              font-size: 0.85rem;
+              font-size: 0.825rem;
           }
       }
       /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
-    </style>
+    .ai-content ol, .ai-content ul{padding-inline-start:3.4rem;}
+.ai-content ::marker{font-variant-numeric:tabular-nums;font-weight:600;}
+</style>
 </head>
 <body>
     <div id="app-container">
         <div id="sidebar-overlay"></div>
+        <div id="sidebar-drag-handle"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
                 <h2>Chat History</h2>
@@ -642,8 +719,6 @@
                 if (user) {
                     currentUser = user; document.body.classList.add('logged-in'); userAvatar.src = currentUser.photoURL || '';
                     attachChatHistoryListener(); startNewChat();
-                    // restore any ongoing stream from previous session (best-effort)
-                    restoreOngoingStream();
                 } else {
                     currentUser = null; if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
@@ -662,7 +737,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // Autoscroll for user's own message to ensure it's visible.
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
@@ -773,18 +847,10 @@
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
-                // --- START: STREAMING ENGINE USING A DEDICATED WORKER (keeps working while tab is inactive)
                 let accumulatedResponseText = '';
                 let displayedText = '';
                 let streamFinished = false;
                 let typingInterval = null;
-
-                const STREAM_STORAGE_KEY = `ai_stream_last_${currentUser.uid}`;
-
-                const saveStreamState = (meta) => {
-                    try { localStorage.setItem(STREAM_STORAGE_KEY, JSON.stringify(meta)); } catch (err) { /* ignore storage errors */ }
-                };
-                const clearStreamState = () => { try { localStorage.removeItem(STREAM_STORAGE_KEY); } catch (err) {} };
 
                 const renderTyping = () => {
                     const typingSpeed = 15;
@@ -795,77 +861,37 @@
 
                     contentBlock.innerHTML = marked.parse(displayedText.trim());
                     finalizeMessageFormatting(contentBlock);
-                    
+
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
                         clearInterval(typingInterval);
                         if (accumulatedResponseText.trim()) {
                             localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                             saveChat();
                         }
-                        clearStreamState();
-                    } else {
-                        // persist partial text periodically
-                        saveStreamState({ chatId: currentChatId, userMessage, accumulatedResponseText, finished: false, ts: Date.now() });
                     }
                 };
-
-                typingInterval = setInterval(renderTyping, 20);
-
-                // If worker support is available, use it. Worker keeps fetch alive while tab hidden.
-                const startWorkerStream = (payload) => {
-                    try {
-                        const workerScript = `self.onmessage = async function(e) { const { id, url, payload } = e.data; try { const response = await fetch(url, { method:'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }); if (!response.ok || !response.body) { self.postMessage({ id, type: 'error', error: 'Network error' }); return; } const reader = response.body.getReader(); const decoder = new TextDecoder(); let sseBuffer = ''; while (true) { const { value, done } = await reader.read(); if (done) break; sseBuffer += decoder.decode(value, { stream: true }); const lines = sseBuffer.split('\n'); sseBuffer = lines.pop() || ''; for (const line of lines) { if (line.trim().startsWith('data:')) { try { const jsonStr = line.substring(5).trim(); const parsed = JSON.parse(jsonStr); const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text; if (textPart) self.postMessage({ id, type:'chunk', chunk: textPart }); } catch (parseError) { } } } } if (sseBuffer.trim()) { const lines = sseBuffer.split('\n'); for (const line of lines) { if (line.trim().startsWith('data:')) { try { const jsonStr = line.substring(5).trim(); const parsed = JSON.parse(jsonStr); const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text; if (textPart) self.postMessage({ id, type:'chunk', chunk: textPart }); } catch (parseError) {} } } } self.postMessage({ id, type: 'done' }); } catch (error) { self.postMessage({ id, type:'error', error: String(error) }); } };`;
-
-                        const blob = new Blob([workerScript], { type: 'application/javascript' });
-                        const blobUrl = URL.createObjectURL(blob);
-                        const worker = new Worker(blobUrl);
-                        const streamId = 's_' + Math.random().toString(36).slice(2,9);
-
-                        worker.onmessage = (ev) => {
-                            const msg = ev.data;
-                            if (msg.type === 'chunk') {
-                                accumulatedResponseText += msg.chunk || '';
-                                // persist partial result for reload safety
-                                saveStreamState({ chatId: currentChatId, userMessage, accumulatedResponseText, finished: false, ts: Date.now() });
-                            } else if (msg.type === 'done') {
-                                streamFinished = true;
-                                saveStreamState({ chatId: currentChatId, userMessage, accumulatedResponseText, finished: true, ts: Date.now() });
-                                worker.terminate(); URL.revokeObjectURL(blobUrl);
-                            } else if (msg.type === 'error') {
-                                streamFinished = true;
-                                contentBlock.innerHTML = '<p>Sorry, an error occurred while getting a response.</p>';
-                                if (typingInterval) clearInterval(typingInterval);
-                                worker.terminate(); URL.revokeObjectURL(blobUrl);
-                                clearStreamState();
-                            }
-                        };
-
-                        worker.postMessage({ id: streamId, url: '/api/chat', payload });
-                        return worker;
-                    } catch (err) {
-                        console.warn('Worker creation failed, falling back to main-thread fetch', err);
-                        return null;
-                    }
-                };
-
-                // If worker isn't supported / fails, fallback to main-thread streaming (original approach)
-                const startFetchStreamFallback = async (payload) => {
+                
+                const fetchAndProcessStream = async () => {
                     try {
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
                         });
 
                         if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
                         
-                        let sseBuffer = '';
+                        contentBlock.innerHTML = '';
+                        typingInterval = setInterval(renderTyping, 20);
+
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
+                        let sseBuffer = '';
 
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) break;
+                            
                             sseBuffer += decoder.decode(value, { stream: true });
                             const lines = sseBuffer.split('\n');
                             sseBuffer = lines.pop() || '';
@@ -878,34 +904,21 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            saveStreamState({ chatId: currentChatId, userMessage, accumulatedResponseText, finished: false, ts: Date.now() });
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
                         }
-
-                        streamFinished = true;
-                        saveStreamState({ chatId: currentChatId, userMessage, accumulatedResponseText, finished: true, ts: Date.now() });
                     } catch (error) {
                         console.error("AI Streaming Error:", error);
                         contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                         if(typingInterval) clearInterval(typingInterval);
-                        clearStreamState();
+                    } finally {
+                        streamFinished = true;
                     }
                 };
-
-                const payload = { message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) };
-
-                // Save initial stream stub so UI can restore after refresh
-                saveStreamState({ chatId: currentChatId, userMessage, accumulatedResponseText: '', finished: false, ts: Date.now() });
-
-                const worker = startWorkerStream(payload);
-                if (!worker) {
-                    // fallback to main-thread fetch streaming
-                    startFetchStreamFallback(payload);
-                }
-                // --- END: STREAMING ENGINE ---
+                
+                fetchAndProcessStream();
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -994,7 +1007,54 @@
                     document.body.classList.add('is-mobile');
                     document.getElementById('menu-toggle').onclick = openSidebar;
                     document.getElementById('sidebar-close-btn').onclick = closeSidebar;
-                    sidebarOverlay.onclick = closeSidebar;
+                    
+                    // --- START: DEFINITIVE GESTURE HANDLING FIX ---
+                    const dragHandle = document.getElementById('sidebar-drag-handle');
+                    let startX = 0, currentTranslate = 0, isDragging = false;
+
+                    const dragStart = (e) => {
+                        isDragging = true;
+                        startX = e.touches[0].clientX;
+                        sidebar.classList.add('no-transition');
+                        // If sidebar is open, currentTranslate is 0. If closed, it's its negative width.
+                        currentTranslate = document.body.classList.contains('sidebar-open') ? 0 : -sidebar.offsetWidth;
+                        // Prevent the whole page from moving on iOS
+                        e.preventDefault();
+                    };
+
+                    const dragMove = (e) => {
+                        if (!isDragging) return;
+                        const deltaX = e.touches[0].clientX - startX;
+                        const newTranslate = currentTranslate + deltaX;
+                        // Constrain the drag to within the bounds of the sidebar
+                        const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
+                        sidebar.style.transform = `translateX(${s}px)`;
+                        sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
+                    };
+
+                    const dragEnd = (e) => {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        sidebar.classList.remove('no-transition');
+                        const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
+                        // Snap open or closed based on whether it's more than halfway
+                        if (t > -sidebar.offsetWidth / 2) {
+                            openSidebar();
+                        } else {
+                            closeSidebar();
+                        }
+                    };
+                    
+                    // Attach listeners to the dedicated handles ONLY
+                    dragHandle.addEventListener('touchstart', dragStart, { passive: false });
+                    dragHandle.addEventListener('touchmove', dragMove, { passive: false });
+                    dragHandle.addEventListener('touchend', dragEnd);
+
+                    sidebarOverlay.addEventListener('touchstart', dragStart, { passive: false });
+                    sidebarOverlay.addEventListener('touchmove', dragMove, { passive: false });
+                    sidebarOverlay.addEventListener('touchend', dragEnd);
+                    // --- END: DEFINITIVE GESTURE HANDLING FIX ---
+
                 } else {
                     document.body.classList.add('is-desktop');
                     const pinBtn = document.getElementById('pin-sidebar-btn');
@@ -1032,81 +1092,6 @@
                 }
             }
             
-            // Improved drag logic: allow sidebar horizontal drag to begin at the left edge (when closed)
-            // and allow closing swipe from anywhere; do NOT block vertical scrolling inside tables/code blocks.
-            let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null, initialScrollable = null;
-            
-            const dragStart = (e) => {
-                if (!document.body.classList.contains('is-mobile')) return;
-
-                const t = e.type === 'touchstart' ? e.touches[0] : e;
-                const isOpen = document.body.classList.contains('sidebar-open');
-
-                // Only allow starting the sidebar drag from the very edge of the screen when closed.
-                if (!isOpen && t.clientX > 48) return;
-
-                isDragging = true;
-                startX = t.clientX;
-                startY = t.clientY;
-                dragDirection = null;
-                sidebar.classList.add('no-transition');
-                currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
-
-                // Remember first scrollable ancestor (if any) to help decide whether to abort on vertical gestures.
-                initialScrollable = null;
-                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
-                    const canScrollY = el.scrollHeight > el.clientHeight;
-                    const canScrollX = el.scrollWidth > el.clientWidth;
-                    if (canScrollY || canScrollX) { initialScrollable = { el, canScrollY, canScrollX }; break; }
-                }
-            };
-
-            const dragMove = (e) => {
-                if (!isDragging) return;
-
-                const t = e.type === 'touchmove' ? e.touches[0] : e;
-                const deltaX = t.clientX - startX;
-                const deltaY = t.clientY - startY;
-
-                if (dragDirection === null) {
-                    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 6) {
-                        // vertical gesture: allow native scrolling if element can scroll vertically
-                        isDragging = false; sidebar.classList.remove('no-transition');
-                        return;
-                    } else if (Math.abs(deltaX) > 6) {
-                        dragDirection = 'horizontal';
-                    } else {
-                        return; // not enough movement yet
-                    }
-                }
-
-                if (dragDirection === 'horizontal') {
-                    e.preventDefault(); 
-                    document.body.classList.add('is-dragging');
-                    const newTranslate = currentTranslate + deltaX;
-                    const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
-                    sidebar.style.transform = `translateX(${s}px)`;
-                    sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
-                }
-            };
-
-            const dragEnd = () => {
-                if (!isDragging || dragDirection !== 'horizontal') {
-                    isDragging = false;
-                    dragDirection = null;
-                    return;
-                }
-                isDragging = false;
-                dragDirection = null;
-                sidebar.classList.remove('no-transition');
-                document.body.classList.remove('is-dragging');
-                const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
-                t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar();
-            };
-
-            document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
-            document.body.addEventListener('touchstart', dragStart, { passive: true }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
-            
             function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 12; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
             
             function initializeTheme() {
@@ -1119,34 +1104,6 @@
                     const isDark = document.body.classList.toggle('dark-theme');
                     localStorage.setItem('theme', isDark ? 'dark' : 'light');
                 });
-            }
-
-            // Restore ongoing stream if present (best-effort: restores text to UI; if stream unfinished we keep partial text saved)
-            function restoreOngoingStream() {
-                try {
-                    const key = `ai_stream_last_${currentUser?.uid}`;
-                    const raw = localStorage.getItem(key);
-                    if (!raw) return;
-                    const meta = JSON.parse(raw);
-                    if (!meta || !meta.accumulatedResponseText) return;
-
-                    // Add an AI container with restored content
-                    const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
-                    const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                    contentBlock.innerHTML = marked.parse(meta.accumulatedResponseText || '');
-                    finalizeMessageFormatting(contentBlock);
-
-                    // If stream was finished, commit to chat history
-                    if (meta.finished) {
-                        localChatHistory.push({ role: 'model', text: meta.accumulatedResponseText });
-                        saveChat();
-                        localStorage.removeItem(key);
-                    } else {
-                        // keep partial cached; when user sends next message we'll continue fresh streaming
-                    }
-                } catch (err) {
-                    console.warn('restoreOngoingStream failed', err);
-                }
             }
 
             initializeSidebar(); 

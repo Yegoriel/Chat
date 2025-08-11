@@ -17,8 +17,15 @@
             --space-md: 1rem;
             --space-lg: 1.25rem;
             --space-xl: 1.5rem;
+            --space-xxl: 2rem;
+            --space-xxxl: 3rem;
+
+            --font-size-body: 0.975rem;
+            --font-size-h1: 2rem;
+            --font-size-h2: 1.5rem;
+            --font-size-h3: 1.25rem;
+            --font-size-h4: 1.1rem;
             
-            /* Light Theme Colors */
             --background-color: #ffffff;
             --text-color: #202020;
             --primary-accent: #1a1a1a;
@@ -38,6 +45,8 @@
             --sidebar-collapsed-width: 64px;
             --chat-content-narrow-width: 42rem;
             --chat-content-expanded-width: 50rem;
+            /* FIX: Padding at the bottom of the chat list to clear the larger input bar */
+            --input-bar-clearance: 130px; 
         }
 
         body.dark-theme {
@@ -49,7 +58,7 @@
             --user-msg-bg: #3a3a3a;
             --ai-msg-bg: transparent;
             --code-bg: #3a3a3a;
-            --code-text-color: #abb2bf; /* Adjusted for atom-one-dark */
+            --code-text-color: #abb2bf;
             --scroll-btn-bg: #2c2c2c;
             --scroll-btn-color: #e0e0e0;
             --scroll-btn-hover-bg: #3a3a3a;
@@ -68,8 +77,8 @@
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
         }
-        body.is-dragging { user-select: none; -webkit-user-select: none; }
-        body.is-dragging #chat-messages { overflow-y: hidden; }
+        body.is-dragging, body.is-scrolling { user-select: none; -webkit-user-select: none; }
+        body.is-dragging #chat-messages, body.is-scrolling #chat-messages { overflow-y: hidden; }
         #app-container { display: flex; height: 100dvh; width: 100vw; position: relative; }
         
         #sidebar {
@@ -193,8 +202,8 @@
             max-width: var(--chat-content-expanded-width);
         }
 
+        /* FIX: Remove top gradient header */
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
-        #chat-messages-container::before { content: ''; position: absolute; left: 0; right: 0; height: 50px; z-index: 2; pointer-events: none; transition: background 0.3s; background: linear-gradient(to bottom, var(--background-color) 70%, transparent 100%); top: 0; }
         
         #chat-messages {
             height: 100%;
@@ -208,13 +217,14 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            padding: 50px 0 2rem 0;
+            padding: 2rem 0 var(--input-bar-clearance) 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
             border-radius: 18px;
             word-wrap: break-word;
+            contain: layout style;
         }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
@@ -247,15 +257,14 @@
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: var(--background-color); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s, color 0.3s; }
         
-        /* --- START: ALWAYS-VISIBLE INPUT AREA --- */
+        /* FIX: Redesigned floating input area */
         #chat-input-area {
-            padding: 0 0 1rem 0; /* Removed top padding */
+            position: sticky;
+            bottom: 0;
+            padding-bottom: 1.5rem; /* More space at the very bottom */
             margin-top: auto;
-            background: linear-gradient(to top, var(--background-color) 50%, transparent 100%);
+            background: linear-gradient(to top, var(--background-color) 80%, transparent 100%);
             z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
         #chat-form { 
             display: flex; 
@@ -269,35 +278,33 @@
             border: none; 
             background-color: transparent; 
             border-radius: 0; 
-            padding: 0.6rem 1rem; 
-            font-size: 1rem; 
+            padding: 0.8rem 1.2rem; /* Larger padding */
+            font-size: 1.05rem; /* Larger font */
             font-family: var(--system-font); 
             resize: none; 
-            max-height: 120px; 
+            max-height: 150px; 
             overflow-y: auto; 
-            line-height: 1.4;
+            line-height: 1.5;
             color: var(--text-color); 
         }
         #chat-input:focus { outline: none; }
-        #send-btn { 
+        
+        #send-btn, #stop-btn {
             background: var(--primary-accent); 
             border: none; 
             border-radius: 50%; 
-            width: 48px; 
-            height: 48px; 
+            width: 52px; /* Larger button */
+            height: 52px;
             cursor: pointer; 
             color: var(--background-color); 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             flex-shrink: 0; 
-            transition: transform 0.1s, background-color 0.3s, color 0.3s; 
+            transition: all 0.2s;
         }
-        #send-btn:active { transform: scale(0.95); }
-        #send-btn[disabled], #chat-input[disabled] { 
-            cursor: not-allowed; 
-        }
-        #send-btn[disabled] { background-color: #ccc; }
+        #send-btn:active, #stop-btn:active { transform: scale(0.95); }
+        #send-btn[disabled] { background-color: #ccc; cursor: not-allowed; }
         body.dark-theme #send-btn[disabled] { background-color: #555; }
 
         .input-wrapper {
@@ -306,43 +313,23 @@
             flex-grow: 1;
             border: 1px solid rgba(0, 0, 0, 0.1);
             background-color: var(--background-color);
-            border-radius: 28px;
-            padding: 8px 8px 8px 4px;
-            min-height: 48px;
+            border-radius: 30px; /* More rounded */
+            padding: 0 8px 0 4px;
+            min-height: 56px; /* Larger bar */
             box-sizing: border-box;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             transition: box-shadow 0.2s, border-color 0.2s, background-color 0.3s;
         }
-        body.dark-theme .input-wrapper {
-            border-color: var(--border-color);
-        }
+        body.dark-theme .input-wrapper { border-color: var(--border-color); }
         .input-wrapper:focus-within {
             border-color: rgba(0,0,0,0.2);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
         }
-        body.dark-theme .input-wrapper:focus-within {
-            border-color: #555;
-        }
-        #stop-btn {
-            display: none;
-            margin-bottom: 1rem; /* Space between button and input bar */
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--background-color);
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        #stop-btn:hover {
-            border-color: #aaa;
-            background-color: var(--sidebar-bg);
-        }
-        body.is-streaming #stop-btn {
-            display: block;
-        }
-        /* --- END: ALWAYS-VISIBLE INPUT AREA --- */
+        body.dark-theme .input-wrapper:focus-within { border-color: #555; }
+
+        #stop-btn { display: none; }
+        body.is-streaming #send-btn { display: none; }
+        body.is-streaming #stop-btn { display: flex; }
         
         .thinking-indicator { display: flex; gap: 4px; align-items: center; justify-content: center; height: 1.5rem; }
         .thinking-indicator span { width: 7px; height: 7px; background-color: var(--primary-accent); border-radius: 50%; animation: sleekWave 1.2s ease-in-out infinite; }
@@ -384,40 +371,37 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: PERFECTED TYPOGRAPHY SYSTEM --- */
+      /* --- START: REFINED TYPOGRAPHY SYSTEM --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
         }
         .message-container.ai .ai-content-block {
-            font-size: 1rem;
+            font-size: var(--font-size-body);
             line-height: 1.65;
             color: var(--text-color);
         }
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
         
-        .message-container.ai p {
-            margin: 1em 0;
-        }
+        .message-container.ai p { margin: 1em 0; }
 
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
-            margin: 1em 0;
+            margin: 0.75em 0;
         }
 
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
             margin: 1.75em 0 1em 0;
             line-height: 1.25;
-            font-weight: 700;
+            font-weight: 600;
         }
-        .message-container.ai h1 { font-size: 2rem; }
-        .message-container.ai h2 { font-size: 1.6rem; }
-        .message-container.ai h3 { font-size: 1.3rem; font-weight: 700; }
-        .message-container.ai h4 { font-size: 1.15rem; font-weight: 700; }
-        .message-container.ai h5 { font-size: 1.05rem; font-weight: 700; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 700; opacity: 0.9; }
-        
+        .message-container.ai h1 { font-size: var(--font-size-h1); }
+        .message-container.ai h2 { font-size: var(--font-size-h2); }
+        .message-container.ai h3 { font-size: var(--font-size-h3); }
+        .message-container.ai h4 { font-size: var(--font-size-h4); }
+        .message-container.ai h5 { font-size: 1rem; font-weight: 600; }
+        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
         .message-container.ai strong { font-weight: 600; }
 
         .message-container.ai ul,
@@ -526,15 +510,19 @@
         body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
         .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-      /* --- END: PERFECTED TYPOGRAPHY SYSTEM --- */
+      /* --- END: REFINED TYPOGRAPHY SYSTEM --- */
       
       @media (max-width: 768px) {
+          .message-container.ai .ai-content-block { font-size: 1rem; }
           .message-container.ai h1 { font-size: 1.8rem; }
-          .message-container.ai h2 { font-size: 1.5rem; }
-          .message-container.ai h3 { font-size: 1.25rem; }
-          .message-container.ai h4 { font-size: 1.15rem; }
+          .message-container.ai h2 { font-size: 1.4rem; }
+          .message-container.ai h3 { font-size: 1.2rem; }
+          .message-container.ai h4 { font-size: 1.1rem; }
           .message-container.ai ol { padding-inline-start: 2.2rem; }
           .message-container.ai ul { padding-inline-start: 1.5rem; }
+          .message-container.ai .table-wrapper th,
+          .message-container.ai .table-wrapper td,
+          .message-container.ai pre { font-size: 0.85rem; }
       }
     </style>
 </head>
@@ -585,12 +573,14 @@
                     <div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
                 </div>
                 <div id="chat-input-area">
-                    <button id="stop-btn">■ Stop generating</button>
                     <form id="chat-form">
                         <div class="input-wrapper">
                             <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
                             <button type="submit" id="send-btn" title="Send Message">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
+                            </button>
+                            <button type="button" id="stop-btn" title="Stop Generation">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6z"/></svg>
                             </button>
                         </div>
                     </form>
@@ -630,17 +620,20 @@
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtn = document.getElementById('stop-btn'), sendBtn = document.getElementById('send-btn');
 
             marked.setOptions({
-                highlight: (code, lang) => {
-                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-                    return hljs.highlight(code, { language }).value;
-                },
+                highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
                 langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
 
             auth.onAuthStateChanged(user => {
                 if (user) {
                     currentUser = user; document.body.classList.add('logged-in'); userAvatar.src = currentUser.photoURL || '';
-                    attachChatHistoryListener(); startNewChat();
+                    attachChatHistoryListener(); 
+                    const lastChatId = sessionStorage.getItem('lastChatId');
+                    if (lastChatId) {
+                        loadChat(lastChatId);
+                    } else {
+                        startNewChat();
+                    }
                 } else {
                     currentUser = null; if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
@@ -659,9 +652,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                if (sender === 'user') {
-                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                }
                 return m;
             }
 
@@ -682,19 +672,13 @@
                 });
             }
 
-            function terminateStream() {
-                if (currentStreamController) {
-                    currentStreamController.abort();
-                    currentStreamController = null;
-                }
-                setStreamingState(false);
-            }
-
             async function loadChat(chatId) {
-                terminateStream(); // FIX: Stop any active stream before loading a new chat
-                if (!currentUser || (currentChatId === chatId && chatMessages.children.length > 1)) return;
+                if (currentStreamController) currentStreamController.abort();
+
+                if (!currentUser || (currentChatId === chatId && !document.body.classList.contains('is-streaming'))) return;
                 if(document.body.classList.contains('is-mobile')) closeSidebar();
                 cancelAllRenames();
+                
                 const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
                 const snapshot = await chatRef.get();
                 if (!snapshot.exists()) { startNewChat(); return; }
@@ -715,8 +699,16 @@
                     }
                 });
                 
+                const pendingGen = sessionStorage.getItem(`pendingGen_${chatId}`);
+                if (pendingGen) {
+                    const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
+                    const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                    contentBlock.innerHTML = marked.parse(pendingGen);
+                    finalizeMessageFormatting(contentBlock);
+                    sessionStorage.removeItem(`pendingGen_${chatId}`);
+                }
+
                 requestAnimationFrame(() => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
                     chatMessages.classList.remove('is-loading-history');
                 });
                 updateActiveChatSelection(chatId);
@@ -736,20 +728,21 @@
             
             function setStreamingState(isStreaming) {
                 document.body.classList.toggle('is-streaming', isStreaming);
-                sendBtn.disabled = isStreaming;
                 chatInput.disabled = isStreaming;
             }
 
             async function handleSendMessage(e) {
                 e.preventDefault();
-                if (!currentUser || sendBtn.disabled) return;
+                if (document.body.classList.contains('is-streaming') || !currentUser) return;
                 const userMessage = chatInput.value.trim();
                 if (!userMessage) return;
 
                 setStreamingState(true);
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
-                addMessageToUI('user', userMessage);
+                const userMessageContainer = addMessageToUI('user', userMessage);
+                // FIX: Scroll user message into view
+                userMessageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
@@ -766,7 +759,7 @@
                     db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"></div>', true);
+                const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>`, true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
@@ -774,12 +767,22 @@
                 let renderIndex = 0;
                 let animationFrameId = null;
                 let streamFinished = false;
+                let firstTokenReceived = false;
 
                 const typewriterRenderLoop = () => {
+                    if (currentStreamController.signal.aborted && !streamFinished) {
+                        streamFinished = true;
+                    }
+                    
+                    // FIX: Pause rendering if user is actively scrolling on mobile
+                    if (document.body.classList.contains('is-scrolling')) {
+                        animationFrameId = requestAnimationFrame(typewriterRenderLoop);
+                        return;
+                    }
+
                     if (renderIndex < accumulatedResponseText.length) {
                         const isHidden = document.hidden;
-                        const catchUpChars = isHidden ? 1000 : 5;
-                        const charsToAdd = Math.min(catchUpChars, accumulatedResponseText.length - renderIndex);
+                        const charsToAdd = isHidden ? accumulatedResponseText.length - renderIndex : Math.min(5, accumulatedResponseText.length - renderIndex);
                         
                         renderIndex += charsToAdd;
                         const textToRender = accumulatedResponseText.substring(0, renderIndex);
@@ -792,15 +795,18 @@
                         finalizeMessageFormatting(contentBlock);
                         setStreamingState(false);
                         saveChat(accumulatedResponseText);
+                        sessionStorage.removeItem(`pendingGen_${currentChatId}`);
                         currentStreamController = null;
                         cancelAnimationFrame(animationFrameId);
-                    } else if (currentStreamController) { // Only continue if not aborted
+                    } else {
                         animationFrameId = requestAnimationFrame(typewriterRenderLoop);
                     }
                 };
                 
                 const fetchAndProcessStream = async () => {
                     try {
+                        animationFrameId = requestAnimationFrame(typewriterRenderLoop);
+
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -810,8 +816,6 @@
 
                         if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
                         
-                        animationFrameId = requestAnimationFrame(typewriterRenderLoop);
-
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
                         let sseBuffer = '';
@@ -826,12 +830,17 @@
 
                             for (const line of lines) {
                                 if (line.trim().startsWith('data:')) {
+                                    if (!firstTokenReceived) {
+                                        firstTokenReceived = true;
+                                        contentBlock.innerHTML = '';
+                                    }
                                     try {
                                         const jsonStr = line.substring(5).trim();
                                         const parsed = JSON.parse(jsonStr);
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
+                                            sessionStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
@@ -843,6 +852,7 @@
                             contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                         }
                     } finally {
+                        if (!firstTokenReceived) contentBlock.innerHTML = '';
                         streamFinished = true;
                     }
                 };
@@ -850,12 +860,16 @@
                 fetchAndProcessStream();
             }
             
-            stopBtn.addEventListener('click', terminateStream);
+            stopBtn.addEventListener('click', () => {
+                if (currentStreamController) {
+                    currentStreamController.abort();
+                }
+            });
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
             newChatItem.addEventListener('click', () => startNewChat());
             chatForm.addEventListener('submit', handleSendMessage);
-            chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = `${chatInput.scrollHeight}px`; });
+            chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = `${Math.min(chatInput.scrollHeight, 150)}px`; });
             chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.requestSubmit(); } });
             
             function attachChatHistoryListener() {
@@ -921,11 +935,16 @@
             function handleRenameChat(chatId, titleContainer) { if (!currentUser || !chatId || isRenaming) return; cancelAllRenames(); isRenaming = true; const originalTitle = titleContainer.textContent; titleContainer.innerHTML = ''; const input = document.createElement('input'); input.type = 'text'; input.className = 'rename-input'; input.value = originalTitle; input.dataset.originalTitle = originalTitle; const saveRename = () => { isRenaming = false; const newTitle = input.value.trim(); if (newTitle && newTitle !== originalTitle) { db.ref(`chats/${currentUser.uid}/${chatId}`).update({ title: newTitle }); } else { titleContainer.textContent = originalTitle; } input.removeEventListener('blur', saveRename); }; input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = originalTitle; input.blur(); } }); input.addEventListener('blur', saveRename); titleContainer.appendChild(input); input.select(); }
             
             function startNewChat() { 
-                terminateStream(); // FIX: Stop any active stream before starting a new chat
+                if (currentStreamController) currentStreamController.abort();
                 if(document.body.classList.contains('is-mobile') && document.body.classList.contains('sidebar-open')) closeSidebar();
                 localChatHistory = []; currentChatId = null; chatMessages.innerHTML = ''; chatInput.value = ''; chatInput.style.height = 'auto'; chatInput.focus(); updateActiveChatSelection(null); 
             }
-            function updateActiveChatSelection(activeId) { currentChatId = activeId; document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); newChatItem.classList.toggle('active', activeId === null); }
+            function updateActiveChatSelection(activeId) { 
+                currentChatId = activeId; 
+                sessionStorage.setItem('lastChatId', activeId || '');
+                document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); 
+                newChatItem.classList.toggle('active', activeId === null); 
+            }
             
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             const closeSidebar = () => { document.body.classList.remove('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
@@ -982,14 +1001,13 @@
 
             const dragStart = (e) => {
                 if (!document.body.classList.contains('is-mobile')) return;
-                if (e.target.closest('.code-block-wrapper, .table-wrapper')) return;
+                if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list')) return;
 
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
                 if (!isOpen && t.clientX > 60) return;
                 if (isOpen && t.clientX > sidebar.offsetWidth) return;
-                if (e.target.closest('#chat-history-list')) return;
 
                 isDragging = true;
                 startX = t.clientX;
@@ -1044,6 +1062,10 @@
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: true }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
             
+            // FIX: Add touch listeners to pause rendering during scroll
+            chatMessages.addEventListener('touchstart', () => document.body.classList.add('is-scrolling'), { passive: true });
+            chatMessages.addEventListener('touchend', () => document.body.classList.remove('is-scrolling'));
+
             function initializeScrollButtons() { const scrollUpBtn = document.getElementById('scroll-up-btn'); const scrollDownBtn = document.getElementById('scroll-down-btn'); let isScrolling = false; let scrollId; const scrollLoop = (direction) => { chatMessages.scrollTop += direction * 12; scrollId = requestAnimationFrame(() => scrollLoop(direction)); }; const startScroll = (direction) => { if (isScrolling) return; isScrolling = true; scrollLoop(direction); }; const stopScroll = () => { isScrolling = false; cancelAnimationFrame(scrollId); }; scrollUpBtn.addEventListener('mousedown', () => startScroll(-1)); scrollDownBtn.addEventListener('mousedown', () => startScroll(1)); scrollUpBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: 0, behavior: 'smooth' })); scrollDownBtn.addEventListener('dblclick', () => chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' })); document.body.addEventListener('mouseup', stopScroll); document.body.addEventListener('mouseleave', stopScroll); scrollUpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(-1); }, { passive: false }); scrollDownBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScroll(1); }, { passive: false }); document.body.addEventListener('touchend', (e) => { if(isScrolling) stopScroll(); }); }
             
             function initializeTheme() {

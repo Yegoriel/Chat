@@ -17,14 +17,6 @@
             --space-md: 1rem;
             --space-lg: 1.25rem;
             --space-xl: 1.5rem;
-            --space-xxl: 2rem;
-            --space-xxxl: 3rem;
-
-            /* Prominent Heading Hierarchy */
-            --font-size-body: 0.975rem;
-            --font-size-h1: 1.8rem;
-            --font-size-h2: 1.4rem;
-            --font-size-h3: 1.15rem;
             
             /* Light Theme Colors */
             --background-color: #ffffff;
@@ -41,12 +33,11 @@
             --scroll-btn-hover-bg: var(--sidebar-bg);
             --scrollbar-thumb-color: #ccc;
             --scrollbar-thumb-hover-color: #aaa;
-            --input-area-bg: rgba(255, 255, 255, 0.85);
 
             --sidebar-width: 256px;
             --sidebar-collapsed-width: 64px;
-            --chat-content-narrow-width: 42rem; /* ~65ch, ideal for reading */
-            --chat-content-expanded-width: 50rem; /* Wider when sidebar is collapsed */
+            --chat-content-narrow-width: 42rem;
+            --chat-content-expanded-width: 50rem;
         }
 
         body.dark-theme {
@@ -64,7 +55,6 @@
             --scroll-btn-hover-bg: #3a3a3a;
             --scrollbar-thumb-color: #555;
             --scrollbar-thumb-hover-color: #777;
-            --input-area-bg: rgba(44, 44, 44, 0.85);
         }
 
         html { scroll-behavior: smooth; }
@@ -218,7 +208,7 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            padding: 50px 0;
+            padding: 50px 0 2rem 0; /* Adjusted padding for visible input */
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -257,10 +247,7 @@
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: var(--background-color); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s, color 0.3s; }
         
-        /* --- START: MODERN INPUT AREA (NO FOOTER) --- */
         #chat-input-area {
-            position: sticky;
-            bottom: 0;
             padding: 1rem 0 1.5rem 0;
             margin-top: auto;
             background: linear-gradient(to top, var(--background-color) 50%, transparent 100%);
@@ -330,7 +317,7 @@
             border-color: #555;
         }
         #stop-btn {
-            display: none; /* Hidden by default */
+            display: none;
             margin: 0 auto 1rem;
             padding: 0.5rem 1rem;
             font-size: 0.9rem;
@@ -351,7 +338,6 @@
         body.is-streaming #chat-form {
             display: none;
         }
-        /* --- END: MODERN INPUT AREA --- */
         
         .thinking-indicator { display: flex; gap: 4px; align-items: center; justify-content: center; height: 1.5rem; }
         .thinking-indicator span { width: 7px; height: 7px; background-color: var(--primary-accent); border-radius: 50%; animation: sleekWave 1.2s ease-in-out infinite; }
@@ -393,13 +379,13 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: RE-ENGINEERED TYPOGRAPHY SYSTEM (ChatGPT-Aligned) --- */
+      /* --- START: PERFECTED TYPOGRAPHY SYSTEM --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
         }
         .message-container.ai .ai-content-block {
-            font-size: var(--font-size-body);
+            font-size: 1rem;
             line-height: 1.65;
             color: var(--text-color);
         }
@@ -412,21 +398,24 @@
 
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
-            margin: 0.75em 0;
+            margin: 1em 0;
         }
 
+        /* FIX: Prominent, consistent heading hierarchy */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 2em 0 1em 0;
+            margin: 1.75em 0 1em 0;
             line-height: 1.25;
             font-weight: 700;
         }
-        .message-container.ai h1 { font-size: 2.25rem; }
-        .message-container.ai h2 { font-size: 1.75rem; }
-        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
-        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
-        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
-        .message-container.ai strong { font-weight: 700; }
+        .message-container.ai h1 { font-size: 2rem; }
+        .message-container.ai h2 { font-size: 1.6rem; }
+        .message-container.ai h3 { font-size: 1.3rem; font-weight: 700; }
+        .message-container.ai h4 { font-size: 1.15rem; font-weight: 700; }
+        .message-container.ai h5 { font-size: 1.05rem; font-weight: 700; }
+        .message-container.ai h6 { font-size: 1rem; font-weight: 700; opacity: 0.9; }
+        
+        /* FIX: Sleek, less aggressive bold text */
+        .message-container.ai strong { font-weight: 600; }
 
         .message-container.ai ul,
         .message-container.ai ol {
@@ -485,7 +474,8 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            touch-action: pan-y;
+            /* FIX: Allow browser to handle touch gestures intelligently */
+            touch-action: auto; 
             -webkit-overflow-scrolling: touch;
         }
         .message-container.ai pre {
@@ -534,24 +524,16 @@
         body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
         .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-      /* --- END: RE-ENGINEERED TYPOGRAPHY SYSTEM --- */
+      /* --- END: PERFECTED TYPOGRAPHY SYSTEM --- */
       
-      /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
-          .message-container.ai .ai-content-block {
-              font-size: 1rem;
-          }
           .message-container.ai h1 { font-size: 1.8rem; }
           .message-container.ai h2 { font-size: 1.5rem; }
           .message-container.ai h3 { font-size: 1.25rem; }
           .message-container.ai h4 { font-size: 1.15rem; }
           .message-container.ai ol { padding-inline-start: 2.2rem; }
           .message-container.ai ul { padding-inline-start: 1.5rem; }
-          .message-container.ai .table-wrapper th,
-          .message-container.ai .table-wrapper td,
-          .message-container.ai pre { font-size: 0.85rem; }
       }
-      /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
     </style>
 </head>
 <body>
@@ -646,7 +628,10 @@
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtn = document.getElementById('stop-btn'), sendBtn = document.getElementById('send-btn');
 
             marked.setOptions({
-                highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
+                highlight: (code, lang) => {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                },
                 langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
 
@@ -672,7 +657,8 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                if (sender === 'user' || isHtml) {
+                // Only autoscroll for user's own message
+                if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
                 return m;
@@ -773,7 +759,6 @@
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"></div>', true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
-                // --- START: ADVANCED CHATGPT-STYLE STREAMING ENGINE ---
                 currentStreamController = new AbortController();
                 let accumulatedResponseText = '';
                 let renderIndex = 0;
@@ -783,7 +768,6 @@
                 const typewriterRenderLoop = () => {
                     if (renderIndex < accumulatedResponseText.length) {
                         const isHidden = document.hidden;
-                        // If tab is hidden or we are far behind, jump ahead to catch up quickly
                         const catchUpChars = isHidden ? 1000 : 5;
                         const charsToAdd = Math.min(catchUpChars, accumulatedResponseText.length - renderIndex);
                         
@@ -791,13 +775,9 @@
                         const textToRender = accumulatedResponseText.substring(0, renderIndex);
                         contentBlock.innerHTML = marked.parse(textToRender);
                         finalizeMessageFormatting(contentBlock);
-                        
-                        // Keep scrolling down as text is generated
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
                     }
                     
                     if (streamFinished && renderIndex >= accumulatedResponseText.length) {
-                        // Final render to ensure everything is perfect
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText);
                         finalizeMessageFormatting(contentBlock);
                         setStreamingState(false);
@@ -858,7 +838,6 @@
                 };
                 
                 fetchAndProcessStream();
-                // --- END: ADVANCED CHATGPT-STYLE STREAMING ENGINE ---
             }
             
             stopBtn.addEventListener('click', () => {
@@ -998,11 +977,11 @@
 
             const dragStart = (e) => {
                 if (!document.body.classList.contains('is-mobile')) return;
+                if (e.target.closest('.code-block-wrapper, .table-wrapper')) return;
 
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
-                // Increased drag area on the left edge
                 if (!isOpen && t.clientX > 60) return;
                 if (isOpen && t.clientX > sidebar.offsetWidth) return;
                 if (e.target.closest('#chat-history-list')) return;

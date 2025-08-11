@@ -201,8 +201,6 @@
         }
 
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
-        
-        /* FIX: Removed ::before and ::after pseudo-elements to eliminate top/bottom fades. */
 
         #chat-messages {
             height: 100%;
@@ -216,7 +214,6 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            /* FIX: Adjusted padding for better spacing without the fades. */
             padding: 2rem 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
@@ -256,7 +253,11 @@
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: var(--background-color); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s, color 0.3s; }
         
-        #chat-input-container { background-color: var(--background-color); border-top: none; padding-top: 1rem; padding-bottom: 1.5rem; transition: background-color 0.3s; }
+        /* FIX: Removed background from footer container to make it transparent. */
+        #chat-input-container {
+            padding-top: 1rem;
+            padding-bottom: 1.5rem;
+        }
         #chat-form { 
             display: flex; 
             align-items: flex-end; 
@@ -406,7 +407,6 @@
             margin: 0.75em 0;
         }
         
-        /* FIX: Adjusted heading hierarchy for better prominence and consistency. */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
             margin: 1.5em 0 1em 0;
             line-height: 1.25;
@@ -419,7 +419,6 @@
         .message-container.ai h5 { font-size: 1rem; }
         .message-container.ai h6 { font-size: 1rem; opacity: 0.9; }
         
-        /* FIX: Sleeker font-weight for strong tags. */
         .message-container.ai strong { font-weight: 600; }
 
         .message-container.ai ul,
@@ -681,7 +680,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // FIX: Removed auto-scroll from here to handle it in the send function.
                 return m;
             }
 
@@ -772,8 +770,10 @@
                 chatInput.style.height = 'auto';
                 const userMessageEl = addMessageToUI('user', userMessage);
                 
-                // FIX: Scroll the user's new message to the top of the viewport.
-                userMessageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // FIX: Reliably scroll the user's new message to the top of the viewport.
+                requestAnimationFrame(() => {
+                    userMessageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
 
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();

@@ -201,9 +201,10 @@
         }
 
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
-        #chat-messages-container::before, #chat-messages-container::after { content: ''; position: absolute; left: 0; right: 0; height: 50px; z-index: 2; pointer-events: none; transition: background 0.3s; }
-        #chat-messages-container::before { top: 0; background: linear-gradient(to bottom, var(--background-color) 70%, transparent 100%); }
-        #chat-messages-container::after { bottom: 0; background: linear-gradient(to top, var(--background-color) 70%, transparent 100%); }
+        /* FIX: Removed the top and bottom fade-out effect for a cleaner look. */
+        #chat-messages-container::before, #chat-messages-container::after { 
+            display: none;
+        }
         
         #chat-messages {
             height: 100%;
@@ -217,8 +218,8 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            /* FIX: Increased bottom padding ensures the last message is comfortably visible above the input area. */
-            padding: 50px 0 30vh 0;
+            /* FIX: Increased top padding to ensure user message has space when scrolled to the top. */
+            padding: 2rem 0 30px 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -237,13 +238,6 @@
             border-bottom-right-radius: 4px;
             max-width: 90%;
             transition: background-color 0.3s;
-            /* FIX: Ensure user message font is consistent with AI response font. */
-            font-size: var(--font-size-body);
-            line-height: 1.65;
-        }
-        /* Target the paragraph inside the user message for consistent spacing. */
-        .message-container.user p {
-             margin: 0;
         }
         .message-container.ai { 
             background-color: var(--ai-msg-bg); 
@@ -392,7 +386,7 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: RE-ENGINEERED TYPOGRAPHY SYSTEM (ChatGPT-Aligned) --- */
+      /* --- START: PROFESSIONAL & UNIFIED TYPOGRAPHY SYSTEM --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
@@ -414,18 +408,24 @@
             margin: 0.75em 0;
         }
 
+        /* FIX: New, single source of truth for a prominent and consistent header hierarchy. */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 2em 0 1em 0;
-            line-height: 1.25;
-            font-weight: 700;
+            margin: 1.75em 0 0.8em 0;
+            line-height: 1.3;
+            font-weight: 600; /* A sleeker, semi-bold weight */
+            text-decoration: none; /* Ensure no underlines */
         }
-        .message-container.ai h1 { font-size: 2.25rem; }
+        .message-container.ai h1 { font-size: 2rem; }
         .message-container.ai h2 { font-size: 1.75rem; }
-        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
-        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
-        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
-        .message-container.ai strong { font-weight: 700; }
+        .message-container.ai h3 { font-size: 1.5rem; }
+        .message-container.ai h4 { font-size: 1.25rem; }
+        .message-container.ai h5 { font-size: 1.1rem; }
+        .message-container.ai h6 { font-size: 1rem; opacity: 0.9; }
+        
+        /* FIX: Sleek, modern styling for strong/bold text. */
+        .message-container.ai strong { 
+            font-weight: 600; 
+        }
 
         .message-container.ai ul,
         .message-container.ai ol {
@@ -533,17 +533,13 @@
         body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
         .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-      /* --- END: RE-ENGINEERED TYPOGRAPHY SYSTEM --- */
+      /* --- END: PROFESSIONAL & UNIFIED TYPOGRAPHY SYSTEM --- */
       
-      /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
           .message-container.ai .ai-content-block {
               font-size: 1rem;
           }
-          .message-container.ai h1 { font-size: 1.8rem; }
-          .message-container.ai h2 { font-size: 1.5rem; }
-          .message-container.ai h3 { font-size: 1.25rem; }
-          .message-container.ai h4 { font-size: 1.15rem; }
+          /* FIX: Removed responsive header rules as the new system is scalable by design. */
           .message-container.ai ol {
               padding-inline-start: 2.2rem; 
           }
@@ -556,7 +552,6 @@
               font-size: 0.85rem;
           }
       }
-      /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
     </style>
 </head>
 <body>
@@ -653,7 +648,6 @@
             
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null, isRenaming = false, activeDropdown = null;
             let abortController = null;
-            let highlightTimer = null;
 
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtnContainer = document.getElementById('stop-btn-container'), stopGenerationBtn = document.getElementById('stop-generation-btn');
 
@@ -684,14 +678,37 @@
                 if (isHtml) {
                     m.innerHTML = content;
                 } else {
-                    // FIX: Ensure user message is wrapped in a <p> tag for consistent styling.
-                    m.innerHTML = `<p>${content}</p>`;
+                    m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+                // FIX: When a user sends a message, smoothly scroll it to the top of the view.
+                if (sender === 'user') {
+                    m.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
                 return m;
             }
 
             function finalizeMessageFormatting(container) {
+                const usedEmojis = new Set();
+                const emojiRegex = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26ff]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/;
+                
+                container.querySelectorAll('h1, h2, h3').forEach(heading => {
+                    if (heading.dataset.emojiApplied) return;
+                    const originalHtml = heading.innerHTML.trim();
+                    const match = originalHtml.match(emojiRegex);
+                    if (match) {
+                        const emoji = match[0];
+                        const restOfHtml = originalHtml.substring(emoji.length).trim();
+                        if (!usedEmojis.has(emoji)) {
+                            usedEmojis.add(emoji);
+                            heading.innerHTML = `${emoji} ${restOfHtml}`;
+                        } else {
+                            heading.innerHTML = restOfHtml;
+                        }
+                    }
+                    heading.dataset.emojiApplied = 'true';
+                });
+
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
@@ -706,14 +723,6 @@
                     const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
                     table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
                 });
-            }
-
-            function requestHighlight(container) {
-                if (highlightTimer) return; // Don't set a new timer if one is already pending
-                highlightTimer = setTimeout(() => {
-                    finalizeMessageFormatting(container);
-                    highlightTimer = null; // Reset timer
-                }, 200); // Throttle highlighting to prevent flickering.
             }
 
             async function loadChat(chatId) {
@@ -749,9 +758,8 @@
 
             function saveChat() {
                 if (!currentUser || !currentChatId) return;
-                const historyToSave = localChatHistory.filter(m => m.text !== null);
                 db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
-                    messages: historyToSave,
+                    messages: localChatHistory,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
             }
@@ -765,11 +773,7 @@
 
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
-
                 addMessageToUI('user', userMessage);
-                requestAnimationFrame(() => {
-                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                });
 
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
@@ -792,43 +796,52 @@
                 
                 abortController = new AbortController();
                 let accumulatedResponseText = '';
+                let displayedText = '';
                 let streamFinished = false;
                 let animationFrameId = null;
 
-                const renderStream = () => {
-                    contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                    requestHighlight(contentBlock); // Request a throttled highlight pass.
-
-                    if (streamFinished) {
-                        if (highlightTimer) clearTimeout(highlightTimer);
-                        contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                const renderTypingEffect = () => {
+                    if (displayedText.length < accumulatedResponseText.length) {
+                        const charsBehind = accumulatedResponseText.length - displayedText.length;
+                        const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
+                        displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
+                        
+                        contentBlock.innerHTML = marked.parse(displayedText.trim());
+                    }
+                    
+                    if (streamFinished && displayedText.length === accumulatedResponseText.length) {
+                        contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
                         finalizeMessageFormatting(contentBlock);
                         
-                        const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
-                        if (modelResponseIndex > -1) {
-                            localChatHistory[modelResponseIndex].text = accumulatedResponseText;
-                        } else if(abortController) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                        if (accumulatedResponseText.trim()) {
+                            const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
+                            if (modelResponseIndex > -1) {
+                                localChatHistory[modelResponseIndex].text = accumulatedResponseText;
+                            } else if(abortController) {
+                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            }
+                            saveChat();
                         }
-                        saveChat();
 
                         stopBtnContainer.style.display = 'none';
                         abortController = null;
                         cancelAnimationFrame(animationFrameId);
                     } else {
-                        animationFrameId = requestAnimationFrame(renderStream);
+                        animationFrameId = requestAnimationFrame(renderTypingEffect);
                     }
                 };
                 
                 const stopListener = () => {
-                    if (abortController) abortController.abort();
+                    if (abortController) {
+                        abortController.abort();
+                    }
                 };
                 stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
                 const fetchAndProcessStream = async () => {
                     localChatHistory.push({ role: 'model', text: null });
                     try {
-                        animationFrameId = requestAnimationFrame(renderStream);
+                        animationFrameId = requestAnimationFrame(renderTypingEffect);
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -859,7 +872,7 @@
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
                                         }
-                                    } catch (parseError) { /* Ignore */ }
+                                    } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
                         }

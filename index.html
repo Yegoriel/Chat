@@ -21,6 +21,9 @@
 
             /* Prominent Heading Hierarchy */
             --font-size-body: 0.975rem;
+            --font-size-h1: 1.8rem;
+            --font-size-h2: 1.4rem;
+            --font-size-h3: 1.15rem;
             
             /* Light Theme Colors */
             --background-color: #ffffff;
@@ -198,10 +201,9 @@
         }
 
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
-        /* FIX: Confirmed removal of top and bottom fade effects. */
-        #chat-messages-container::before, #chat-messages-container::after { 
-            display: none;
-        }
+        #chat-messages-container::before, #chat-messages-container::after { content: ''; position: absolute; left: 0; right: 0; height: 50px; z-index: 2; pointer-events: none; transition: background 0.3s; }
+        #chat-messages-container::before { top: 0; background: linear-gradient(to bottom, var(--background-color) 70%, transparent 100%); }
+        #chat-messages-container::after { bottom: 0; background: linear-gradient(to top, var(--background-color) 70%, transparent 100%); }
         
         #chat-messages {
             height: 100%;
@@ -215,7 +217,7 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            padding: 2rem 0 30px 0;
+            padding: 50px 0 30px 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -382,7 +384,7 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: PROFESSIONAL & UNIFIED TYPOGRAPHY SYSTEM --- */
+      /* --- START: RE-ENGINEERED TYPOGRAPHY SYSTEM (ChatGPT-Aligned) --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
@@ -405,21 +407,17 @@
         }
 
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 1.75em 0 0.8em 0;
-            line-height: 1.3;
-            font-weight: 600;
-            text-decoration: none;
+            margin: 2em 0 1em 0;
+            line-height: 1.25;
+            font-weight: 700;
         }
-        .message-container.ai h1 { font-size: 2rem; }
+        .message-container.ai h1 { font-size: 2.25rem; }
         .message-container.ai h2 { font-size: 1.75rem; }
-        .message-container.ai h3 { font-size: 1.5rem; }
-        .message-container.ai h4 { font-size: 1.25rem; }
-        .message-container.ai h5 { font-size: 1.1rem; }
-        .message-container.ai h6 { font-size: 1rem; opacity: 0.9; }
-        
-        .message-container.ai strong { 
-            font-weight: 600; 
-        }
+        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
+        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
+        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
+        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .message-container.ai strong { font-weight: 700; }
 
         .message-container.ai ul,
         .message-container.ai ol {
@@ -478,6 +476,8 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
+            /* FIX: Allow both horizontal and vertical panning. Modern browsers can distinguish the user's intent,
+               allowing for horizontal swipe on the element and vertical swipe on the page without conflict. */
             touch-action: pan-x pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -527,12 +527,17 @@
         body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
         .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-      /* --- END: PROFESSIONAL & UNIFIED TYPOGRAPHY SYSTEM --- */
+      /* --- END: RE-ENGINEERED TYPOGRAPHY SYSTEM --- */
       
+      /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
           .message-container.ai .ai-content-block {
               font-size: 1rem;
           }
+          .message-container.ai h1 { font-size: 1.8rem; }
+          .message-container.ai h2 { font-size: 1.5rem; }
+          .message-container.ai h3 { font-size: 1.25rem; }
+          .message-container.ai h4 { font-size: 1.15rem; }
           .message-container.ai ol {
               padding-inline-start: 2.2rem; 
           }
@@ -545,6 +550,7 @@
               font-size: 0.85rem;
           }
       }
+      /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
     </style>
 </head>
 <body>
@@ -674,9 +680,9 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // FIX: When a user sends a message, smoothly scroll it to the top of the view.
                 if (sender === 'user') {
-                    m.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Autoscroll only for user's own message to ensure it's visible.
+                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
                 return m;
             }
@@ -710,6 +716,7 @@
                     wrapper.appendChild(btn); 
                 });
                 
+                // This is the key part for syntax highlighting. It targets all `<code>` blocks that haven't been highlighted yet.
                 container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
@@ -799,18 +806,22 @@
                         const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
                         displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
                         
+                        // Render the raw markdown. This is fast and shows plain text in code blocks as it streams.
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
                     }
                     
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
+                        // This is the final, single render pass.
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
+                        // Now, apply all final formatting, including syntax highlighting, in one go for stability.
                         finalizeMessageFormatting(contentBlock);
                         
                         if (accumulatedResponseText.trim()) {
+                            // Find the last message in the history (which is the user's prompt) and add the final AI response after it.
                             const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
                             if (modelResponseIndex > -1) {
                                 localChatHistory[modelResponseIndex].text = accumulatedResponseText;
-                            } else if(abortController) {
+                            } else if(abortController) { // Only add if it wasn't a pre-existing message
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                             }
                             saveChat();
@@ -832,13 +843,14 @@
                 stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
                 const fetchAndProcessStream = async () => {
+                    // Add a placeholder for the model's response. This is important for saving partial responses.
                     localChatHistory.push({ role: 'model', text: null });
                     try {
                         animationFrameId = requestAnimationFrame(renderTypingEffect);
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }),
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }), // Exclude the current prompt and null placeholder
                             signal: abortController.signal
                         });
 

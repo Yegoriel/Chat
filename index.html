@@ -72,6 +72,9 @@
             font-size: 1rem;
             letter-spacing: 0.01em;
             transition: background-color 0.3s, color 0.3s;
+            /* FIX: Prevent mobile browsers from auto-adjusting font size inconsistently */
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
         body.is-dragging #chat-messages { overflow-y: hidden; }
@@ -358,7 +361,7 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: FINAL PRODUCTION-GRADE TYPOGRAPHY SYSTEM --- */
+      /* --- START: RE-ENGINEERED TYPOGRAPHY SYSTEM (ChatGPT-Aligned) --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
@@ -371,48 +374,54 @@
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
         
-        .message-container.ai p, .message-container.ai ul, .message-container.ai ol,
+        /* FIX: Increased paragraph spacing for "vastness" */
+        .message-container.ai p {
+            margin: 1em 0;
+        }
+
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
             margin: 0.75em 0;
         }
-        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3 {
-            margin: 1.5em 0 0.7em 0;
-            line-height: 1.3;
-        }
-        .message-container.ai h1 { font-size: var(--font-size-h1); font-weight: 600; }
-        .message-container.ai h2 { font-size: var(--font-size-h2); font-weight: 600; }
-        .message-container.ai h3 { font-size: var(--font-size-h3); font-weight: 600; }
-        .message-container.ai strong { font-weight: 600; }
-        .message-container.ai p + ul, .message-container.ai p + ol {
-            margin-top: 0.25em; /* Compact spacing after a paragraph */
-        }
 
-        /* === ROBUST NATIVE LIST STYLING (THE DEFINITIVE VERSION) === */
+        /* FIX: New, more prominent heading hierarchy */
+        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
+            margin: 2em 0 1em 0;
+            line-height: 1.25;
+            font-weight: 700;
+        }
+        .message-container.ai h1 { font-size: 2.25rem; }
+        .message-container.ai h2 { font-size: 1.75rem; }
+        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
+        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
+        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
+        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .message-container.ai strong { font-weight: 700; }
+
+        /* === The New, Robust List System === */
         .message-container.ai ul,
         .message-container.ai ol {
-            list-style-position: outside; /* KEY: Ensures markers don't overlap text content */
-            padding-left: 2em; /* KEY: Creates a safe "gutter" for markers of any length */
+            /* FIX: Use 'inside' to prevent number clipping on all screen sizes */
+            list-style-position: inside; 
+            margin: 1em 0;
+            padding-inline-start: 1em; /* Adjust padding for 'inside' position */
         }
         .message-container.ai li {
-            margin: 0.4em 0;
-            padding-left: 0.4em; /* A small gap between the marker and the text */
+            margin: 0.5em 0;
+            padding-left: 0; /* Padding is now on the list container */
         }
         .message-container.ai li p { margin: 0; }
         .message-container.ai li > *:first-child { margin-top: 0; }
         .message-container.ai li > *:last-child { margin-bottom: 0; }
         
-        /* Nested lists get their own indentation relative to the parent text */
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin: 0.5em 0;
-            padding-left: 1.5em; /* Indent nested lists further */
+            padding-inline-start: 1.5em; /* Smaller indent for nested lists */
         }
 
-        /* Define list marker styles */
         .message-container.ai ul { list-style-type: disc; }
         .message-container.ai ol { list-style-type: decimal; }
-        /* Keep all nested ULs as standard discs for a clean look */
         .message-container.ai ul ul { list-style-type: disc; } 
         .message-container.ai ol ol { list-style-type: lower-alpha; }
         .message-container.ai ol ol ol { list-style-type: lower-roman; }
@@ -441,14 +450,15 @@
         }
         .message-container.ai hr {
             border: 0;
-            height: 1px;
-            background-color: var(--border-color);
+            height: 0;
+            border-top: 1px solid var(--border-color);
         }
         .code-block-wrapper,
         .table-wrapper {
             max-width: 100%;
             overflow-x: auto;
             position: relative;
+            touch-action: pan-x; /* Fix mobile horizontal scroll bug */
         }
         .message-container.ai pre {
             background-color: var(--code-bg);
@@ -458,7 +468,7 @@
             border: 1px solid var(--border-color);
             overflow-x: auto;
             font-family: 'SF Mono', 'Fira Code', 'monospace';
-            font-size: 0.85rem; /* Slightly smaller for code blocks */
+            font-size: 0.85rem;
             line-height: 1.6;
             margin: 0;
         }
@@ -476,17 +486,17 @@
         .table-wrapper table { width: 100%; border-collapse: collapse; }
         .message-container.ai th,
         .message-container.ai td { 
-            padding: 0.4rem 0.6rem; /* Compact padding */
+            padding: 0.4rem 0.6rem;
             text-align: left; 
             border-bottom: 1px solid var(--border-color);
-            font-size: 0.9em; /* Smaller, more compact font */
+            font-size: 0.9em;
         }
         .message-container.ai thead th { 
-            font-weight: 600; /* Consistent bolding */
+            font-weight: 600; 
             background-color: transparent; 
         }
         .message-container.ai tbody td {
-            font-weight: 400; /* Ensure body text is not bold */
+            font-weight: 400; 
         }
         .message-container.ai tbody tr:last-child td { border-bottom: none; }
         
@@ -496,7 +506,31 @@
         body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
         .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-      /* --- END: FINAL TYPOGRAPHY SYSTEM --- */
+      /* --- END: RE-ENGINEERED TYPOGRAPHY SYSTEM --- */
+      
+      /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
+      @media (max-width: 768px) {
+          .message-container.ai .ai-content-block {
+              font-size: 1rem; /* FIX: Set a consistent base font size for mobile */
+          }
+
+          /* FIX: Responsive, prominent headings for mobile */
+          .message-container.ai h1 { font-size: 1.8rem; }
+          .message-container.ai h2 { font-size: 1.5rem; }
+          .message-container.ai h3 { font-size: 1.25rem; }
+          .message-container.ai h4 { font-size: 1.15rem; }
+
+          /* No specific 'ol' or 'ul' padding override needed here anymore,
+             the base 'inside' position and padding handles it universally. */
+
+          .message-container.ai .table-wrapper th,
+          .message-container.ai .table-wrapper td,
+          .message-container.ai pre {
+              /* FIX: Use a consistent, stable `rem` unit to ensure even font size */
+              font-size: 0.85rem;
+          }
+      }
+      /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
     </style>
 </head>
 <body>
@@ -616,6 +650,7 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+                // Autoscroll for user's own message to ensure it's visible.
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
@@ -726,28 +761,31 @@
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
+                // --- START: FINAL STREAMING ENGINE (NO CURSOR, NO AUTOSCROLL) ---
                 let accumulatedResponseText = '';
-                let animationQueue = '';
                 let displayedText = '';
-                let isStreamFinished = false;
-                let animationFrameId = null;
+                let streamFinished = false;
+                let typingInterval = null;
 
-                const renderAndAnimate = () => {
-                    if (animationQueue.length > 0) {
-                        displayedText += animationQueue;
-                        animationQueue = '';
-                        contentBlock.innerHTML = marked.parse(displayedText);
-                        finalizeMessageFormatting(contentBlock);
+                const renderTyping = () => {
+                    const typingSpeed = 15;
+                    if (displayedText.length < accumulatedResponseText.length) {
+                        const nextChunk = accumulatedResponseText.substring(displayedText.length, displayedText.length + typingSpeed);
+                        displayedText += nextChunk;
                     }
 
-                    if (isStreamFinished && animationQueue.length === 0) {
-                        cancelAnimationFrame(animationFrameId);
-                        return;
-                    }
+                    contentBlock.innerHTML = marked.parse(displayedText.trim());
+                    finalizeMessageFormatting(contentBlock);
                     
-                    animationFrameId = requestAnimationFrame(renderAndAnimate);
+                    if (streamFinished && displayedText.length === accumulatedResponseText.length) {
+                        clearInterval(typingInterval);
+                        if (accumulatedResponseText.trim()) {
+                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            saveChat();
+                        }
+                    }
                 };
-
+                
                 const fetchAndProcessStream = async () => {
                     try {
                         const response = await fetch('/api/chat', {
@@ -759,7 +797,7 @@
                         if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
                         
                         contentBlock.innerHTML = '';
-                        renderAndAnimate();
+                        typingInterval = setInterval(renderTyping, 20);
 
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
@@ -781,7 +819,6 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            animationQueue += textPart;
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
@@ -790,21 +827,14 @@
                     } catch (error) {
                         console.error("AI Streaming Error:", error);
                         contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                        if(typingInterval) clearInterval(typingInterval);
                     } finally {
-                        isStreamFinished = true;
-                        if (accumulatedResponseText.trim()) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                            saveChat();
-                        }
-                        if (document.visibilityState !== 'visible') {
-                             cancelAnimationFrame(animationFrameId);
-                             contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                             finalizeMessageFormatting(contentBlock);
-                        }
+                        streamFinished = true;
                     }
                 };
                 
                 fetchAndProcessStream();
+                // --- END: FINAL STREAMING ENGINE ---
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -932,19 +962,23 @@
             }
             
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
+            
             const dragStart = (e) => {
                 if (!document.body.classList.contains('is-mobile')) return;
+                
+                // FIX: Check if the touch starts on a scrollable element. If so, abort the drag.
+                for (let el = e.target; el && el !== document.body; el = el.parentElement) {
+                    if (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) {
+                        return; // Let the browser handle scrolling.
+                    }
+                }
+
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
-                // *** SMART SWIPE FIX ***
-                // Check if the swipe started inside a horizontally scrollable area
-                const scrollableParent = t.target.closest('.code-block-wrapper, .table-wrapper');
-                if (scrollableParent && scrollableParent.scrollWidth > scrollableParent.clientWidth) {
-                    return; // Do not trigger sidebar swipe
-                }
-
-                if (!isOpen && t.clientX > 50) return;
+                // Only allow starting the sidebar drag from the very edge of the screen.
+                if (!isOpen && t.clientX > 40) return;
+                
                 isDragging = true;
                 startX = t.clientX;
                 startY = t.clientY;
@@ -952,8 +986,47 @@
                 sidebar.classList.add('no-transition');
                 currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
             };
-            const dragMove = (e) => { if (!isDragging) return; const t = e.type === 'touchmove' ? e.touches[0] : e; const deltaX = t.clientX - startX; const deltaY = t.clientY - startY; if (dragDirection === null) { if (Math.abs(deltaX) > Math.abs(deltaY) + 3) { dragDirection = 'horizontal'; document.body.classList.add('is-dragging'); } else { dragDirection = 'vertical'; } } if (dragDirection === 'horizontal') { e.preventDefault(); const newTranslate = currentTranslate + deltaX; const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate)); sidebar.style.transform = `translateX(${s}px)`; sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth); } };
-            const dragEnd = () => { if (!isDragging || dragDirection !== 'horizontal') { isDragging = false; dragDirection = null; return; } isDragging = false; dragDirection = null; sidebar.classList.remove('no-transition'); document.body.classList.remove('is-dragging'); const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41; t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar(); };
+
+            const dragMove = (e) => {
+                if (!isDragging) return;
+
+                const t = e.type === 'touchmove' ? e.touches[0] : e;
+                const deltaX = t.clientX - startX;
+                const deltaY = t.clientY - startY;
+
+                if (dragDirection === null) {
+                    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                        isDragging = false; // Abort: This is a vertical scroll gesture.
+                        return;
+                    } else {
+                        dragDirection = 'horizontal';
+                    }
+                }
+
+                if (dragDirection === 'horizontal') {
+                    e.preventDefault(); 
+                    document.body.classList.add('is-dragging');
+                    const newTranslate = currentTranslate + deltaX;
+                    const s = Math.min(0, Math.max(-sidebar.offsetWidth, newTranslate));
+                    sidebar.style.transform = `translateX(${s}px)`;
+                    sidebarOverlay.style.opacity = 1 - (Math.abs(s) / sidebar.offsetWidth);
+                }
+            };
+
+            const dragEnd = () => {
+                if (!isDragging || dragDirection !== 'horizontal') {
+                    isDragging = false;
+                    dragDirection = null;
+                    return;
+                }
+                isDragging = false;
+                dragDirection = null;
+                sidebar.classList.remove('no-transition');
+                document.body.classList.remove('is-dragging');
+                const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
+                t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar();
+            };
+
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: false }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);
             

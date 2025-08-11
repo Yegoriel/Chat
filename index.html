@@ -72,7 +72,6 @@
             font-size: 1rem;
             letter-spacing: 0.01em;
             transition: background-color 0.3s, color 0.3s;
-            /* FIX: Prevent mobile browsers from auto-adjusting font size inconsistently */
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
         }
@@ -218,7 +217,7 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            padding: 50px 0 30vh 0;
+            padding: 50px 0 30px 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -257,7 +256,7 @@
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: var(--background-color); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s, color 0.3s; }
         
-        #chat-input-container { background-color: var(--background-color); border-top: none; padding-bottom: 1.5rem; transition: background-color 0.3s; }
+        #chat-input-container { background-color: var(--background-color); border-top: none; padding-top: 1rem; padding-bottom: 1.5rem; transition: background-color 0.3s; }
         #chat-form { 
             display: flex; 
             align-items: flex-end; 
@@ -320,6 +319,30 @@
         body.dark-theme .input-wrapper:focus-within {
             border-color: #555;
         }
+
+        #stop-btn-container {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 1rem;
+        }
+        #stop-generation-btn {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: var(--system-font);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        #stop-generation-btn:hover {
+            background-color: var(--user-msg-bg);
+        }
         
         .thinking-indicator { display: flex; gap: 4px; align-items: center; justify-content: center; height: 1.5rem; }
         .thinking-indicator span { width: 7px; height: 7px; background-color: var(--primary-accent); border-radius: 50%; animation: sleekWave 1.2s ease-in-out infinite; }
@@ -374,7 +397,6 @@
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
         
-        /* FIX: Increased paragraph spacing for "vastness" */
         .message-container.ai p {
             margin: 1em 0;
         }
@@ -384,7 +406,6 @@
             margin: 0.75em 0;
         }
 
-        /* FIX: New, more prominent heading hierarchy */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
             margin: 2em 0 1em 0;
             line-height: 1.25;
@@ -398,16 +419,15 @@
         .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
         .message-container.ai strong { font-weight: 700; }
 
-        /* === The New, Robust List System === */
         .message-container.ai ul,
         .message-container.ai ol {
             list-style-position: outside;
             margin: 1em 0;
-            padding-inline-start: 2em; /* Modern property for indentation */
+            padding-inline-start: 2em;
         }
         .message-container.ai li {
             margin: 0.5em 0;
-            padding-left: 0; /* Padding is now on the list container */
+            padding-left: 0;
         }
         .message-container.ai li p { margin: 0; }
         .message-container.ai li > *:first-child { margin-top: 0; }
@@ -416,10 +436,10 @@
         .message-container.ai li > ul,
         .message-container.ai li > ol {
             margin: 0.5em 0;
-            padding-inline-start: 1.5em; /* Smaller indent for nested lists */
+            padding-inline-start: 1.5em;
         }
 
-        .message-container.ai ul { list-style-type: disc; } /* Ensured bullet points */
+        .message-container.ai ul { list-style-type: disc; }
         .message-container.ai ol { list-style-type: decimal; }
         .message-container.ai ul ul { list-style-type: disc; } 
         .message-container.ai ol ol { list-style-type: lower-alpha; }
@@ -433,7 +453,6 @@
             color: rgba(255, 255, 255, 0.65);
         }
 
-        /* === Other Elements === */
         .message-container.ai blockquote {
             padding: 0.1em 0 0.1em 1.25rem;
             border-left: 3px solid var(--primary-accent);
@@ -457,7 +476,6 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            /* FIX: Ensure vertical scrolling on the page is not blocked by horizontal scroll areas on mobile */
             touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -512,29 +530,21 @@
       /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
           .message-container.ai .ai-content-block {
-              font-size: 1rem; /* FIX: Set a consistent base font size for mobile */
+              font-size: 1rem;
           }
-
-          /* FIX: Responsive, prominent headings for mobile */
           .message-container.ai h1 { font-size: 1.8rem; }
           .message-container.ai h2 { font-size: 1.5rem; }
           .message-container.ai h3 { font-size: 1.25rem; }
           .message-container.ai h4 { font-size: 1.15rem; }
-
           .message-container.ai ol {
-              /* A stable `rem` based indent that guarantees no number clipping */
               padding-inline-start: 2.2rem; 
           }
-
           .message-container.ai ul {
-              /* Consistent smaller indent for unordered lists */
               padding-inline-start: 1.5rem;
           }
-
           .message-container.ai .table-wrapper th,
           .message-container.ai .table-wrapper td,
           .message-container.ai pre {
-              /* FIX: Use a consistent, stable `rem` unit to ensure even font size */
               font-size: 0.85rem;
           }
       }
@@ -588,6 +598,12 @@
                     <div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
                 </div>
                 <footer id="chat-input-container">
+                    <div id="stop-btn-container" style="display: none;">
+                        <button id="stop-generation-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6z"></path></svg>
+                            Stop generating
+                        </button>
+                    </div>
                     <form id="chat-form">
                         <div class="input-wrapper">
                             <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
@@ -628,8 +644,9 @@
             const db = firebase.database();
             
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null, isRenaming = false, activeDropdown = null;
+            let abortController = null;
 
-            const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item');
+            const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtnContainer = document.getElementById('stop-btn-container'), stopGenerationBtn = document.getElementById('stop-generation-btn');
 
             marked.setOptions({
                 highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
@@ -658,8 +675,7 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // Autoscroll for user's own message to ensure it's visible.
-                if (sender === 'user') {
+                if (sender === 'user' || isHtml) {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
                 return m;
@@ -743,6 +759,7 @@
 
             async function handleSendMessage(e) {
                 e.preventDefault();
+                if (abortController) return; // Don't send if a message is already being generated
                 if (!currentUser) return;
                 const userMessage = chatInput.value.trim();
                 if (!userMessage) return;
@@ -766,70 +783,68 @@
                     db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
+                const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"></div>', true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
+                stopBtnContainer.style.display = 'flex';
                 
-                // --- START: ROCKET-FAST, TAB-INDEPENDENT STREAMING ENGINE ---
+                // --- START: CHATGPT-STYLE LIVE TYPING STREAMING ENGINE ---
+                abortController = new AbortController();
                 let accumulatedResponseText = '';
                 let displayedText = '';
                 let streamFinished = false;
                 let animationFrameId = null;
-                let lastUpdateTime = 0;
 
-                const renderStream = () => {
-                    // If the tab is hidden, don't render. The final render will happen instantly when the tab becomes visible again.
-                    if (document.hidden) {
-                        animationFrameId = requestAnimationFrame(renderStream);
-                        return;
-                    }
-                    
-                    // Render in larger chunks for super-fast perceived speed.
+                const renderTypingEffect = () => {
                     if (displayedText.length < accumulatedResponseText.length) {
-                        const charsToAdd = Math.max(20, (accumulatedResponseText.length - displayedText.length) / 2);
-                        const nextChunk = accumulatedResponseText.substring(displayedText.length, displayedText.length + charsToAdd);
-                        displayedText += nextChunk;
+                        const charsBehind = accumulatedResponseText.length - displayedText.length;
+                        // Speed up rendering if the user was on another tab and has returned
+                        const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
+                        displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
+                        
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
-                        finalizeMessageFormatting(contentBlock);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
                     }
                     
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
-                        cancelAnimationFrame(animationFrameId);
-                        // Final full render to ensure everything is perfect
+                        // Final render to apply syntax highlighting and other formatting
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
                         finalizeMessageFormatting(contentBlock);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        
+                        // Save the complete and final message
                         if (accumulatedResponseText.trim()) {
                             localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                             saveChat();
                         }
-                    } else {
-                        animationFrameId = requestAnimationFrame(renderStream);
-                    }
-                };
-                
-                const handleVisibilityChange = () => {
-                    if (!document.hidden && streamFinished) {
-                        // If user returns to the tab after the stream is finished, instantly render the complete text.
+
+                        // Clean up
+                        stopBtnContainer.style.display = 'none';
+                        abortController = null;
                         cancelAnimationFrame(animationFrameId);
-                        contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
-                        finalizeMessageFormatting(contentBlock);
+                    } else {
+                        animationFrameId = requestAnimationFrame(renderTypingEffect);
                     }
                 };
 
-                document.addEventListener('visibilitychange', handleVisibilityChange);
+                const stopListener = () => {
+                    if (abortController) {
+                        abortController.abort();
+                    }
+                };
+                stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
                 const fetchAndProcessStream = async () => {
                     try {
+                        animationFrameId = requestAnimationFrame(renderTypingEffect);
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) })
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) }),
+                            signal: abortController.signal
                         });
 
                         if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
                         
-                        contentBlock.innerHTML = ''; // Clear the "thinking" indicator
-                        animationFrameId = requestAnimationFrame(renderStream);
-
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
                         let sseBuffer = '';
@@ -856,25 +871,28 @@
                             }
                         }
                     } catch (error) {
-                        console.error("AI Streaming Error:", error);
-                        contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
-                        cancelAnimationFrame(animationFrameId);
+                        if (error.name !== 'AbortError') {
+                            console.error("AI Streaming Error:", error);
+                            contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                        }
                     } finally {
                         streamFinished = true;
-                        // Final check: if tab was hidden the whole time, render now.
-                        if (document.hidden) {
-                            handleVisibilityChange();
-                        }
-                        document.removeEventListener('visibilitychange', handleVisibilityChange);
+                        stopGenerationBtn.removeEventListener('click', stopListener);
                     }
                 };
                 
                 fetchAndProcessStream();
-                // --- END: ROCKET-FAST, TAB-INDEPENDENT STREAMING ENGINE ---
+                // --- END: CHATGPT-STYLE LIVE TYPING STREAMING ENGINE ---
             }
             
-            document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-            newChatItem.addEventListener('click', () => startNewChat());
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                if(abortController) abortController.abort();
+                auth.signOut();
+            });
+            newChatItem.addEventListener('click', () => {
+                 if(abortController) abortController.abort();
+                 startNewChat();
+            });
             chatForm.addEventListener('submit', handleSendMessage);
             chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = `${chatInput.scrollHeight}px`; });
             chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.requestSubmit(); } });
@@ -934,10 +952,11 @@
                     return;
                 }
                 if (isRenaming) return;
+                if(abortController) abortController.abort();
                 loadChat(item.dataset.chatId);
             });
 
-            function handleDeleteChat(chatId) { if (!currentUser || !chatId) return; if (confirm('Are you sure you want to delete this chat forever?')) { db.ref(`chats/${currentUser.uid}/${chatId}`).remove().then(() => { if (chatId === currentChatId) startNewChat(); }).catch(error => console.error("Error deleting chat:", error)); } }
+            function handleDeleteChat(chatId) { if (!currentUser || !chatId) return; if (confirm('Are you sure you want to delete this chat forever?')) { if(abortController) abortController.abort(); db.ref(`chats/${currentUser.uid}/${chatId}`).remove().then(() => { if (chatId === currentChatId) startNewChat(); }).catch(error => console.error("Error deleting chat:", error)); } }
             function cancelAllRenames() { isRenaming = false; const input = document.querySelector('.rename-input'); if (!input) return; const titleContainer = input.parentElement; if (titleContainer) { titleContainer.textContent = input.dataset.originalTitle; } }
             function handleRenameChat(chatId, titleContainer) { if (!currentUser || !chatId || isRenaming) return; cancelAllRenames(); isRenaming = true; const originalTitle = titleContainer.textContent; titleContainer.innerHTML = ''; const input = document.createElement('input'); input.type = 'text'; input.className = 'rename-input'; input.value = originalTitle; input.dataset.originalTitle = originalTitle; const saveRename = () => { isRenaming = false; const newTitle = input.value.trim(); if (newTitle && newTitle !== originalTitle) { db.ref(`chats/${currentUser.uid}/${chatId}`).update({ title: newTitle }); } else { titleContainer.textContent = originalTitle; } input.removeEventListener('blur', saveRename); }; input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = originalTitle; input.blur(); } }); input.addEventListener('blur', saveRename); titleContainer.appendChild(input); input.select(); }
             
@@ -997,9 +1016,9 @@
                 }
             }
             
-            // --- START: STABLE & PROFESSIONAL SIDEBAR DRAG LOGIC ---
+            // --- START: ENHANCED & SMOOTH SIDEBAR DRAG LOGIC ---
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
-            const dragThreshold = 10; // Pixels to move before a drag direction is determined
+            const dragThreshold = 10;
 
             const dragStart = (e) => {
                 if (!document.body.classList.contains('is-mobile')) return;
@@ -1007,47 +1026,34 @@
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
 
-                // Only allow starting drag from the edge of the screen when closed, or on the sidebar itself when open.
-                if (!isOpen && t.clientX > 40) return;
+                // FIX: Increased drag area on left edge (from 40px to 60px)
+                if (!isOpen && t.clientX > 60) return;
                 if (isOpen && t.clientX > sidebar.offsetWidth) return;
-
-                // Do not interfere with scrolling inside the sidebar history
                 if (e.target.closest('#chat-history-list')) return;
 
                 isDragging = true;
                 startX = t.clientX;
                 startY = t.clientY;
-                dragDirection = null; // Reset direction on new touch
+                dragDirection = null;
                 sidebar.classList.add('no-transition');
                 currentTranslate = isOpen ? 0 : -sidebar.offsetWidth;
             };
             
             const dragMove = (e) => {
                 if (!isDragging) return;
-
                 const t = e.type === 'touchmove' ? e.touches[0] : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;
-
-                // Determine drag direction only once after a certain threshold is passed
                 if (dragDirection === null) {
                     if (Math.abs(deltaX) > dragThreshold || Math.abs(deltaY) > dragThreshold) {
-                        if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                            dragDirection = 'vertical'; // It's a scroll
-                        } else {
-                            dragDirection = 'horizontal'; // It's a sidebar drag
-                        }
+                        dragDirection = (Math.abs(deltaY) > Math.abs(deltaX)) ? 'vertical' : 'horizontal';
                     }
                 }
-                
-                // If it's a vertical scroll, abort the sidebar drag entirely for this gesture.
                 if (dragDirection === 'vertical') {
                     isDragging = false;
                     document.body.classList.remove('is-dragging');
                     return;
                 }
-
-                // If it's a horizontal drag, prevent default behavior and move the sidebar.
                 if (dragDirection === 'horizontal') {
                     e.preventDefault(); 
                     document.body.classList.add('is-dragging');
@@ -1071,10 +1077,10 @@
                 sidebar.classList.remove('no-transition');
                 document.body.classList.remove('is-dragging');
                 const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
-                // A more generous threshold for deciding whether to open or close
-                t > -sidebar.offsetWidth / 1.5 ? openSidebar() : closeSidebar();
+                // FIX: Use a 50% threshold for intuitive open/close action
+                t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar();
             };
-            // --- END: STABLE & PROFESSIONAL SIDEBAR DRAG LOGIC ---
+            // --- END: ENHANCED & SMOOTH SIDEBAR DRAG LOGIC ---
 
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: true }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);

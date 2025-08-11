@@ -217,8 +217,7 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            /* FIX: Increased bottom padding ensures the last message is comfortably visible above the input area. */
-            padding: 50px 0 30vh 0;
+            padding: 50px 0 30px 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -237,13 +236,6 @@
             border-bottom-right-radius: 4px;
             max-width: 90%;
             transition: background-color 0.3s;
-            /* FIX: Ensure user message font is consistent with AI response font. */
-            font-size: var(--font-size-body);
-            line-height: 1.65;
-        }
-        /* Target the paragraph inside the user message for consistent spacing. */
-        .message-container.user p {
-             margin: 0;
         }
         .message-container.ai { 
             background-color: var(--ai-msg-bg); 
@@ -484,6 +476,8 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
+            /* FIX: Allow both horizontal and vertical panning. Modern browsers can distinguish the user's intent,
+               allowing for horizontal swipe on the element and vertical swipe on the page without conflict. */
             touch-action: pan-x pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -653,7 +647,6 @@
             
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null, isRenaming = false, activeDropdown = null;
             let abortController = null;
-            let highlightTimer = null;
 
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtnContainer = document.getElementById('stop-btn-container'), stopGenerationBtn = document.getElementById('stop-generation-btn');
 
@@ -684,14 +677,37 @@
                 if (isHtml) {
                     m.innerHTML = content;
                 } else {
-                    // FIX: Ensure user message is wrapped in a <p> tag for consistent styling.
-                    m.innerHTML = `<p>${content}</p>`;
+                    m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+                if (sender === 'user') {
+                    // Autoscroll only for user's own message to ensure it's visible.
+                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                }
                 return m;
             }
 
             function finalizeMessageFormatting(container) {
+                const usedEmojis = new Set();
+                const emojiRegex = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26ff]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/;
+                
+                container.querySelectorAll('h1, h2, h3').forEach(heading => {
+                    if (heading.dataset.emojiApplied) return;
+                    const originalHtml = heading.innerHTML.trim();
+                    const match = originalHtml.match(emojiRegex);
+                    if (match) {
+                        const emoji = match[0];
+                        const restOfHtml = originalHtml.substring(emoji.length).trim();
+                        if (!usedEmojis.has(emoji)) {
+                            usedEmojis.add(emoji);
+                            heading.innerHTML = `${emoji} ${restOfHtml}`;
+                        } else {
+                            heading.innerHTML = restOfHtml;
+                        }
+                    }
+                    heading.dataset.emojiApplied = 'true';
+                });
+
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
@@ -700,20 +716,13 @@
                     wrapper.appendChild(btn); 
                 });
                 
+                // This is the key part for syntax highlighting. It targets all `<code>` blocks that haven't been highlighted yet.
                 container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
                     const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
                     table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
                 });
-            }
-
-            function requestHighlight(container) {
-                if (highlightTimer) return; // Don't set a new timer if one is already pending
-                highlightTimer = setTimeout(() => {
-                    finalizeMessageFormatting(container);
-                    highlightTimer = null; // Reset timer
-                }, 200); // Throttle highlighting to prevent flickering.
             }
 
             async function loadChat(chatId) {
@@ -749,9 +758,8 @@
 
             function saveChat() {
                 if (!currentUser || !currentChatId) return;
-                const historyToSave = localChatHistory.filter(m => m.text !== null);
                 db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
-                    messages: historyToSave,
+                    messages: localChatHistory,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
             }
@@ -765,11 +773,7 @@
 
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
-
                 addMessageToUI('user', userMessage);
-                requestAnimationFrame(() => {
-                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                });
 
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
@@ -792,47 +796,61 @@
                 
                 abortController = new AbortController();
                 let accumulatedResponseText = '';
+                let displayedText = '';
                 let streamFinished = false;
                 let animationFrameId = null;
 
-                const renderStream = () => {
-                    contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                    requestHighlight(contentBlock); // Request a throttled highlight pass.
-
-                    if (streamFinished) {
-                        if (highlightTimer) clearTimeout(highlightTimer);
-                        contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                const renderTypingEffect = () => {
+                    if (displayedText.length < accumulatedResponseText.length) {
+                        const charsBehind = accumulatedResponseText.length - displayedText.length;
+                        const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
+                        displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
+                        
+                        // Render the raw markdown. This is fast and shows plain text in code blocks as it streams.
+                        contentBlock.innerHTML = marked.parse(displayedText.trim());
+                    }
+                    
+                    if (streamFinished && displayedText.length === accumulatedResponseText.length) {
+                        // This is the final, single render pass.
+                        contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
+                        // Now, apply all final formatting, including syntax highlighting, in one go for stability.
                         finalizeMessageFormatting(contentBlock);
                         
-                        const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
-                        if (modelResponseIndex > -1) {
-                            localChatHistory[modelResponseIndex].text = accumulatedResponseText;
-                        } else if(abortController) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                        if (accumulatedResponseText.trim()) {
+                            // Find the last message in the history (which is the user's prompt) and add the final AI response after it.
+                            const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
+                            if (modelResponseIndex > -1) {
+                                localChatHistory[modelResponseIndex].text = accumulatedResponseText;
+                            } else if(abortController) { // Only add if it wasn't a pre-existing message
+                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            }
+                            saveChat();
                         }
-                        saveChat();
 
                         stopBtnContainer.style.display = 'none';
                         abortController = null;
                         cancelAnimationFrame(animationFrameId);
                     } else {
-                        animationFrameId = requestAnimationFrame(renderStream);
+                        animationFrameId = requestAnimationFrame(renderTypingEffect);
                     }
                 };
                 
                 const stopListener = () => {
-                    if (abortController) abortController.abort();
+                    if (abortController) {
+                        abortController.abort();
+                    }
                 };
                 stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
                 const fetchAndProcessStream = async () => {
+                    // Add a placeholder for the model's response. This is important for saving partial responses.
                     localChatHistory.push({ role: 'model', text: null });
                     try {
-                        animationFrameId = requestAnimationFrame(renderStream);
+                        animationFrameId = requestAnimationFrame(renderTypingEffect);
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }),
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }), // Exclude the current prompt and null placeholder
                             signal: abortController.signal
                         });
 
@@ -859,7 +877,7 @@
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
                                         }
-                                    } catch (parseError) { /* Ignore */ }
+                                    } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
                         }

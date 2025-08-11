@@ -214,7 +214,7 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            padding: 1.5rem 0;
+            padding: 1.5rem 0 1rem 0; /* Adjusted padding */
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -677,9 +677,14 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+
                 if (sender === 'user') {
-                    // Autoscroll user message to the top of the viewport
+                    // **FIXED**: When a user sends a message, this ensures it scrolls
+                    // smoothly to the TOP of the visible chat area.
                     m.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    // For AI messages, we just want to ensure they are visible at the bottom.
+                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
                 return m;
             }
@@ -713,7 +718,6 @@
                     wrapper.appendChild(btn); 
                 });
                 
-                // This is the key part for syntax highlighting. It targets all `<code>` blocks that haven't been highlighted yet.
                 container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
@@ -803,22 +807,19 @@
                         const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
                         displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
                         
-                        // Render the raw markdown. This is fast and shows plain text in code blocks as it streams.
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
+                        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'auto' });
                     }
                     
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
-                        // This is the final, single render pass.
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
-                        // Now, apply all final formatting, including syntax highlighting, in one go for stability.
                         finalizeMessageFormatting(contentBlock);
                         
                         if (accumulatedResponseText.trim()) {
-                            // Find the last message in the history (which is the user's prompt) and add the final AI response after it.
                             const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
                             if (modelResponseIndex > -1) {
                                 localChatHistory[modelResponseIndex].text = accumulatedResponseText;
-                            } else if(abortController) { // Only add if it wasn't a pre-existing message
+                            } else if(abortController) {
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                             }
                             saveChat();
@@ -840,14 +841,13 @@
                 stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
                 const fetchAndProcessStream = async () => {
-                    // Add a placeholder for the model's response. This is important for saving partial responses.
                     localChatHistory.push({ role: 'model', text: null });
                     try {
                         animationFrameId = requestAnimationFrame(renderTypingEffect);
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }), // Exclude the current prompt and null placeholder
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }),
                             signal: abortController.signal
                         });
 

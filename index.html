@@ -476,7 +476,9 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            touch-action: pan-y;
+            /* FIX: Allow both horizontal and vertical panning. Modern browsers can distinguish the user's intent,
+               allowing for horizontal swipe on the element and vertical swipe on the page without conflict. */
+            touch-action: pan-x pan-y;
             -webkit-overflow-scrolling: touch;
         }
         .message-container.ai pre {
@@ -649,7 +651,10 @@
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtnContainer = document.getElementById('stop-btn-container'), stopGenerationBtn = document.getElementById('stop-generation-btn');
 
             marked.setOptions({
-                highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
+                highlight: (code, lang) => {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language, ignoreIllegals: true }).value;
+                },
                 langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
 
@@ -675,7 +680,8 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                if (sender === 'user' || isHtml) {
+                if (sender === 'user') {
+                    // Autoscroll only for user's own message to ensure it's visible.
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
                 return m;
@@ -710,6 +716,7 @@
                     wrapper.appendChild(btn); 
                 });
                 
+                // This is the key part for syntax highlighting. It targets all `<code>` blocks that haven't been highlighted yet.
                 container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
@@ -759,7 +766,7 @@
 
             async function handleSendMessage(e) {
                 e.preventDefault();
-                if (abortController) return; // Don't send if a message is already being generated
+                if (abortController) return;
                 if (!currentUser) return;
                 const userMessage = chatInput.value.trim();
                 if (!userMessage) return;
@@ -787,7 +794,6 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 stopBtnContainer.style.display = 'flex';
                 
-                // --- START: CHATGPT-STYLE LIVE TYPING STREAMING ENGINE ---
                 abortController = new AbortController();
                 let accumulatedResponseText = '';
                 let displayedText = '';
@@ -797,27 +803,30 @@
                 const renderTypingEffect = () => {
                     if (displayedText.length < accumulatedResponseText.length) {
                         const charsBehind = accumulatedResponseText.length - displayedText.length;
-                        // Speed up rendering if the user was on another tab and has returned
                         const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
                         displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
                         
+                        // Render the raw markdown. This is fast and shows plain text in code blocks as it streams.
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
                     }
                     
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
-                        // Final render to apply syntax highlighting and other formatting
+                        // This is the final, single render pass.
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
+                        // Now, apply all final formatting, including syntax highlighting, in one go for stability.
                         finalizeMessageFormatting(contentBlock);
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
                         
-                        // Save the complete and final message
                         if (accumulatedResponseText.trim()) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            // Find the last message in the history (which is the user's prompt) and add the final AI response after it.
+                            const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
+                            if (modelResponseIndex > -1) {
+                                localChatHistory[modelResponseIndex].text = accumulatedResponseText;
+                            } else if(abortController) { // Only add if it wasn't a pre-existing message
+                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            }
                             saveChat();
                         }
 
-                        // Clean up
                         stopBtnContainer.style.display = 'none';
                         abortController = null;
                         cancelAnimationFrame(animationFrameId);
@@ -825,7 +834,7 @@
                         animationFrameId = requestAnimationFrame(renderTypingEffect);
                     }
                 };
-
+                
                 const stopListener = () => {
                     if (abortController) {
                         abortController.abort();
@@ -834,12 +843,14 @@
                 stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
                 const fetchAndProcessStream = async () => {
+                    // Add a placeholder for the model's response. This is important for saving partial responses.
+                    localChatHistory.push({ role: 'model', text: null });
                     try {
                         animationFrameId = requestAnimationFrame(renderTypingEffect);
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -1).slice(-10) }),
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }), // Exclude the current prompt and null placeholder
                             signal: abortController.signal
                         });
 
@@ -882,7 +893,6 @@
                 };
                 
                 fetchAndProcessStream();
-                // --- END: CHATGPT-STYLE LIVE TYPING STREAMING ENGINE ---
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => {
@@ -1016,7 +1026,6 @@
                 }
             }
             
-            // --- START: ENHANCED & SMOOTH SIDEBAR DRAG LOGIC ---
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
             const dragThreshold = 10;
 
@@ -1026,7 +1035,6 @@
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
 
-                // FIX: Increased drag area on left edge (from 40px to 60px)
                 if (!isOpen && t.clientX > 60) return;
                 if (isOpen && t.clientX > sidebar.offsetWidth) return;
                 if (e.target.closest('#chat-history-list')) return;
@@ -1077,10 +1085,8 @@
                 sidebar.classList.remove('no-transition');
                 document.body.classList.remove('is-dragging');
                 const t = new DOMMatrix(getComputedStyle(sidebar).transform).m41;
-                // FIX: Use a 50% threshold for intuitive open/close action
                 t > -sidebar.offsetWidth / 2 ? openSidebar() : closeSidebar();
             };
-            // --- END: ENHANCED & SMOOTH SIDEBAR DRAG LOGIC ---
 
             document.body.addEventListener('mousedown', dragStart); document.body.addEventListener('mousemove', dragMove); document.body.addEventListener('mouseup', dragEnd); document.body.addEventListener('mouseleave', dragEnd);
             document.body.addEventListener('touchstart', dragStart, { passive: true }); document.body.addEventListener('touchmove', dragMove, { passive: false }); document.body.addEventListener('touchend', dragEnd);

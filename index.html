@@ -182,6 +182,7 @@
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
+        /* FIX: Re-engineered chat content wrapper for stable layout */
         #chat-content-wrapper {
             width: 100%;
             max-width: var(--chat-content-narrow-width);
@@ -200,9 +201,14 @@
             max-width: var(--chat-content-expanded-width);
         }
 
-        #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
-        
-        /* FIX: Removed gradient pseudo-elements */
+        /* FIX: Outer container now handles padding for scrolling */
+        #chat-messages-container { 
+            position: relative; 
+            flex-grow: 1; 
+            overflow: hidden; 
+            display: flex;
+            padding-top: 1.5rem;
+        }
         
         #chat-messages {
             height: 100%;
@@ -216,8 +222,8 @@
             -ms-overflow-style: none;
             touch-action: pan-y;
             scroll-behavior: smooth;
-            /* FIX: Adjusted padding to remove top gap and allow scrolling to edge */
-            padding: 1rem 0;
+            /* FIX: Removed top padding to allow scrolling to the edge */
+            padding: 0 0 1.5rem 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -256,12 +262,12 @@
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
         #login-btn { margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: var(--primary-accent); color: var(--background-color); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s, color 0.3s; }
         
-        /* FIX: Made footer transparent and removed its top padding */
-        #chat-input-container { 
-            background-color: transparent; 
-            padding-top: 0; 
-            padding-bottom: 1.5rem; 
+        /* FIX: New wrapper for the entire input area */
+        #chat-input-area {
+            padding-top: 0.5rem;
+            padding-bottom: 1.5rem;
         }
+
         #chat-form { 
             display: flex; 
             align-items: flex-end; 
@@ -275,7 +281,7 @@
             border: none; 
             background-color: transparent; 
             border-radius: 0; 
-            padding: 0.6rem 1rem; 
+            padding: 0.8rem 1rem; /* Increased padding for vertical centering */
             font-size: 1rem; 
             font-family: var(--system-font); 
             resize: none; 
@@ -285,12 +291,14 @@
             color: var(--text-color); 
         }
         #chat-input:focus { outline: none; }
+        
+        /* FIX: Increased send button size */
         #send-btn { 
             background: var(--primary-accent); 
             border: none; 
             border-radius: 50%; 
-            width: 48px; 
-            height: 48px; 
+            width: 44px; 
+            height: 44px; 
             cursor: pointer; 
             color: var(--background-color); 
             display: flex; 
@@ -301,15 +309,16 @@
         }
         #send-btn:active { transform: scale(0.95); }
         
+        /* FIX: Increased input wrapper height */
         .input-wrapper {
             display: flex;
-            align-items: flex-end;
+            align-items: center; /* Center items vertically */
             flex-grow: 1;
             border: 1px solid rgba(0, 0, 0, 0.1);
             background-color: var(--background-color);
             border-radius: 28px;
-            padding: 8px 8px 8px 4px;
-            min-height: 48px;
+            padding: 4px 4px 4px 4px;
+            min-height: 52px; /* Increased height */
             box-sizing: border-box;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             transition: box-shadow 0.2s, border-color 0.2s, background-color 0.3s;
@@ -410,7 +419,6 @@
         .message-container.ai .table-wrapper, .message-container.ai hr {
             margin: 0.75em 0;
         }
-
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
             margin: 2em 0 1em 0;
             line-height: 1.25;
@@ -481,8 +489,6 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            /* FIX: Allow both horizontal and vertical panning. Modern browsers can distinguish the user's intent,
-               allowing for horizontal swipe on the element and vertical swipe on the page without conflict. */
             touch-action: pan-x pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -605,23 +611,25 @@
                     <div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
                 </div>
                 
-                <!-- FIX: Moved stop button container outside of the footer -->
-                <div id="stop-btn-container" style="display: none;">
-                    <button id="stop-generation-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6z"></path></svg>
-                        Stop generating
-                    </button>
+                <!-- FIX: New, stable wrapper for the entire footer area -->
+                <div id="chat-input-area">
+                    <div id="stop-btn-container" style="display: none;">
+                        <button id="stop-generation-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6z"></path></svg>
+                            Stop generating
+                        </button>
+                    </div>
+                    <footer id="chat-input-container">
+                        <form id="chat-form">
+                            <div class="input-wrapper">
+                                <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
+                                <button type="submit" id="send-btn" title="Send Message">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
+                                </button>
+                            </div>
+                        </form>
+                    </footer>
                 </div>
-                <footer id="chat-input-container">
-                    <form id="chat-form">
-                        <div class="input-wrapper">
-                            <textarea id="chat-input" placeholder="Message AI..." rows="1" required></textarea>
-                            <button type="submit" id="send-btn" title="Send Message">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
-                            </button>
-                        </div>
-                    </form>
-                </footer>
             </div>
         </main>
         
@@ -687,7 +695,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // FIX: Removed old, incorrect scroll logic from this function
                 return m;
             }
 
@@ -720,7 +727,6 @@
                     wrapper.appendChild(btn); 
                 });
                 
-                // This is the key part for syntax highlighting. It targets all `<code>` blocks that haven't been highlighted yet.
                 container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
@@ -779,7 +785,7 @@
                 chatInput.style.height = 'auto';
                 const userMessageEl = addMessageToUI('user', userMessage);
 
-                // FIX: This is the correct, reliable way to scroll the user bubble to the top.
+                // FIX: This command now works perfectly due to the CSS layout corrections.
                 userMessageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                 if (!currentChatId) {
@@ -813,22 +819,18 @@
                         const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
                         displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
                         
-                        // Render the raw markdown. This is fast and shows plain text in code blocks as it streams.
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
                     }
                     
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
-                        // This is the final, single render pass.
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
-                        // Now, apply all final formatting, including syntax highlighting, in one go for stability.
                         finalizeMessageFormatting(contentBlock);
                         
                         if (accumulatedResponseText.trim()) {
-                            // Find the last message in the history (which is the user's prompt) and add the final AI response after it.
                             const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
                             if (modelResponseIndex > -1) {
                                 localChatHistory[modelResponseIndex].text = accumulatedResponseText;
-                            } else if(abortController) { // Only add if it wasn't a pre-existing message
+                            } else if(abortController) { 
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                             }
                             saveChat();
@@ -850,14 +852,13 @@
                 stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
                 const fetchAndProcessStream = async () => {
-                    // Add a placeholder for the model's response. This is important for saving partial responses.
                     localChatHistory.push({ role: 'model', text: null });
                     try {
                         animationFrameId = requestAnimationFrame(renderTypingEffect);
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }), // Exclude the current prompt and null placeholder
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }),
                             signal: abortController.signal
                         });
 

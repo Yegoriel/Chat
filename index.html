@@ -72,9 +72,6 @@
             font-size: 1rem;
             letter-spacing: 0.01em;
             transition: background-color 0.3s, color 0.3s;
-            /* FIX: Prevent mobile browsers from auto-adjusting font size inconsistently */
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
         }
         body.is-dragging { user-select: none; -webkit-user-select: none; }
         body.is-dragging #chat-messages { overflow-y: hidden; }
@@ -374,35 +371,27 @@
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
         
-        /* FIX: Increased paragraph spacing for "vastness" */
-        .message-container.ai p {
-            margin: 1em 0;
-        }
-
+        .message-container.ai p,
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
             margin: 0.75em 0;
         }
 
-        /* FIX: New, more prominent heading hierarchy */
-        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 2em 0 1em 0;
-            line-height: 1.25;
-            font-weight: 700;
+        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3 {
+            margin: 1.5em 0 0.7em 0;
+            line-height: 1.3;
+            font-weight: 600;
         }
-        .message-container.ai h1 { font-size: 2.25rem; }
-        .message-container.ai h2 { font-size: 1.75rem; }
-        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
-        .message-container.ai h4 { font-size: 1.2rem; font-weight: 600; }
-        .message-container.ai h5 { font-size: 1.1rem; font-weight: 600; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
-        .message-container.ai strong { font-weight: 700; }
+        .message-container.ai h1 { font-size: var(--font-size-h1); }
+        .message-container.ai h2 { font-size: var(--font-size-h2); }
+        .message-container.ai h3 { font-size: var(--font-size-h3); }
+        .message-container.ai strong { font-weight: 600; }
 
         /* === The New, Robust List System === */
         .message-container.ai ul,
         .message-container.ai ol {
             list-style-position: outside;
-            margin: 1em 0;
+            margin: 0.75em 0;
             padding-inline-start: 2em; /* Modern property for indentation */
         }
         .message-container.ai li {
@@ -510,14 +499,13 @@
       /* --- START: DEFINITIVE MOBILE TYPOGRAPHY FIX (768px) --- */
       @media (max-width: 768px) {
           .message-container.ai .ai-content-block {
-              font-size: 1rem; /* FIX: Set a consistent base font size for mobile */
+              font-size: 0.875rem; /* A comfortable, smaller font for mobile */
           }
 
-          /* FIX: Responsive, prominent headings for mobile */
-          .message-container.ai h1 { font-size: 1.8rem; }
-          .message-container.ai h2 { font-size: 1.5rem; }
-          .message-container.ai h3 { font-size: 1.25rem; }
-          .message-container.ai h4 { font-size: 1.15rem; }
+          /* FIX: Prominent, hierarchical headings for mobile */
+          .message-container.ai h1 { font-size: 1.5rem; }
+          .message-container.ai h2 { font-size: 1.25rem; }
+          .message-container.ai h3 { font-size: 1.1rem; }
 
           .message-container.ai ol {
               /* A stable `rem` based indent that guarantees no number clipping */
@@ -533,7 +521,7 @@
           .message-container.ai .table-wrapper td,
           .message-container.ai pre {
               /* FIX: Use a consistent, stable `rem` unit to ensure even font size */
-              font-size: 0.85rem;
+              font-size: 0.8rem;
           }
       }
       /* --- END: DEFINITIVE MOBILE TYPOGRAPHY FIX --- */
@@ -656,7 +644,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // Autoscroll for user's own message to ensure it's visible.
                 if (sender === 'user') {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
@@ -767,31 +754,28 @@
                 const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>', true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
-                // --- START: FINAL STREAMING ENGINE (NO CURSOR, NO AUTOSCROLL) ---
                 let accumulatedResponseText = '';
+                let animationQueue = '';
                 let displayedText = '';
-                let streamFinished = false;
-                let typingInterval = null;
+                let isStreamFinished = false;
+                let animationFrameId = null;
 
-                const renderTyping = () => {
-                    const typingSpeed = 15;
-                    if (displayedText.length < accumulatedResponseText.length) {
-                        const nextChunk = accumulatedResponseText.substring(displayedText.length, displayedText.length + typingSpeed);
-                        displayedText += nextChunk;
+                const renderAndAnimate = () => {
+                    if (animationQueue.length > 0) {
+                        displayedText += animationQueue;
+                        animationQueue = '';
+                        contentBlock.innerHTML = marked.parse(displayedText.trim());
+                        finalizeMessageFormatting(contentBlock);
                     }
 
-                    contentBlock.innerHTML = marked.parse(displayedText.trim());
-                    finalizeMessageFormatting(contentBlock);
+                    if (isStreamFinished && animationQueue.length === 0) {
+                        cancelAnimationFrame(animationFrameId);
+                        return;
+                    }
                     
-                    if (streamFinished && displayedText.length === accumulatedResponseText.length) {
-                        clearInterval(typingInterval);
-                        if (accumulatedResponseText.trim()) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                            saveChat();
-                        }
-                    }
+                    animationFrameId = requestAnimationFrame(renderAndAnimate);
                 };
-                
+
                 const fetchAndProcessStream = async () => {
                     try {
                         const response = await fetch('/api/chat', {
@@ -803,7 +787,7 @@
                         if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
                         
                         contentBlock.innerHTML = '';
-                        typingInterval = setInterval(renderTyping, 20);
+                        renderAndAnimate();
 
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
@@ -825,6 +809,7 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
+                                            animationQueue += textPart;
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
@@ -833,14 +818,21 @@
                     } catch (error) {
                         console.error("AI Streaming Error:", error);
                         contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
-                        if(typingInterval) clearInterval(typingInterval);
                     } finally {
-                        streamFinished = true;
+                        isStreamFinished = true;
+                        if (accumulatedResponseText.trim()) {
+                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            saveChat();
+                        }
+                        if (document.visibilityState !== 'visible') {
+                             cancelAnimationFrame(animationFrameId);
+                             contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                             finalizeMessageFormatting(contentBlock);
+                        }
                     }
                 };
                 
                 fetchAndProcessStream();
-                // --- END: FINAL STREAMING ENGINE ---
             }
             
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());

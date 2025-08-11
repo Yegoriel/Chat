@@ -216,8 +216,9 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             touch-action: pan-y;
-            scroll-behavior: smooth;
-            padding: 50px 0 30px 0;
+            scroll-behavior: auto;
+            /* FIX: Increased bottom padding to 40vh for better visibility of the user's message bubble */
+            padding: 50px 0 40vh 0; 
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -491,7 +492,8 @@
             line-height: 1.6;
             margin: 0;
         }
-        .message-container.ai pre code.hljs { padding: 0; background: transparent; }
+        /* This is a crucial override to make the custom renderer work seamlessly */
+        .message-container.ai pre code.hljs { padding: 0 !important; background: transparent !important; }
         .copy-btn {
             position: absolute; top: 8px; right: 8px; background: #e9e9eb; color: #555;
             border: 1px solid var(--border-color); padding: 0.3rem 0.6rem; border-radius: 4px;
@@ -648,13 +650,23 @@
 
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtnContainer = document.getElementById('stop-btn-container'), stopGenerationBtn = document.getElementById('stop-generation-btn');
 
+            // --- START: ADVANCED MARKED.JS & HIGHLIGHT.JS SETUP (THE FLICKER FIX) ---
+            const renderer = new marked.Renderer();
+            renderer.code = (code, lang) => {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                // Pre-highlight the code. marked.parse will now return HTML with the highlight.js classes already inside.
+                const highlightedCode = hljs.highlight(code, { language, ignoreIllegals: true }).value;
+                // Wrap in the standard <pre><code> structure that our CSS expects.
+                return `<pre><code class="hljs language-${language}">${highlightedCode}</code></pre>`;
+            };
+
             marked.setOptions({
-                highlight: (code, lang) => {
-                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-                    return hljs.highlight(code, { language, ignoreIllegals: true }).value;
-                },
-                langPrefix: 'hljs language-', gfm: true, breaks: true,
+                renderer,
+                gfm: true,
+                breaks: true,
             });
+            // --- END: ADVANCED MARKED.JS & HIGHLIGHT.JS SETUP ---
+
 
             auth.onAuthStateChanged(user => {
                 if (user) {
@@ -675,15 +687,40 @@
                 if (isHtml) {
                     m.innerHTML = content;
                 } else {
-                    const p = document.createElement('p');
-                    p.textContent = content;
-                    m.appendChild(p);
+                    m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+                if (sender === 'user') {
+                    // Instant scroll for user's own message to ensure it's visible.
+                    requestAnimationFrame(() => {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    });
+                }
                 return m;
             }
 
             function finalizeMessageFormatting(container) {
+                const usedEmojis = new Set();
+                const emojiRegex = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26ff]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/;
+                
+                container.querySelectorAll('h1, h2, h3').forEach(heading => {
+                    if (heading.dataset.emojiApplied) return;
+                    const originalHtml = heading.innerHTML.trim();
+                    const match = originalHtml.match(emojiRegex);
+                    if (match) {
+                        const emoji = match[0];
+                        const restOfHtml = originalHtml.substring(emoji.length).trim();
+                        if (!usedEmojis.has(emoji)) {
+                            usedEmojis.add(emoji);
+                            heading.innerHTML = `${emoji} ${restOfHtml}`;
+                        } else {
+                            heading.innerHTML = restOfHtml;
+                        }
+                    }
+                    heading.dataset.emojiApplied = 'true';
+                });
+
+                // Since highlighting is now done inside marked, we just need to add the wrappers.
                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
@@ -692,8 +729,6 @@
                     wrapper.appendChild(btn); 
                 });
                 
-                container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
-
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
                     const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
                     table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
@@ -733,9 +768,8 @@
 
             function saveChat() {
                 if (!currentUser || !currentChatId) return;
-                const historyToSave = localChatHistory.filter(m => m.text !== null);
                 db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
-                    messages: historyToSave,
+                    messages: localChatHistory,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
             }
@@ -749,12 +783,7 @@
 
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
-
                 addMessageToUI('user', userMessage);
-                // FIX: Use requestAnimationFrame to guarantee the scroll happens after the DOM update.
-                requestAnimationFrame(() => {
-                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                });
 
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
@@ -781,19 +810,21 @@
                 let animationFrameId = null;
 
                 const renderStream = () => {
-                    contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
+                    // Update the DOM with pre-highlighted HTML from our custom marked renderer.
+                    contentBlock.innerHTML = marked.parse(accumulatedResponseText);
                     
                     if (streamFinished) {
-                        // Final, single pass for formatting guarantees stability.
-                        finalizeMessageFormatting(contentBlock);
+                        finalizeMessageFormatting(contentBlock); // Add copy buttons and table wrappers
                         
-                        const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
-                        if (modelResponseIndex > -1) {
-                            localChatHistory[modelResponseIndex].text = accumulatedResponseText;
-                        } else if(abortController) {
-                            localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                        if (accumulatedResponseText.trim()) {
+                            const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
+                            if (modelResponseIndex > -1) {
+                                localChatHistory[modelResponseIndex].text = accumulatedResponseText;
+                            } else if(abortController) {
+                                localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                            }
+                            saveChat();
                         }
-                        saveChat();
 
                         stopBtnContainer.style.display = 'none';
                         abortController = null;
@@ -804,7 +835,9 @@
                 };
                 
                 const stopListener = () => {
-                    if (abortController) abortController.abort();
+                    if (abortController) {
+                        abortController.abort();
+                    }
                 };
                 stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
@@ -842,7 +875,7 @@
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
                                         }
-                                    } catch (parseError) { /* Ignore */ }
+                                    } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
                             }
                         }

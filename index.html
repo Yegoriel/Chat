@@ -17,18 +17,17 @@
             --space-md: 1rem;
             --space-lg: 1.25rem;
 
-            /* --- ChatGPT-Style Font & Width Hierarchy --- */
             --font-size-body: 1rem;
             --line-height-body: 1.6;
             --font-size-h1: 1.8rem;
             --font-size-h2: 1.5rem;
             --font-size-h3: 1.25rem;
             --font-size-h4: 1.1rem;
-            --chat-content-narrow-width: 42rem; /* For when sidebar is expanded */
-            --chat-content-expanded-width: 48rem; /* For when sidebar is collapsed (like ChatGPT) */
+            --chat-content-narrow-width: 42rem;
+            --chat-content-expanded-width: 48rem;
             
             --background-color: #ffffff;
-            --text-color: #1f1f1f; /* Slightly softer black */
+            --text-color: #1f1f1f;
             --primary-accent: #1a1a1a;
             --sidebar-bg: #f7f7f8;
             --border-color: #e5e5e5;
@@ -619,9 +618,7 @@
                 const chat = snapshot.val();
                 localChatHistory = chat.messages || [];
                 
-                // **BUG FIX:** Gracefully load history instead of in a bulk
                 chatMessages.innerHTML = '';
-                // Temporarily add class to prevent animations on the initial fast-render to prevent a cascade of animations
                 chatMessages.classList.add('is-loading-history');
 
                 localChatHistory.forEach(msg => {
@@ -635,10 +632,8 @@
                     }
                 });
 
-                // Scroll to the bottom of the loaded history without animation
                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'auto' });
                 
-                // Remove the class after rendering so future messages can animate
                 requestAnimationFrame(() => {
                     chatMessages.classList.remove('is-loading-history');
                 });
@@ -649,23 +644,30 @@
                     const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                     contentBlock.innerHTML = marked.parse(pendingGen);
                     finalizeMessageFormatting(contentBlock);
-                    saveChat(pendingGen)
+                    // This case is unlikely now but good for safety
+                    saveChat(pendingGen) 
                     localStorage.removeItem(`pendingGen_${chatId}`);
                 }
 
                 updateActiveChatSelection(chatId);
             }
 
-            function saveChat(textToSave) {
+            // **BUG FIX: Centralized save function that updates in-memory history.**
+            function saveChat() {
                 if (!currentUser || !currentChatId) return;
-                const finalHistory = [...localChatHistory];
-                if (textToSave && textToSave.trim()) {
-                    finalHistory.push({ role: 'model', text: textToSave });
-                }
-                db.ref(`chats/${currentUser.uid}/${currentChatId}`).update({
-                    messages: finalHistory,
+                
+                // Save the single source of truth.
+                const updates = {
+                    messages: localChatHistory,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
+                };
+
+                // If this is the very first AI message, update the title too.
+                if (localChatHistory.length === 2) {
+                    updates.title = localChatHistory[0].text.substring(0, 35);
+                }
+
+                db.ref(`chats/${currentUser.uid}/${currentChatId}`).update(updates);
             }
             
             function setStreamingState(isStreaming) {
@@ -683,23 +685,27 @@
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
                 
-                // **BUG FIX:** Add user message and immediately scroll it into view
                 const userMessageContainer = addMessageToUI('user', userMessage);
                 userMessageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+                let isNewChat = false;
                 if (!currentChatId) {
+                    isNewChat = true;
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
                     currentChatId = newChatRef.key;
-                    localChatHistory.push({ role: 'user', text: userMessage });
-                    await newChatRef.set({
-                        title: userMessage.substring(0, 35),
+                    updateActiveChatSelection(currentChatId);
+                }
+
+                // **BUG FIX: Only update the in-memory array. Do NOT save to DB yet.**
+                localChatHistory.push({ role: 'user', text: userMessage });
+                
+                if (isNewChat) {
+                    // Preemptively set a placeholder title
+                    await db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
+                        title: userMessage.substring(0, 35) + "...",
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     });
-                    updateActiveChatSelection(currentChatId);
-                } else {
-                    localChatHistory.push({ role: 'user', text: userMessage });
-                    await db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
                 const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>`, true);
@@ -717,8 +723,8 @@
                     if (renderIndex < accumulatedResponseText.length) {
                         const isHidden = document.hidden;
                         const charsToAdd = isHidden 
-                            ? accumulatedResponseText.length - renderIndex // If tab is hidden, catch up instantly
-                            : Math.max(1, Math.min(5, accumulatedResponseText.length - renderIndex)); // Otherwise, type at a normal speed
+                            ? accumulatedResponseText.length - renderIndex 
+                            : Math.max(1, Math.min(5, accumulatedResponseText.length - renderIndex));
                         
                         renderIndex += charsToAdd;
                         const textToRender = accumulatedResponseText.substring(0, renderIndex);
@@ -727,12 +733,15 @@
                     }
                     
                     if (streamFinished && renderIndex >= accumulatedResponseText.length) {
-                        // Perform one final render to ensure everything is perfect
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText);
                         finalizeMessageFormatting(contentBlock);
 
                         setStreamingState(false);
-                        saveChat(accumulatedResponseText);
+                        
+                        // **BUG FIX: Update in-memory history and THEN save the whole thing.**
+                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
+                        saveChat(); 
+
                         localStorage.removeItem(`pendingGen_${currentChatId}`);
                         currentStreamController = null;
                         cancelAnimationFrame(animationFrameId);
@@ -808,7 +817,6 @@
                 }
             });
             
-            // The rest of the JavaScript is unchanged...
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
             newChatItem.addEventListener('click', () => startNewChat());
             chatForm.addEventListener('submit', handleSendMessage);

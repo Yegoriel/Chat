@@ -397,7 +397,7 @@
         .message-container.ai pre {
             background-color: var(--code-bg); color: var(--code-text-color);
             padding: var(--space-md); border-radius: 8px; border: 1px solid var(--border-color);
-            overflow-x: auto; font-family: 'SF Mono', 'Fira Code', monospace';
+            overflow-x: auto; font-family: 'SF Mono', 'Fira Code', 'monospace';
             font-size: 0.875rem; line-height: 1.6; margin: 0;
         }
         .message-container.ai pre code.hljs { padding: 0; background: transparent; }
@@ -441,8 +441,8 @@
     </style>
 </head>
 <body>
-    <!-- The Body HTML remains unchanged. It is the same as the previous step. -->
     <div id="app-container">
+        <!-- The Body HTML remains unchanged. -->
         <div id="sidebar-overlay"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
@@ -516,8 +516,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
-        // The JavaScript logic remains the same as the previous refined version.
-        // It already contains the performance optimizations for fast, non-blocking rendering.
         document.addEventListener('DOMContentLoaded', () => {
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
@@ -537,7 +535,10 @@
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtn = document.getElementById('stop-btn'), sendBtn = document.getElementById('send-btn');
 
             marked.setOptions({
-                highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value,
+                highlight: (code, lang) => {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                },
                 langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
 
@@ -584,7 +585,7 @@
                     wrapper.appendChild(btn); 
                 });
                 
-                container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
+                container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
                     const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
@@ -630,6 +631,7 @@
                     const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                     contentBlock.innerHTML = marked.parse(pendingGen);
                     finalizeMessageFormatting(contentBlock);
+                    saveChat(pendingGen)
                     localStorage.removeItem(`pendingGen_${chatId}`);
                 }
 
@@ -679,7 +681,7 @@
                     updateActiveChatSelection(currentChatId);
                 } else {
                     localChatHistory.push({ role: 'user', text: userMessage });
-                    db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
+                    await db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
                 const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"><div class="thinking-indicator"><span></span><span></span><span></span></div></div>`, true);
@@ -687,34 +689,39 @@
                 
                 currentStreamController = new AbortController();
                 let accumulatedResponseText = '';
-                let lastRenderedText = '';
+                let renderIndex = 0;
                 let animationFrameId = null;
                 let streamFinished = false;
                 let firstTokenReceived = false;
                 let pendingSaveTimeout = null;
 
-                const renderLoop = () => {
-                    if (streamFinished && accumulatedResponseText === lastRenderedText) {
+                const typewriterRenderLoop = () => {
+                    if (renderIndex < accumulatedResponseText.length) {
+                        const charsToAdd = document.hidden ? accumulatedResponseText.length - renderIndex : Math.max(1, Math.min(5, accumulatedResponseText.length - renderIndex));
+                        renderIndex += charsToAdd;
+                        
+                        const textToRender = accumulatedResponseText.substring(0, renderIndex);
+                        contentBlock.innerHTML = marked.parse(textToRender);
+                        finalizeMessageFormatting(contentBlock);
+                    }
+                    
+                    if (streamFinished && renderIndex >= accumulatedResponseText.length) {
+                        contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                        finalizeMessageFormatting(contentBlock);
+
                         setStreamingState(false);
                         saveChat(accumulatedResponseText);
                         localStorage.removeItem(`pendingGen_${currentChatId}`);
                         currentStreamController = null;
                         cancelAnimationFrame(animationFrameId);
-                        return;
+                    } else if (!currentStreamController.signal.aborted) {
+                        animationFrameId = requestAnimationFrame(typewriterRenderLoop);
                     }
-
-                    if (lastRenderedText !== accumulatedResponseText) {
-                        contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                        finalizeMessageFormatting(contentBlock);
-                        lastRenderedText = accumulatedResponseText;
-                    }
-                    
-                    animationFrameId = requestAnimationFrame(renderLoop);
                 };
                 
                 const fetchAndProcessStream = async () => {
                     try {
-                        animationFrameId = requestAnimationFrame(renderLoop);
+                        animationFrameId = requestAnimationFrame(typewriterRenderLoop);
 
                         const response = await fetch('/api/chat', {
                             method: 'POST',
@@ -741,7 +748,7 @@
                                 if (line.trim().startsWith('data:')) {
                                     if (!firstTokenReceived) {
                                         firstTokenReceived = true;
-                                        accumulatedResponseText = '';
+                                        contentBlock.innerHTML = '';
                                     }
                                     try {
                                         const jsonStr = line.substring(5).trim();
@@ -753,7 +760,7 @@
                                             clearTimeout(pendingSaveTimeout);
                                             pendingSaveTimeout = setTimeout(() => {
                                                 localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
-                                            }, 500);
+                                            }, 300);
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
@@ -879,6 +886,7 @@
                     const setPinnedState = (isPinned) => {
                         localStorage.setItem('sidebarPinned', isPinned);
                         sidebar.classList.toggle('is-pinned', isPinned);
+                        chatArea.classList.toggle('sidebar-pinned', isPinned)
                         pinBtn.title = isPinned ? 'Unpin Sidebar' : 'Pin Sidebar';
                         if (isPinned) {
                             sidebar.classList.remove('is-collapsed');

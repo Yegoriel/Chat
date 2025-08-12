@@ -386,20 +386,21 @@
 
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper, 
         .message-container.ai .table-wrapper, .message-container.ai hr {
-            margin: 0.75em 0;
+            margin: 1.5em 0;
         }
 
+        /* Improved Heading Hierarchy */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
-            margin: 1.75em 0 1em 0;
+            margin: 1.75em 0 0.75em 0; /* More space above, less below */
             line-height: 1.25;
             font-weight: 600;
         }
-        .message-container.ai h1 { font-size: var(--font-size-h1); }
-        .message-container.ai h2 { font-size: var(--font-size-h2); }
-        .message-container.ai h3 { font-size: var(--font-size-h3); }
-        .message-container.ai h4 { font-size: var(--font-size-h4); }
-        .message-container.ai h5 { font-size: 1rem; font-weight: 600; }
-        .message-container.ai h6 { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .message-container.ai h1 { font-size: var(--font-size-h1); font-weight: 700; }
+        .message-container.ai h2 { font-size: var(--font-size-h2); font-weight: 600; }
+        .message-container.ai h3 { font-size: var(--font-size-h3); font-weight: 600; }
+        .message-container.ai h4 { font-size: var(--font-size-h4); font-weight: 600; }
+        .message-container.ai h5 { font-size: 1rem; font-weight: 600; } /* Distinct from body */
+        .message-container.ai h6 { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9; } /* Stylistically different */
         .message-container.ai strong { font-weight: 600; }
 
         .message-container.ai ul,
@@ -705,7 +706,7 @@
                     }
                 });
                 
-                // FIX: Restore from localStorage
+                // Restore from localStorage if there's a pending generation
                 const pendingGen = localStorage.getItem(`pendingGen_${chatId}`);
                 if (pendingGen) {
                     const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
@@ -770,42 +771,47 @@
                 
                 currentStreamController = new AbortController();
                 let accumulatedResponseText = '';
-                let renderIndex = 0;
-                let animationFrameId = null;
+                let lastRenderedText = '';
+                let renderLoopId = null;
                 let streamFinished = false;
                 let firstTokenReceived = false;
 
-                const typewriterRenderLoop = () => {
-                    if (currentStreamController.signal.aborted && !streamFinished) {
-                        streamFinished = true;
-                    }
-
-                    if (renderIndex < accumulatedResponseText.length) {
-                        const isHidden = document.hidden;
-                        const charsToAdd = isHidden ? accumulatedResponseText.length - renderIndex : Math.min(5, accumulatedResponseText.length - renderIndex);
-                        
-                        renderIndex += charsToAdd;
-                        const textToRender = accumulatedResponseText.substring(0, renderIndex);
-                        contentBlock.innerHTML = marked.parse(textToRender);
-                        finalizeMessageFormatting(contentBlock);
-                    }
-                    
-                    if (streamFinished && renderIndex >= accumulatedResponseText.length) {
+                const renderBatch = () => {
+                    if (lastRenderedText !== accumulatedResponseText) {
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText);
                         finalizeMessageFormatting(contentBlock);
+                        lastRenderedText = accumulatedResponseText;
+                    }
+                };
+                
+                const typewriterRenderLoop = () => {
+                    if (currentStreamController.signal.aborted) streamFinished = true;
+                    
+                    renderBatch();
+                    
+                    if (streamFinished) {
                         setStreamingState(false);
                         saveChat(accumulatedResponseText);
                         localStorage.removeItem(`pendingGen_${currentChatId}`);
                         currentStreamController = null;
-                        cancelAnimationFrame(animationFrameId);
+                        if(renderLoopId) {
+                            cancelAnimationFrame(renderLoopId);
+                            clearTimeout(renderLoopId);
+                        }
                     } else {
-                        animationFrameId = requestAnimationFrame(typewriterRenderLoop);
+                         // Use setTimeout if tab is hidden to ensure progress
+                        if (document.hidden) {
+                            renderLoopId = setTimeout(typewriterRenderLoop, 200);
+                        } else {
+                            renderLoopId = requestAnimationFrame(typewriterRenderLoop);
+                        }
                     }
                 };
-                
+
                 const fetchAndProcessStream = async () => {
                     try {
-                        animationFrameId = requestAnimationFrame(typewriterRenderLoop);
+                        // Start the render loop immediately
+                        renderLoopId = requestAnimationFrame(typewriterRenderLoop);
 
                         const response = await fetch('/api/chat', {
                             method: 'POST',
@@ -819,6 +825,7 @@
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
                         let sseBuffer = '';
+                        let pendingSaveTimeout;
 
                         while (true) {
                             const { value, done } = await reader.read();
@@ -832,7 +839,7 @@
                                 if (line.trim().startsWith('data:')) {
                                     if (!firstTokenReceived) {
                                         firstTokenReceived = true;
-                                        contentBlock.innerHTML = '';
+                                        contentBlock.innerHTML = ''; // Clear thinking indicator
                                     }
                                     try {
                                         const jsonStr = line.substring(5).trim();
@@ -840,8 +847,11 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            // FIX: Save partial generation to localStorage
-                                            localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
+                                            // Debounce localStorage saving
+                                            clearTimeout(pendingSaveTimeout);
+                                            pendingSaveTimeout = setTimeout(() => {
+                                                localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
+                                            }, 300);
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }

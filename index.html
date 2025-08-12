@@ -226,7 +226,6 @@
         }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
         
-        /* This class is used ONLY to prevent animation on the initial fast-load */
         #chat-messages.is-loading-history .message-container { 
             animation: none; 
             opacity: 1; 
@@ -536,7 +535,11 @@
             const auth = firebase.auth();
             const db = firebase.database();
             
-            let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null, isRenaming = false, activeDropdown = null, currentStreamController = null;
+            // Moved state variables that need to be accessed by cleanup logic to a higher scope
+            let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null;
+            let isRenaming = false, activeDropdown = null, currentStreamController = null;
+            let accumulatedResponseText = '', animationFrameId = null;
+
 
             const chatHistoryList = document.getElementById('chat-history-list'), chatForm = document.getElementById('chat-form'), chatInput = document.getElementById('chat-input'), chatMessages = document.getElementById('chat-messages'), userAvatar = document.getElementById('user-avatar'), sidebar = document.getElementById('sidebar'), chatArea = document.getElementById('chat-area'), sidebarOverlay = document.getElementById('sidebar-overlay'), newChatItem = document.getElementById('new-chat-item'), stopBtn = document.getElementById('stop-btn'), sendBtn = document.getElementById('send-btn');
 
@@ -638,32 +641,18 @@
                     chatMessages.classList.remove('is-loading-history');
                 });
                 
-                const pendingGen = localStorage.getItem(`pendingGen_${chatId}`);
-                if (pendingGen) {
-                    const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
-                    const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                    contentBlock.innerHTML = marked.parse(pendingGen);
-                    finalizeMessageFormatting(contentBlock);
-                    // This case is unlikely now but good for safety
-                    saveChat(pendingGen) 
-                    localStorage.removeItem(`pendingGen_${chatId}`);
-                }
-
                 updateActiveChatSelection(chatId);
             }
 
-            // **BUG FIX: Centralized save function that updates in-memory history.**
             function saveChat() {
                 if (!currentUser || !currentChatId) return;
                 
-                // Save the single source of truth.
                 const updates = {
                     messages: localChatHistory,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                // If this is the very first AI message, update the title too.
-                if (localChatHistory.length === 2) {
+                if (localChatHistory.length <= 2) {
                     updates.title = localChatHistory[0].text.substring(0, 35);
                 }
 
@@ -673,6 +662,25 @@
             function setStreamingState(isStreaming) {
                 document.body.classList.toggle('is-streaming', isStreaming);
                 chatInput.disabled = isStreaming;
+            }
+
+            // **BUG FIX: Centralized cleanup function**
+            function cleanUpStream(finalText) {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+                
+                setStreamingState(false);
+                
+                if (finalText && finalText.trim()) {
+                    localChatHistory.push({ role: 'model', text: finalText });
+                    saveChat();
+                }
+                
+                localStorage.removeItem(`pendingGen_${currentChatId}`);
+                currentStreamController = null;
+                accumulatedResponseText = '';
+                animationFrameId = null;
             }
 
             async function handleSendMessage(e) {
@@ -696,11 +704,9 @@
                     updateActiveChatSelection(currentChatId);
                 }
 
-                // **BUG FIX: Only update the in-memory array. Do NOT save to DB yet.**
                 localChatHistory.push({ role: 'user', text: userMessage });
                 
                 if (isNewChat) {
-                    // Preemptively set a placeholder title
                     await db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
                         title: userMessage.substring(0, 35) + "...",
                         messages: localChatHistory,
@@ -712,9 +718,8 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                let accumulatedResponseText = '';
+                accumulatedResponseText = ''; // Reset for the new message
                 let renderIndex = 0;
-                let animationFrameId = null;
                 let streamFinished = false;
                 let firstTokenReceived = false;
                 let pendingSaveTimeout = null;
@@ -735,17 +740,8 @@
                     if (streamFinished && renderIndex >= accumulatedResponseText.length) {
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText);
                         finalizeMessageFormatting(contentBlock);
-
-                        setStreamingState(false);
-                        
-                        // **BUG FIX: Update in-memory history and THEN save the whole thing.**
-                        localChatHistory.push({ role: 'model', text: accumulatedResponseText });
-                        saveChat(); 
-
-                        localStorage.removeItem(`pendingGen_${currentChatId}`);
-                        currentStreamController = null;
-                        cancelAnimationFrame(animationFrameId);
-                    } else if (currentStreamController && !currentStreamController.signal.aborted) {
+                        cleanUpStream(accumulatedResponseText); // Use centralized cleanup
+                    } else {
                         animationFrameId = requestAnimationFrame(typewriterRenderLoop);
                     }
                 };
@@ -768,6 +764,7 @@
                         let sseBuffer = '';
 
                         while (true) {
+                            if (currentStreamController.signal.aborted) break;
                             const { value, done } = await reader.read();
                             if (done) break;
                             
@@ -803,7 +800,9 @@
                             contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                         }
                     } finally {
-                        if (!firstTokenReceived) contentBlock.innerHTML = '';
+                        if (!firstTokenReceived && !currentStreamController.signal.aborted) {
+                            contentBlock.innerHTML = '';
+                        }
                         streamFinished = true;
                     }
                 };
@@ -814,6 +813,8 @@
             stopBtn.addEventListener('click', () => {
                 if (currentStreamController) {
                     currentStreamController.abort();
+                    // **BUG FIX: Immediately call the cleanup function.**
+                    cleanUpStream(accumulatedResponseText);
                 }
             });
             
@@ -835,7 +836,7 @@
                     const existingItemsMap = new Map();
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => existingItemsMap.set(el.dataset.chatId, el));
                     chatsData.forEach((chat, index) => {
-                        const titleText = chat.title || chat.messages?.[0]?.text.substring(0, 35) || 'New Chat';
+                        const titleText = chat.title || (chat.messages?.[0]?.text.substring(0, 35) || 'New Chat');
                         let itemEl = existingItemsMap.get(chat.id);
                         if (itemEl) {
                             itemEl.querySelector('.chat-title-container').textContent = titleText;

@@ -226,7 +226,14 @@
             contain: layout style;
         }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
-        #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
+        
+        /* This class is used ONLY to prevent animation on the initial fast-load */
+        #chat-messages.is-loading-history .message-container { 
+            animation: none; 
+            opacity: 1; 
+            transform: none; 
+        }
+
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
         
         .message-container.user { 
@@ -611,7 +618,10 @@
                 
                 const chat = snapshot.val();
                 localChatHistory = chat.messages || [];
+                
+                // **BUG FIX:** Gracefully load history instead of in a bulk
                 chatMessages.innerHTML = '';
+                // Temporarily add class to prevent animations on the initial fast-render to prevent a cascade of animations
                 chatMessages.classList.add('is-loading-history');
 
                 localChatHistory.forEach(msg => {
@@ -624,6 +634,14 @@
                         finalizeMessageFormatting(contentBlock);
                     }
                 });
+
+                // Scroll to the bottom of the loaded history without animation
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'auto' });
+                
+                // Remove the class after rendering so future messages can animate
+                requestAnimationFrame(() => {
+                    chatMessages.classList.remove('is-loading-history');
+                });
                 
                 const pendingGen = localStorage.getItem(`pendingGen_${chatId}`);
                 if (pendingGen) {
@@ -635,9 +653,6 @@
                     localStorage.removeItem(`pendingGen_${chatId}`);
                 }
 
-                requestAnimationFrame(() => {
-                    chatMessages.classList.remove('is-loading-history');
-                });
                 updateActiveChatSelection(chatId);
             }
 
@@ -667,7 +682,10 @@
                 setStreamingState(true);
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
-                addMessageToUI('user', userMessage);
+                
+                // **BUG FIX:** Add user message and immediately scroll it into view
+                const userMessageContainer = addMessageToUI('user', userMessage);
+                userMessageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
@@ -697,15 +715,19 @@
 
                 const typewriterRenderLoop = () => {
                     if (renderIndex < accumulatedResponseText.length) {
-                        const charsToAdd = document.hidden ? accumulatedResponseText.length - renderIndex : Math.max(1, Math.min(5, accumulatedResponseText.length - renderIndex));
-                        renderIndex += charsToAdd;
+                        const isHidden = document.hidden;
+                        const charsToAdd = isHidden 
+                            ? accumulatedResponseText.length - renderIndex // If tab is hidden, catch up instantly
+                            : Math.max(1, Math.min(5, accumulatedResponseText.length - renderIndex)); // Otherwise, type at a normal speed
                         
+                        renderIndex += charsToAdd;
                         const textToRender = accumulatedResponseText.substring(0, renderIndex);
                         contentBlock.innerHTML = marked.parse(textToRender);
                         finalizeMessageFormatting(contentBlock);
                     }
                     
                     if (streamFinished && renderIndex >= accumulatedResponseText.length) {
+                        // Perform one final render to ensure everything is perfect
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText);
                         finalizeMessageFormatting(contentBlock);
 
@@ -714,7 +736,7 @@
                         localStorage.removeItem(`pendingGen_${currentChatId}`);
                         currentStreamController = null;
                         cancelAnimationFrame(animationFrameId);
-                    } else if (!currentStreamController.signal.aborted) {
+                    } else if (currentStreamController && !currentStreamController.signal.aborted) {
                         animationFrameId = requestAnimationFrame(typewriterRenderLoop);
                     }
                 };
@@ -786,6 +808,7 @@
                 }
             });
             
+            // The rest of the JavaScript is unchanged...
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
             newChatItem.addEventListener('click', () => startNewChat());
             chatForm.addEventListener('submit', handleSendMessage);

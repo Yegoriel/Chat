@@ -21,11 +21,7 @@
             --space-xxxl: 3rem;
 
             --font-size-body: 0.975rem;
-            --font-size-h1: 2rem;
-            --font-size-h2: 1.5rem;
-            --font-size-h3: 1.25rem;
-            --font-size-h4: 1.1rem;
-            
+
             --background-color: #ffffff;
             --text-color: #202020;
             --primary-accent: #1a1a1a;
@@ -369,7 +365,7 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: #aaa; }
 
-      /* --- START: REFINED TYPOGRAPHY SYSTEM --- */
+      /* --- START: REFINED & DOMINANT TYPOGRAPHY SYSTEM --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
@@ -389,18 +385,18 @@
             margin: 1.5em 0;
         }
 
-        /* Improved Heading Hierarchy */
+        /* Dominant Heading Hierarchy */
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
             margin: 1.75em 0 0.75em 0; /* More space above, less below */
             line-height: 1.25;
             font-weight: 600;
         }
-        .message-container.ai h1 { font-size: var(--font-size-h1); font-weight: 700; }
-        .message-container.ai h2 { font-size: var(--font-size-h2); font-weight: 600; }
-        .message-container.ai h3 { font-size: var(--font-size-h3); font-weight: 600; }
-        .message-container.ai h4 { font-size: var(--font-size-h4); font-weight: 600; }
-        .message-container.ai h5 { font-size: 1rem; font-weight: 600; } /* Distinct from body */
-        .message-container.ai h6 { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9; } /* Stylistically different */
+        .message-container.ai h1 { font-size: 2.2rem; font-weight: 700; }
+        .message-container.ai h2 { font-size: 1.7rem; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em;}
+        .message-container.ai h3 { font-size: 1.4rem; font-weight: 600; }
+        .message-container.ai h4 { font-size: 1.15rem; font-weight: 600; }
+        .message-container.ai h5 { font-size: 1rem; font-weight: 600; }
+        .message-container.ai h6 { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9; }
         .message-container.ai strong { font-weight: 600; }
 
         .message-container.ai ul,
@@ -509,13 +505,13 @@
         body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
         .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
-      /* --- END: REFINED TYPOGRAPHY SYSTEM --- */
+      /* --- END: REFINED & DOMINANT TYPOGRAPHY SYSTEM --- */
       
       @media (max-width: 768px) {
           .message-container.ai .ai-content-block { font-size: 1rem; }
           .message-container.ai h1 { font-size: 1.8rem; }
-          .message-container.ai h2 { font-size: 1.4rem; }
-          .message-container.ai h3 { font-size: 1.2rem; }
+          .message-container.ai h2 { font-size: 1.5rem; }
+          .message-container.ai h3 { font-size: 1.25rem; }
           .message-container.ai h4 { font-size: 1.1rem; }
           .message-container.ai ol { padding-inline-start: 2.2rem; }
           .message-container.ai ul { padding-inline-start: 1.5rem; }
@@ -706,7 +702,6 @@
                     }
                 });
                 
-                // Restore from localStorage if there's a pending generation
                 const pendingGen = localStorage.getItem(`pendingGen_${chatId}`);
                 if (pendingGen) {
                     const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
@@ -748,8 +743,7 @@
                 setStreamingState(true);
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
-                const userMessageContainer = addMessageToUI('user', userMessage);
-                userMessageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                addMessageToUI('user', userMessage);
 
                 if (!currentChatId) {
                     const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
@@ -771,43 +765,47 @@
                 
                 currentStreamController = new AbortController();
                 let accumulatedResponseText = '';
-                let lastRenderedText = '';
+                let renderIndex = 0;
                 let renderLoopId = null;
                 let streamFinished = false;
                 let firstTokenReceived = false;
-
-                const renderBatch = () => {
-                    if (lastRenderedText !== accumulatedResponseText) {
-                        contentBlock.innerHTML = marked.parse(accumulatedResponseText);
-                        finalizeMessageFormatting(contentBlock);
-                        lastRenderedText = accumulatedResponseText;
-                    }
-                };
                 
                 const typewriterRenderLoop = () => {
                     if (currentStreamController.signal.aborted) streamFinished = true;
+
+                    if (renderIndex < accumulatedResponseText.length) {
+                        const isHidden = document.hidden;
+                        // Render more characters at once if the tab is hidden to catch up quickly
+                        const charsToAdd = isHidden ? 100 : 5;
+                        renderIndex = Math.min(renderIndex + charsToAdd, accumulatedResponseText.length);
+                        
+                        const textToRender = accumulatedResponseText.substring(0, renderIndex);
+                        contentBlock.innerHTML = marked.parse(textToRender);
+                        finalizeMessageFormatting(contentBlock);
+                    }
                     
-                    renderBatch();
-                    
-                    if (streamFinished) {
+                    if (streamFinished && renderIndex >= accumulatedResponseText.length) {
+                        // Final render to ensure everything is perfect
+                        contentBlock.innerHTML = marked.parse(accumulatedResponseText);
+                        finalizeMessageFormatting(contentBlock);
+                        
                         setStreamingState(false);
                         saveChat(accumulatedResponseText);
                         localStorage.removeItem(`pendingGen_${currentChatId}`);
                         currentStreamController = null;
                         if(renderLoopId) {
-                            cancelAnimationFrame(renderLoopId);
-                            clearTimeout(renderLoopId);
+                           cancelAnimationFrame(renderLoopId);
+                           clearTimeout(renderLoopId);
                         }
                     } else {
-                         // Use setTimeout if tab is hidden to ensure progress
-                        if (document.hidden) {
-                            renderLoopId = setTimeout(typewriterRenderLoop, 200);
+                        if (isHidden) {
+                            renderLoopId = setTimeout(typewriterRenderLoop, 100);
                         } else {
                             renderLoopId = requestAnimationFrame(typewriterRenderLoop);
                         }
                     }
                 };
-
+                
                 const fetchAndProcessStream = async () => {
                     try {
                         // Start the render loop immediately
@@ -839,7 +837,6 @@
                                 if (line.trim().startsWith('data:')) {
                                     if (!firstTokenReceived) {
                                         firstTokenReceived = true;
-                                        contentBlock.innerHTML = ''; // Clear thinking indicator
                                     }
                                     try {
                                         const jsonStr = line.substring(5).trim();
@@ -847,7 +844,6 @@
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
                                             accumulatedResponseText += textPart;
-                                            // Debounce localStorage saving
                                             clearTimeout(pendingSaveTimeout);
                                             pendingSaveTimeout = setTimeout(() => {
                                                 localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);

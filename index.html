@@ -667,7 +667,7 @@
                 } else {
                     currentUser = null; if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
-                    chatHistoryList.querySelectorAll('-item:not(#new-chat-item)').forEach(el => el.remove());
+                    chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
                     chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
                     document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
@@ -913,7 +913,7 @@
                     snapshot.forEach(child => { chatsData.push({ id: child.key, ...child.val() }); });
                     chatsData.reverse();
                     const existingItemsMap = new Map();
-                    chatHistoryList.querySelectorAll('-item:not(#new-chat-item)').forEach(el => existingItemsMap.set(el.dataset.chatId, el));
+                    chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => existingItemsMap.set(el.dataset.chatId, el));
                     chatsData.forEach((chat, index) => {
                         const titleText = chat.title || chat.messages?.[0]?.text.substring(0, 35) || 'New Chat';
                         let itemEl = existingItemsMap.get(chat.id);
@@ -946,7 +946,7 @@
             }
             
             chatHistoryList.addEventListener('click', (e) => {
-                const item = e.target.closest('-item:not(#new-chat-item)');
+                const item = e.target.closest('.chat-history-item:not(#new-chat-item)');
                 if (!item) return;
                 const actionsBtn = e.target.closest('.chat-actions-btn');
                 if (actionsBtn) {
@@ -970,7 +970,7 @@
                 if(document.body.classList.contains('is-mobile') && document.body.classList.contains('sidebar-open')) closeSidebar();
                 localChatHistory = []; currentChatId = null; chatMessages.innerHTML = ''; chatInput.value = ''; chatInput.style.height = 'auto'; chatInput.focus(); updateActiveChatSelection(null); 
             }
-            function updateActiveChatSelection(activeId) { currentChatId = activeId; document.querySelectorAll('-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); newChatItem.classList.toggle('active', activeId === null); }
+            function updateActiveChatSelection(activeId) { currentChatId = activeId; document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); newChatItem.classList.toggle('active', activeId === null); }
             
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             const closeSidebar = () => { document.body.classList.remove('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };

@@ -243,6 +243,10 @@
             border: none; 
             padding: 0;
             width: 100%;
+            /* FIX: This is the key to preventing the container from stretching on mobile.
+               It forces the flex item to respect its container's width, allowing the inner
+               .code-block-wrapper to handle the overflow scroll correctly. */
+            min-width: 0;
         }
         
         .ai-content-block {
@@ -802,13 +806,11 @@
                         const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
                         displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
                         
-                        // FIX: Parse and apply formatting on every frame for live syntax highlighting.
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
                         finalizeMessageFormatting(contentBlock); 
                     }
                     
-                    if (streamFinished && displayedText.length === accumulatedResponseText.length) {
-                        // Final render pass to ensure everything is perfect.
+                    if (streamFinished && displayedText.length >= accumulatedResponseText.length) {
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
                         finalizeMessageFormatting(contentBlock);
                         

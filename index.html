@@ -476,8 +476,6 @@
             max-width: 100%;
             overflow-x: auto;
             position: relative;
-            /* FIX: Allow both horizontal and vertical panning. Modern browsers can distinguish the user's intent,
-               allowing for horizontal swipe on the element and vertical swipe on the page without conflict. */
             touch-action: pan-x pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -681,7 +679,6 @@
                 }
                 chatMessages.appendChild(m);
                 if (sender === 'user') {
-                    // Autoscroll only for user's own message to ensure it's visible.
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }
                 return m;
@@ -716,7 +713,6 @@
                     wrapper.appendChild(btn); 
                 });
                 
-                // This is the key part for syntax highlighting. It targets all `<code>` blocks that haven't been highlighted yet.
                 container.querySelectorAll('pre code:not(.hljs)').forEach(hljs.highlightElement);
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
@@ -790,7 +786,7 @@
                     db.ref(`chats/${currentUser.uid}/${currentChatId}/messages`).set(localChatHistory);
                 }
 
-                const aiMsgContainer = addMessageToUI('ai', '<div class="ai-content-block"></div>', true);
+                const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 stopBtnContainer.style.display = 'flex';
                 
@@ -806,22 +802,21 @@
                         const catchUpChars = Math.min(charsBehind, Math.max(2, Math.floor(charsBehind / 8)));
                         displayedText += accumulatedResponseText.substring(displayedText.length, displayedText.length + catchUpChars);
                         
-                        // Render the raw markdown. This is fast and shows plain text in code blocks as it streams.
+                        // FIX: Parse and apply formatting on every frame for live syntax highlighting.
                         contentBlock.innerHTML = marked.parse(displayedText.trim());
+                        finalizeMessageFormatting(contentBlock); 
                     }
                     
                     if (streamFinished && displayedText.length === accumulatedResponseText.length) {
-                        // This is the final, single render pass.
+                        // Final render pass to ensure everything is perfect.
                         contentBlock.innerHTML = marked.parse(accumulatedResponseText.trim());
-                        // Now, apply all final formatting, including syntax highlighting, in one go for stability.
                         finalizeMessageFormatting(contentBlock);
                         
                         if (accumulatedResponseText.trim()) {
-                            // Find the last message in the history (which is the user's prompt) and add the final AI response after it.
                             const modelResponseIndex = localChatHistory.findIndex(m => m.role === 'model' && m.text === null);
                             if (modelResponseIndex > -1) {
                                 localChatHistory[modelResponseIndex].text = accumulatedResponseText;
-                            } else if(abortController) { // Only add if it wasn't a pre-existing message
+                            } else if(abortController) {
                                 localChatHistory.push({ role: 'model', text: accumulatedResponseText });
                             }
                             saveChat();
@@ -843,14 +838,13 @@
                 stopGenerationBtn.addEventListener('click', stopListener, { once: true });
 
                 const fetchAndProcessStream = async () => {
-                    // Add a placeholder for the model's response. This is important for saving partial responses.
                     localChatHistory.push({ role: 'model', text: null });
                     try {
                         animationFrameId = requestAnimationFrame(renderTypingEffect);
                         const response = await fetch('/api/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }), // Exclude the current prompt and null placeholder
+                            body: JSON.stringify({ message: userMessage, history: localChatHistory.slice(0, -2).slice(-10) }),
                             signal: abortController.signal
                         });
 

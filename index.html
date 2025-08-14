@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Chat - Professional Experience</title>
+    <title>AI Chat - The Final Version</title>
    
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
@@ -552,52 +552,36 @@
             // --- MARKED CONFIG --- 
             marked.setOptions({ gfm: true, breaks: true });
 
-            // --- PROFESSIONAL RENDERER --- 
-            class ProfessionalRenderer {
+            // --- FINAL RENDERER (CORRECTED) --- 
+            class FinalRenderer {
                 constructor(container) {
                     this.container = container;
-                    this.textBuffer = '';
-                    this.queue = [];
-                    this.isRendering = false;
-                    this.renderInterval = null;
                     this.container.innerHTML = '';
+                    this.textBuffer = '';
+                    this.renderRequest = null;
                 }
 
                 update(chunk) {
-                    this.queue.push(...chunk.split(''));
-                    if (!this.isRendering) {
-                        this.start();
-                    }
-                }
-
-                start() {
-                    this.isRendering = true;
-                    this.renderInterval = setInterval(() => this.processQueue(), 20);
-                }
-
-                processQueue() {
-                    if (this.queue.length === 0) {
-                        this.stop();
-                        return;
-                    }
-                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 5));
-                    const chunk = this.queue.splice(0, charsToProcess).join('');
                     this.textBuffer += chunk;
-                    this.render();
+                    if (!this.renderRequest) {
+                        this.renderRequest = requestAnimationFrame(() => this.render());
+                    }
                 }
 
                 render() {
+                    this.container.innerHTML = marked.parse(this.textBuffer);
+                    this.renderRequest = null;
+                }
+
+                finish() {
+                    if (this.renderRequest) {
+                        cancelAnimationFrame(this.renderRequest);
+                    }
                     this.container.innerHTML = marked.parse(this.textBuffer);
                     const codeBlocks = this.container.querySelectorAll('pre code');
                     if (codeBlocks.length > 0) {
                         codeBlocks.forEach(el => hljs.highlightElement(el));
                     }
-                }
-
-                finish() {
-                    this.stop();
-                    this.textBuffer += this.queue.splice(0, this.queue.length).join('');
-                    this.render();
                     finalizeMessageFormatting(this.container);
                 }
             }
@@ -723,6 +707,7 @@
                 currentStreamController = null;
             }
 
+            // --- HANDLE SEND MESSAGE (CORRECTED) ---
             async function handleSendMessage(e) {
                 e.preventDefault();
                 if (document.body.classList.contains('is-streaming') || !currentUser) return;
@@ -757,13 +742,28 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new ProfessionalRenderer(contentBlock);
+                const renderer = new FinalRenderer(contentBlock);
                 let accumulatedResponseText = '';
                 let sseBuffer = '';
 
-                const processChunk = (textPart) => {
-                    accumulatedResponseText += textPart;
-                    renderer.update(textPart);
+                const processChunk = (chunk) => {
+                    sseBuffer += chunk;
+                    const lines = sseBuffer.split('\n');
+                    sseBuffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.trim().startsWith('data:')) {
+                            try {
+                                const jsonStr = line.substring(5).trim();
+                                const parsed = JSON.parse(jsonStr);
+                                const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                if (textPart) {
+                                    accumulatedResponseText += textPart;
+                                    renderer.update(textPart); // Update renderer with ONLY the new text
+                                }
+                            } catch (parseError) { /* Ignore incomplete JSON */ }
+                        }
+                    }
                     localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                 }
 
@@ -786,22 +786,8 @@
                             const { value, done } = await reader.read();
                             if (done) break;
                             
-                            sseBuffer += decoder.decode(value, { stream: true });
-                            const lines = sseBuffer.split('\n');
-                            sseBuffer = lines.pop() || '';
-
-                            for (const line of lines) {
-                                if (line.trim().startsWith('data:')) {
-                                    try {
-                                        const jsonStr = line.substring(5).trim();
-                                        const parsed = JSON.parse(jsonStr);
-                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                        if (textPart) {
-                                            processChunk(textPart);
-                                        }
-                                    } catch (parseError) { /* Ignore incomplete JSON */ }
-                                }
-                            }
+                            const chunk = decoder.decode(value, { stream: true });
+                            processChunk(chunk);
                         }
                     } catch (error) {
                         if (error.name !== 'AbortError') {
@@ -820,7 +806,7 @@
                 if (!document.hidden && currentStreamController) {
                     const contentBlock = document.querySelector(".message-container.ai:last-child .ai-content-block");
                     if(contentBlock) {
-                        const renderer = new ProfessionalRenderer(contentBlock);
+                        const renderer = new FinalRenderer(contentBlock);
                         renderer.update(localStorage.getItem(`pendingGen_${currentChatId}`) || '');
                     }
                 }

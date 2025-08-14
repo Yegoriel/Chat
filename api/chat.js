@@ -47,7 +47,7 @@ const systemPrompt = `
 - **Crucial Rule: A single table row must NOT contain any newline characters. All data for a row must be on one single line.**
 - Do NOT use plain text or code blocks for tables.
 
-**🧩 Emoji Distribution Logic — Professional Use Guidelines**
+** Emoji Distribution Logic — Professional Use Guidelines**
 
 - You are only using emojis for main headers and paragraph headers, avoiding emojis for lists sub paragraphs.
 - Exactly one emoji may be added at the start of each main section or leading paragraph when semantically relevant.
@@ -60,7 +60,7 @@ const systemPrompt = `
 
 - Emoji selection should follow a semantic mapping model:
 - 🎯 Example for Semantic Emoji Map (Use by Function or Intent)
-| 🎛️ Contextual Category | 🧩 Emoji | 📘 Intended Use Case Example |
+| 🎛️ Contextual Category | ✅ Emoji | 📘 Intended Use Case Example |
 |------------------------|---------|------------------------------|
 | Goals, missions        | 🎯      | Strategic directives, purposes, prompts |
 | Confirmations, rules   | ✅      | Stated principles, core instructions |

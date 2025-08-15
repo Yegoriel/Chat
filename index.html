@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Chat</title>
+    <title>AI Chat - True Live Renderer</title>
    
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
@@ -14,15 +14,15 @@
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             
             --space-sm: 0.5rem;
-            --space-md: 1rem;
-            --space-lg: 1.25rem;
+            --space-md: 0.8rem;
+            --space-lg: 1.15rem;
 
-            --font-size-body: 1rem;
+            --font-size-body: 1em;
             --line-height-body: 1.6;
-            --font-size-h1: 2rem;
-            --font-size-h2: 1.7rem;
-            --font-size-h3: 1.4rem;
-            --font-size-h4: 1.1rem;
+            --font-size-h1: 1.8em;
+            --font-size-h2: 1.5em;
+            --font-size-h3: 1.17em;
+            --font-size-h4: 1em;
             --chat-content-narrow-width: 42rem;
             --chat-content-expanded-width: 48rem;
             
@@ -214,7 +214,6 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             touch-action: pan-y;
-            scroll-behavior: smooth;
             padding: 2rem 0 var(--input-bar-clearance) 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
@@ -534,11 +533,11 @@
             const auth = firebase.auth();
             const db = firebase.database();
 
-            // --- STATE MANAGEMENT --- 
+            // --- STATE MANAGEMENT ---
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null;
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
 
-            // --- DOM ELEMENTS --- 
+            // --- DOM ELEMENTS ---
             const chatHistoryList = document.getElementById('chat-history-list'),
                 chatForm = document.getElementById('chat-form'),
                 chatInput = document.getElementById('chat-input'),
@@ -550,82 +549,65 @@
                 newChatItem = document.getElementById('new-chat-item'),
                 stopBtn = document.getElementById('stop-btn');
 
-            // --- MARKED & HIGHLIGHT.JS CONFIG --- 
-            marked.setOptions({
-                highlight: (code, lang) => {
-                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-                    return hljs.highlight(code, { language }).value;
-                },
-                langPrefix: 'hljs language-', gfm: true, breaks: true,
-            });
+            // --- MARKED CONFIG ---
+            marked.setOptions({ gfm: true, breaks: true });
 
-            // --- NEW: ADVANCED STREAM RENDERER --- 
-            class StreamRenderer {
+            // --- TRUE INCREMENTAL RENDERER ---
+            class TrueIncrementalRenderer {
                 constructor(container) {
                     this.container = container;
-                    this.fullText = "";
-                    this.animationFrameId = null;
-                    this.renderScheduled = false;
+                    this.textBuffer = '';
+                    this.queue = [];
+                    this.isRendering = false;
+                    this.renderInterval = null;
+                    this.container.innerHTML = '';
                 }
 
                 update(chunk) {
-                    this.fullText += chunk;
-                    if (!this.renderScheduled) {
-                        this.renderScheduled = true;
-                        this.animationFrameId = requestAnimationFrame(() => this.render());
+                    this.queue.push(...chunk.split(''));
+                    if (!this.isRendering) {
+                        this.start();
                     }
+                }
+
+                start() {
+                    this.isRendering = true;
+                    this.renderInterval = setInterval(() => this.processQueue(), 10); // Faster interval for smoother typing
+                }
+
+                processQueue() {
+                    if (this.queue.length === 0) {
+                        this.stop();
+                        return;
+                    }
+                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 4)); // Process smaller chunks for smoother effect
+                    const chunk = this.queue.splice(0, charsToProcess).join('');
+                    this.textBuffer += chunk;
+                    this.render();
                 }
 
                 render() {
-                    this.renderScheduled = false;
-                    const newHtml = marked.parse(this.fullText);
-                    this.container.innerHTML = newHtml;
-                    this.finalizeChunkFormatting();
-                }
-                
-                finalizeChunkFormatting() {
-                    this.container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'code-block-wrapper';
-                        pre.parentNode.insertBefore(wrapper, pre);
-                        wrapper.appendChild(pre);
-                        const btn = document.createElement('button');
-                        btn.className = 'copy-btn';
-                        btn.innerHTML = `<span>Copy</span>`;
-                        btn.onclick = () => {
-                            navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => {
-                                const span = btn.querySelector('span');
-                                if (span) {
-                                    span.textContent = 'Copied!';
-                                    setTimeout(() => { span.textContent = 'Copy'; }, 2000);
-                                }
-                            });
-                        };
-                        wrapper.appendChild(btn);
-                    });
-
-                    const codeBlocks = this.container.querySelectorAll('pre code:not(.hljs)');
+                    this.container.innerHTML = marked.parse(this.textBuffer);
+                    const codeBlocks = this.container.querySelectorAll('pre code');
                     if (codeBlocks.length > 0) {
-                       codeBlocks.forEach(el => hljs.highlightElement(el));
+                        codeBlocks.forEach(el => hljs.highlightElement(el));
                     }
+                }
 
-                    this.container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'table-wrapper';
-                        table.parentNode.insertBefore(wrapper, table);
-                        wrapper.appendChild(table);
-                    });
+                stop() {
+                    this.isRendering = false;
+                    clearInterval(this.renderInterval);
                 }
 
                 finish() {
-                    if (this.animationFrameId) {
-                        cancelAnimationFrame(this.animationFrameId);
-                    }
+                    this.stop();
+                    this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     this.render();
+                    finalizeMessageFormatting(this.container);
                 }
             }
 
-            // --- AUTH & UI --- 
+            // --- AUTH & UI ---
             const updateUIForAuthState = (user) => {
                 if (user) {
                     currentUser = user;
@@ -635,12 +617,7 @@
                         attachChatHistoryListener();
                     }
                     const lastChatId = localStorage.getItem('lastChatId');
-                    const pendingGen = localStorage.getItem(`pendingGen_${lastChatId}`);
-                    if (pendingGen) {
-                        loadChat(lastChatId, pendingGen);
-                    } else {
-                        loadChat(lastChatId || null);
-                    }
+                    loadChat(lastChatId || null);
                 } else {
                     currentUser = null;
                     if (chatHistoryListener) chatHistoryListener.off();
@@ -666,15 +643,17 @@
             }
             
             function finalizeMessageFormatting(container) {
-                container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
+                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
                     const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
                     btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
-                    wrapper.appendChild(btn); 
+                    wrapper.appendChild(btn);
                 });
-                
-                container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
+
+                container.querySelectorAll('pre code').forEach((el) => {
+                    hljs.highlightElement(el);
+                });
 
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
                     const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
@@ -682,7 +661,7 @@
                 });
             }
 
-            async function loadChat(chatId, pendingGeneration = null) {
+            async function loadChat(chatId) {
                 if (currentStreamController) currentStreamController.abort();
                 
                 if (!chatId) {
@@ -714,16 +693,6 @@
                         finalizeMessageFormatting(contentBlock);
                     }
                 });
-
-                if (pendingGeneration) {
-                    const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
-                    const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                    const renderer = new StreamRenderer(contentBlock);
-                    renderer.fullText = pendingGeneration;
-                    renderer.finish();
-                }
-
-                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'auto' });
                 
                 requestAnimationFrame(() => {
                     chatMessages.classList.remove('is-loading-history');
@@ -732,19 +701,29 @@
                 updateActiveChatSelection(chatId);
             }
 
-            function saveChat() {
+            function saveChat(finalText) {
                 if (!currentUser || !currentChatId) return;
                 
+                const historyToSave = [...localChatHistory];
+                const lastMessage = historyToSave[historyToSave.length - 1];
+
+                if (lastMessage && lastMessage.role === 'model') {
+                    lastMessage.text = finalText;
+                } else {
+                    historyToSave.push({ role: 'model', text: finalText });
+                }
+
                 const updates = {
-                    messages: localChatHistory,
+                    messages: historyToSave,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                if (localChatHistory.length <= 2) {
-                    updates.title = localChatHistory[0].text.substring(0, 35);
+                if (historyToSave.length <= 2) {
+                    updates.title = historyToSave[0].text.substring(0, 35);
                 }
 
                 db.ref(`chats/${currentUser.uid}/${currentChatId}`).update(updates);
+                localChatHistory = historyToSave;
             }
             
             function setStreamingState(isStreaming) {
@@ -752,14 +731,20 @@
                 chatInput.disabled = isStreaming;
             }
 
-            function cleanUpStream(finalText) {
+            function cleanUpStream(finalText, renderer) {
+                try {
+                    renderer.finish();
+                } catch (e) {
+                    console.error("Error during final render:", e);
+                    if (renderer.container) {
+                        renderer.container.innerText = finalText;
+                    }
+                }
+
                 setStreamingState(false);
                 
                 if (finalText && finalText.trim()) {
-                    if (!localChatHistory.find(m => m.text === finalText && m.role === 'model')) {
-                        localChatHistory.push({ role: 'model', text: finalText });
-                        saveChat();
-                    }
+                    saveChat(finalText);
                 }
                 
                 localStorage.removeItem(`pendingGen_${currentChatId}`);
@@ -800,8 +785,15 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new StreamRenderer(contentBlock);
+                const renderer = new TrueIncrementalRenderer(contentBlock);
                 let accumulatedResponseText = '';
+                let sseBuffer = '';
+
+                const processChunk = (textPart) => {
+                    renderer.update(textPart);
+                    accumulatedResponseText += textPart;
+                    localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
+                }
 
                 const fetchAndProcessStream = async () => {
                     try {
@@ -816,8 +808,7 @@
                         
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
-                        let sseBuffer = '';
-
+                        
                         while (true) {
                             if (currentStreamController.signal.aborted) break;
                             const { value, done } = await reader.read();
@@ -834,9 +825,7 @@
                                         const parsed = JSON.parse(jsonStr);
                                         const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (textPart) {
-                                            accumulatedResponseText += textPart;
-                                            renderer.update(textPart);
-                                            localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
+                                            processChunk(textPart);
                                         }
                                     } catch (parseError) { /* Ignore incomplete JSON */ }
                                 }
@@ -848,14 +837,23 @@
                             contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                         }
                     } finally {
-                        renderer.finish();
-                        cleanUpStream(accumulatedResponseText);
+                        cleanUpStream(accumulatedResponseText, renderer);
                     }
                 };
                 
                 fetchAndProcessStream();
             }
             
+            document.addEventListener("visibilitychange", () => {
+                if (!document.hidden && currentStreamController) {
+                    const contentBlock = document.querySelector(".message-container.ai:last-child .ai-content-block");
+                    if(contentBlock) {
+                        const renderer = new TrueIncrementalRenderer(contentBlock);
+                        renderer.update(localStorage.getItem(`pendingGen_${currentChatId}`) || '');
+                    }
+                }
+            });
+
             stopBtn.addEventListener('click', () => {
                 if (currentStreamController) {
                     currentStreamController.abort();

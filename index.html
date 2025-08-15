@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Chat - V3 Final</title>
+    <title>AI Chat - V2</title>
    
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
@@ -214,7 +214,7 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             touch-action: pan-y;
-            /* No scroll-behavior: smooth; */
+            scroll-behavior: smooth;
             padding: 2rem 0 var(--input-bar-clearance) 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
@@ -550,47 +550,101 @@
                 newChatItem = document.getElementById('new-chat-item'),
                 stopBtn = document.getElementById('stop-btn');
 
-            // --- MARKED CONFIG ---
+            // --- MARKED & HIGHLIGHT.JS CONFIG ---
             marked.setOptions({
-                gfm: true,
-                breaks: true,
+                highlight: (code, lang) => {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                },
+                langPrefix: 'hljs language-', gfm: true, breaks: true,
             });
 
-            // --- V3: STABLE INCREMENTAL RENDERER ---
-            class StableStreamRenderer {
+            // --- V2: Advanced Incremental Markdown Renderer ---
+            class AdvancedStreamRenderer {
                 constructor(container) {
                     this.container = container;
+                    this.buffer = '';
+                    this.currentNode = null;
+                    this.listType = null; // 'ul' or 'ol'
+                    this.inCodeBlock = false;
+                    this.codeLang = '';
+                    this.init();
+                }
+
+                init() {
                     this.container.innerHTML = '';
-                    this.tempPre = document.createElement('pre');
-                    this.tempPre.style.whiteSpace = 'pre-wrap';
-                    this.tempPre.style.wordWrap = 'break-word';
-                    this.container.appendChild(this.tempPre);
+                    this.currentNode = this.createParagraph();
+                }
+
+                createParagraph() {
+                    const p = document.createElement('p');
+                    this.container.appendChild(p);
+                    return p;
                 }
 
                 update(chunk) {
-                    this.tempPre.textContent += chunk;
+                    this.buffer += chunk;
+                    // Process buffer line by line
+                    let lines = this.buffer.split('\n');
+                    this.buffer = lines.pop(); // Keep the last partial line in buffer
+
+                    for (const line of lines) {
+                        this.processLine(line);
+                    }
+                    // Live-render whatever is left in the buffer
+                    this.updateCurrentNode(this.buffer);
+                }
+
+                processLine(line) {
+                    if (line.startsWith('```')) {
+                        this.toggleCodeBlock(line);
+                        return;
+                    }
+
+                    if (this.inCodeBlock) {
+                        this.currentNode.textContent += line + '\n';
+                        return;
+                    }
+                    
+                    // Other markdown elements can be handled here (lists, headings, etc.)
+                    // For simplicity, we are treating everything else as paragraphs for now.
+                    this.currentNode.textContent += line + '\n';
+                }
+                
+                updateCurrentNode(text) {
+                    if (this.inCodeBlock) {
+                        this.currentNode.textContent = text;
+                        hljs.highlightElement(this.currentNode);
+                    } else {
+                        this.currentNode.innerHTML = marked.parse(text);
+                    }
+                }
+
+                toggleCodeBlock(line) {
+                    this.inCodeBlock = !this.inCodeBlock;
+                    if (this.inCodeBlock) {
+                        this.codeLang = line.substring(3).trim();
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'code-block-wrapper';
+                        const pre = document.createElement('pre');
+                        const code = document.createElement('code');
+                        code.className = this.codeLang ? `language-${this.codeLang}` : '';
+                        pre.appendChild(code);
+                        wrapper.appendChild(pre);
+                        this.container.appendChild(wrapper);
+                        this.currentNode = code;
+                    } else {
+                        this.currentNode = this.createParagraph();
+                    }
                 }
 
                 finish() {
-                    const fullText = this.tempPre.textContent;
-                    this.container.innerHTML = marked.parse(fullText);
-                    
-                    this.container.querySelectorAll('pre code').forEach((el) => {
-                        hljs.highlightElement(el);
-                    });
-
-                    this.container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
-                        const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
-                        pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
-                        const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
-                        btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
-                        wrapper.appendChild(btn);
-                    });
-
-                    this.container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
-                        const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
-                        table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
-                    });
+                    this.processLine(this.buffer);
+                    this.buffer = '';
+                    // Final highlighting for the last code block
+                    if (this.inCodeBlock) {
+                        hljs.highlightElement(this.currentNode);
+                    }
                 }
             }
 
@@ -626,12 +680,11 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // No autoscroll on new message
                 return m;
             }
             
             function finalizeMessageFormatting(container) {
-                 container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
+                container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
                     const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
@@ -680,7 +733,7 @@
                     }
                 });
 
-                // No autoscroll on load
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'auto' });
                 
                 requestAnimationFrame(() => {
                     chatMessages.classList.remove('is-loading-history');
@@ -689,22 +742,19 @@
                 updateActiveChatSelection(chatId);
             }
 
-            function saveChat(finalText) {
+            function saveChat() {
                 if (!currentUser || !currentChatId) return;
                 
-                const finalHistory = [...localChatHistory, { role: 'model', text: finalText }];
-
                 const updates = {
-                    messages: finalHistory,
+                    messages: localChatHistory,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                if (finalHistory.length <= 2) {
-                    updates.title = finalHistory[0].text.substring(0, 35);
+                if (localChatHistory.length <= 2) {
+                    updates.title = localChatHistory[0].text.substring(0, 35);
                 }
 
                 db.ref(`chats/${currentUser.uid}/${currentChatId}`).update(updates);
-                localChatHistory = finalHistory;
             }
             
             function setStreamingState(isStreaming) {
@@ -712,12 +762,14 @@
                 chatInput.disabled = isStreaming;
             }
 
-            function cleanUpStream(finalText, renderer) {
-                renderer.finish();
+            function cleanUpStream(finalText) {
                 setStreamingState(false);
                 
                 if (finalText && finalText.trim()) {
-                    saveChat(finalText);
+                    if (!localChatHistory.find(m => m.text === finalText && m.role === 'model')) {
+                        localChatHistory.push({ role: 'model', text: finalText });
+                        saveChat();
+                    }
                 }
                 
                 localStorage.removeItem(`pendingGen_${currentChatId}`);
@@ -758,7 +810,7 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new StableStreamRenderer(contentBlock);
+                const renderer = new AdvancedStreamRenderer(contentBlock);
                 let accumulatedResponseText = '';
 
                 const fetchAndProcessStream = async () => {
@@ -774,16 +826,31 @@
                         
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
-                        
+                        let sseBuffer = '';
+
                         while (true) {
                             if (currentStreamController.signal.aborted) break;
                             const { value, done } = await reader.read();
                             if (done) break;
                             
-                            const chunk = decoder.decode(value, { stream: true });
-                            accumulatedResponseText += chunk;
-                            renderer.update(chunk);
-                            localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
+                            sseBuffer += decoder.decode(value, { stream: true });
+                            const lines = sseBuffer.split('\n');
+                            sseBuffer = lines.pop() || '';
+
+                            for (const line of lines) {
+                                if (line.trim().startsWith('data:')) {
+                                    try {
+                                        const jsonStr = line.substring(5).trim();
+                                        const parsed = JSON.parse(jsonStr);
+                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                        if (textPart) {
+                                            accumulatedResponseText += textPart;
+                                            renderer.update(textPart);
+                                            localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
+                                        }
+                                    } catch (parseError) { /* Ignore incomplete JSON */ }
+                                }
+                            }
                         }
                     } catch (error) {
                         if (error.name !== 'AbortError') {
@@ -791,7 +858,8 @@
                             contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                         }
                     } finally {
-                        cleanUpStream(accumulatedResponseText, renderer);
+                        renderer.finish();
+                        cleanUpStream(accumulatedResponseText);
                     }
                 };
                 
@@ -882,7 +950,7 @@
                 localStorage.setItem('lastChatId', activeId || '');
                 document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); 
                 newChatItem.classList.toggle('active', activeId === null); 
-            }
+            } 
             
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             const closeSidebar = () => { document.body.classList.remove('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Chat - The Final Version</title>
+    <title>AI Chat - Final Version</title>
    
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
@@ -533,11 +533,11 @@
             const auth = firebase.auth();
             const db = firebase.database();
 
-            // --- STATE MANAGEMENT --- 
+            // --- STATE MANAGEMENT ---
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null;
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
 
-            // --- DOM ELEMENTS --- 
+            // --- DOM ELEMENTS ---
             const chatHistoryList = document.getElementById('chat-history-list'),
                 chatForm = document.getElementById('chat-form'),
                 chatInput = document.getElementById('chat-input'),
@@ -549,44 +549,49 @@
                 newChatItem = document.getElementById('new-chat-item'),
                 stopBtn = document.getElementById('stop-btn');
 
-            // --- MARKED CONFIG --- 
+            // --- MARKED CONFIG ---
             marked.setOptions({ gfm: true, breaks: true });
 
-            // --- FINAL RENDERER --- 
-            class FinalRenderer {
+            // --- FINAL RENDERER ---
+            class LiveMarkdownRenderer {
                 constructor(container) {
                     this.container = container;
+                    this.buffer = '';
+                    this.currentNode = null;
+                    this.init();
+                }
+
+                init() {
                     this.container.innerHTML = '';
-                    this.textBuffer = '';
-                    this.renderRequest = null;
+                    this.currentNode = this.createBlock('p');
+                }
+
+                createBlock(tag, attributes = {}) {
+                    const el = document.createElement(tag);
+                    for (const [key, value] of Object.entries(attributes)) {
+                        el[key] = value;
+                    }
+                    this.container.appendChild(el);
+                    return el;
                 }
 
                 update(chunk) {
-                    this.textBuffer += chunk;
-                    if (!this.renderRequest) {
-                        this.renderRequest = requestAnimationFrame(() => this.render());
-                    }
+                    this.buffer += chunk;
+                    this.render();
                 }
 
                 render() {
-                    this.container.innerHTML = marked.parse(this.textBuffer);
-                    const codeBlocks = this.container.querySelectorAll('pre code');
-                    if (codeBlocks.length > 0) {
-                        codeBlocks.forEach(el => hljs.highlightElement(el));
-                    }
-                    this.renderRequest = null;
+                    this.container.innerHTML = marked.parse(this.buffer);
+                    this.container.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
                 }
 
                 finish() {
-                    if (this.renderRequest) {
-                        cancelAnimationFrame(this.renderRequest);
-                    }
                     this.render();
                     finalizeMessageFormatting(this.container);
                 }
             }
 
-            // --- AUTH & UI --- 
+            // --- AUTH & UI ---
             const updateUIForAuthState = (user) => {
                 if (user) {
                     currentUser = user;
@@ -624,8 +629,7 @@
             function finalizeMessageFormatting(container) {
                  container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
-                    pre.parentNode.insertBefore(wrapper, pre);
-                    wrapper.appendChild(pre);
+                    pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
                     const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
                     btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
                     wrapper.appendChild(btn);
@@ -741,30 +745,9 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new FinalRenderer(contentBlock);
+                const renderer = new LiveMarkdownRenderer(contentBlock);
                 let accumulatedResponseText = '';
-                let sseBuffer = '';
-
-                const processChunk = (chunk) => {
-                    sseBuffer += chunk;
-                    const lines = sseBuffer.split('\n');
-                    sseBuffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (line.trim().startsWith('data:')) {
-                            try {
-                                const jsonStr = line.substring(5).trim();
-                                const parsed = JSON.parse(jsonStr);
-                                const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                if (textPart) {
-                                    accumulatedResponseText += textPart;
-                                }
-                            } catch (parseError) { /* Ignore incomplete JSON */ }
-                        }
-                    }
-                    renderer.update(accumulatedResponseText);
-                    localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
-                }
+                let lastRenderTime = 0;
 
                 const fetchAndProcessStream = async () => {
                     try {
@@ -786,7 +769,19 @@
                             if (done) break;
                             
                             const chunk = decoder.decode(value, { stream: true });
-                            processChunk(chunk);
+                            accumulatedResponseText += chunk;
+                            
+                            if (document.hidden) {
+                                // If tab is not visible, just buffer the text
+                                renderer.buffer = accumulatedResponseText;
+                            } else {
+                                // Throttle rendering to avoid overwhelming the browser
+                                if (Date.now() - lastRenderTime > 20) { 
+                                    renderer.update(accumulatedResponseText);
+                                    lastRenderTime = Date.now();
+                                }
+                            }
+                            localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                         }
                     } catch (error) {
                         if (error.name !== 'AbortError') {
@@ -805,7 +800,7 @@
                 if (!document.hidden && currentStreamController) {
                     const contentBlock = document.querySelector(".message-container.ai:last-child .ai-content-block");
                     if(contentBlock) {
-                        const renderer = new FinalRenderer(contentBlock);
+                        const renderer = new LiveMarkdownRenderer(contentBlock);
                         renderer.update(localStorage.getItem(`pendingGen_${currentChatId}`) || '');
                     }
                 }
@@ -895,7 +890,7 @@
                 localStorage.setItem('lastChatId', activeId || '');
                 document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); 
                 newChatItem.classList.toggle('active', activeId === null); 
-            } 
+            }
             
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
             const closeSidebar = () => { document.body.classList.remove('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };

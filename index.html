@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Chat - True Live Renderer</title>
+    <title>AI Chat - Professional Experience</title>
    
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
@@ -13,12 +13,12 @@
         :root {
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             
-            --space-sm: 0.35rem;
-            --space-md: 0.75rem;
-            --space-lg: 1rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.25rem;
 
             --font-size-body: 1rem;
-            --line-height-body: 1.5;
+            --line-height-body: 1.6;
             --font-size-h1: 2rem;
             --font-size-h2: 1.7rem;
             --font-size-h3: 1.4rem;
@@ -214,7 +214,7 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             touch-action: pan-y;
-            padding: 1rem 0 var(--input-bar-clearance) 0;
+            padding: 2rem 0 var(--input-bar-clearance) 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
         .message-container {
@@ -533,11 +533,11 @@
             const auth = firebase.auth();
             const db = firebase.database();
 
-            // --- STATE MANAGEMENT ---
+            // --- STATE MANAGEMENT --- 
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null;
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
 
-            // --- DOM ELEMENTS ---
+            // --- DOM ELEMENTS --- 
             const chatHistoryList = document.getElementById('chat-history-list'),
                 chatForm = document.getElementById('chat-form'),
                 chatInput = document.getElementById('chat-input'),
@@ -549,11 +549,11 @@
                 newChatItem = document.getElementById('new-chat-item'),
                 stopBtn = document.getElementById('stop-btn');
 
-            // --- MARKED CONFIG ---
+            // --- MARKED CONFIG --- 
             marked.setOptions({ gfm: true, breaks: true });
 
-            // --- TRUE INCREMENTAL RENDERER ---
-            class TrueIncrementalRenderer {
+            // --- PROFESSIONAL RENDERER --- 
+            class ProfessionalRenderer {
                 constructor(container) {
                     this.container = container;
                     this.textBuffer = '';
@@ -572,7 +572,7 @@
 
                 start() {
                     this.isRendering = true;
-                    this.renderInterval = setInterval(() => this.processQueue(), 10); // Faster interval for smoother typing
+                    this.renderInterval = setInterval(() => this.processQueue(), 20);
                 }
 
                 processQueue() {
@@ -580,7 +580,7 @@
                         this.stop();
                         return;
                     }
-                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 4)); // Process smaller chunks for smoother effect
+                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 5));
                     const chunk = this.queue.splice(0, charsToProcess).join('');
                     this.textBuffer += chunk;
                     this.render();
@@ -594,11 +594,6 @@
                     }
                 }
 
-                stop() {
-                    this.isRendering = false;
-                    clearInterval(this.renderInterval);
-                }
-
                 finish() {
                     this.stop();
                     this.textBuffer += this.queue.splice(0, this.queue.length).join('');
@@ -607,7 +602,7 @@
                 }
             }
 
-            // --- AUTH & UI ---
+            // --- AUTH & UI --- 
             const updateUIForAuthState = (user) => {
                 if (user) {
                     currentUser = user;
@@ -645,19 +640,11 @@
             function finalizeMessageFormatting(container) {
                  container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
-                    pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
                     const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
                     btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
                     wrapper.appendChild(btn);
-                });
-
-                container.querySelectorAll('pre code').forEach((el) => {
-                    hljs.highlightElement(el);
-                });
-
-                container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
-                    const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
-                    table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
                 });
             }
 
@@ -704,26 +691,19 @@
             function saveChat(finalText) {
                 if (!currentUser || !currentChatId) return;
                 
-                const historyToSave = [...localChatHistory];
-                const lastMessage = historyToSave[historyToSave.length - 1];
-
-                if (lastMessage && lastMessage.role === 'model') {
-                    lastMessage.text = finalText;
-                } else {
-                    historyToSave.push({ role: 'model', text: finalText });
-                }
+                const finalHistory = [...localChatHistory, { role: 'model', text: finalText }];
 
                 const updates = {
-                    messages: historyToSave,
+                    messages: finalHistory,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                if (historyToSave.length <= 2) {
-                    updates.title = historyToSave[0].text.substring(0, 35);
+                if (finalHistory.length <= 2) {
+                    updates.title = finalHistory[0].text.substring(0, 35);
                 }
 
                 db.ref(`chats/${currentUser.uid}/${currentChatId}`).update(updates);
-                localChatHistory = historyToSave;
+                localChatHistory = finalHistory;
             }
             
             function setStreamingState(isStreaming) {
@@ -732,15 +712,7 @@
             }
 
             function cleanUpStream(finalText, renderer) {
-                try {
-                    renderer.finish();
-                } catch (e) {
-                    console.error("Error during final render:", e);
-                    if (renderer.container) {
-                        renderer.container.innerText = finalText;
-                    }
-                }
-
+                renderer.finish();
                 setStreamingState(false);
                 
                 if (finalText && finalText.trim()) {
@@ -785,13 +757,13 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new TrueIncrementalRenderer(contentBlock);
+                const renderer = new ProfessionalRenderer(contentBlock);
                 let accumulatedResponseText = '';
                 let sseBuffer = '';
 
                 const processChunk = (textPart) => {
-                    renderer.update(textPart);
                     accumulatedResponseText += textPart;
+                    renderer.update(textPart);
                     localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                 }
 
@@ -848,7 +820,7 @@
                 if (!document.hidden && currentStreamController) {
                     const contentBlock = document.querySelector(".message-container.ai:last-child .ai-content-block");
                     if(contentBlock) {
-                        const renderer = new TrueIncrementalRenderer(contentBlock);
+                        const renderer = new ProfessionalRenderer(contentBlock);
                         renderer.update(localStorage.getItem(`pendingGen_${currentChatId}`) || '');
                     }
                 }

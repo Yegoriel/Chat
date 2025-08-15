@@ -681,6 +681,14 @@
                         const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
                         const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                         contentBlock.innerHTML = marked.parse(msg.text || "");
+                        
+                        // --- BUG FIX START ---
+                        // This re-applies syntax highlighting to all code blocks when loading a past chat.
+                        contentBlock.querySelectorAll('pre code').forEach(el => {
+                            hljs.highlightElement(el);
+                        });
+                        // --- BUG FIX END ---
+
                         finalizeMessageFormatting(contentBlock);
                     }
                 });

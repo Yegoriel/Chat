@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Chat - Final Version</title>
+    <title>AI Chat - V3 Final</title>
    
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
@@ -214,6 +214,7 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             touch-action: pan-y;
+            /* No scroll-behavior: smooth; */
             padding: 2rem 0 var(--input-bar-clearance) 0;
         }
         #chat-messages::-webkit-scrollbar { display: none; }
@@ -550,44 +551,46 @@
                 stopBtn = document.getElementById('stop-btn');
 
             // --- MARKED CONFIG ---
-            marked.setOptions({ gfm: true, breaks: true });
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+            });
 
-            // --- FINAL RENDERER ---
-            class LiveMarkdownRenderer {
+            // --- V3: STABLE INCREMENTAL RENDERER ---
+            class StableStreamRenderer {
                 constructor(container) {
                     this.container = container;
-                    this.buffer = '';
-                    this.currentNode = null;
-                    this.init();
-                }
-
-                init() {
                     this.container.innerHTML = '';
-                    this.currentNode = this.createBlock('p');
-                }
-
-                createBlock(tag, attributes = {}) {
-                    const el = document.createElement(tag);
-                    for (const [key, value] of Object.entries(attributes)) {
-                        el[key] = value;
-                    }
-                    this.container.appendChild(el);
-                    return el;
+                    this.tempPre = document.createElement('pre');
+                    this.tempPre.style.whiteSpace = 'pre-wrap';
+                    this.tempPre.style.wordWrap = 'break-word';
+                    this.container.appendChild(this.tempPre);
                 }
 
                 update(chunk) {
-                    this.buffer += chunk;
-                    this.render();
-                }
-
-                render() {
-                    this.container.innerHTML = marked.parse(this.buffer);
-                    this.container.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+                    this.tempPre.textContent += chunk;
                 }
 
                 finish() {
-                    this.render();
-                    finalizeMessageFormatting(this.container);
+                    const fullText = this.tempPre.textContent;
+                    this.container.innerHTML = marked.parse(fullText);
+                    
+                    this.container.querySelectorAll('pre code').forEach((el) => {
+                        hljs.highlightElement(el);
+                    });
+
+                    this.container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
+                        const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
+                        pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
+                        const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
+                        btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
+                        wrapper.appendChild(btn);
+                    });
+
+                    this.container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
+                        const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
+                        table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
+                    });
                 }
             }
 
@@ -623,6 +626,7 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+                // No autoscroll on new message
                 return m;
             }
             
@@ -632,7 +636,14 @@
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
                     const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
                     btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
-                    wrapper.appendChild(btn);
+                    wrapper.appendChild(btn); 
+                });
+                
+                container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
+
+                container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
+                    const wrapper = document.createElement('div'); wrapper.className = 'table-wrapper';
+                    table.parentNode.insertBefore(wrapper, table); wrapper.appendChild(table);
                 });
             }
 
@@ -668,6 +679,8 @@
                         finalizeMessageFormatting(contentBlock);
                     }
                 });
+
+                // No autoscroll on load
                 
                 requestAnimationFrame(() => {
                     chatMessages.classList.remove('is-loading-history');
@@ -745,9 +758,8 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new LiveMarkdownRenderer(contentBlock);
+                const renderer = new StableStreamRenderer(contentBlock);
                 let accumulatedResponseText = '';
-                let lastRenderTime = 0;
 
                 const fetchAndProcessStream = async () => {
                     try {
@@ -770,17 +782,7 @@
                             
                             const chunk = decoder.decode(value, { stream: true });
                             accumulatedResponseText += chunk;
-                            
-                            if (document.hidden) {
-                                // If tab is not visible, just buffer the text
-                                renderer.buffer = accumulatedResponseText;
-                            } else {
-                                // Throttle rendering to avoid overwhelming the browser
-                                if (Date.now() - lastRenderTime > 20) { 
-                                    renderer.update(accumulatedResponseText);
-                                    lastRenderTime = Date.now();
-                                }
-                            }
+                            renderer.update(chunk);
                             localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                         }
                     } catch (error) {
@@ -796,16 +798,6 @@
                 fetchAndProcessStream();
             }
             
-            document.addEventListener("visibilitychange", () => {
-                if (!document.hidden && currentStreamController) {
-                    const contentBlock = document.querySelector(".message-container.ai:last-child .ai-content-block");
-                    if(contentBlock) {
-                        const renderer = new LiveMarkdownRenderer(contentBlock);
-                        renderer.update(localStorage.getItem(`pendingGen_${currentChatId}`) || '');
-                    }
-                }
-            });
-
             stopBtn.addEventListener('click', () => {
                 if (currentStreamController) {
                     currentStreamController.abort();

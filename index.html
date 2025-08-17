@@ -547,70 +547,11 @@ html, body {
 .message-container.ai .prose,
 .message-container.user .prose {
   max-width: 65ch;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
 }
 
 </style>
-
-<style id="chatgpt-typography-overrides">
-:root {
-  --thread-content-max-width: 40rem;
-  --thread-content-margin: calc(var(--spacing) * 4);
-}
-#thread { container-type: inline-size; }
-@container (min-width: 34rem) {
-  :root, #thread {
-    --thread-content-max-width: 40rem;
-    --thread-content-margin: calc(var(--spacing) * 6);
-  }
-}
-#thread .message-container {
-  max-width: var(--thread-content-max-width);
-  margin-inline: var(--thread-content-margin);
-  padding-inline: 0;
-}
-#thread .message-container .prose,
-#thread .message-container .markdown {
-  max-width: 65ch;
-  margin: 0;
-}
-.prose :where(p):not(:where([class~=not-prose],[class~=not-prose] *)) {
-  margin-top: 1.25em;
-  margin-bottom: 1.25em;
-}
-.markdown-new-styling :is(.markdown p):first-child,
-.prose :where(.prose>:first-child):not(:where([class~=not-prose],[class~=not-prose] *)) {
-  margin-top: 0;
-}
-.prose :where(ul):not(:where([class~=not-prose],[class~=not-prose] *)),
-.prose :where(ol):not(:where([class~=not-prose],[class~=not-prose] *)) {
-  margin-top: 1.25em;
-  margin-bottom: 1.25em;
-  padding-inline-start: 1.625em;
-}
-.prose :where(ol,ul)>li>:first-child:not(:where([class~=not-prose],[class~=not-prose] *)) { margin-top: 0; }
-.prose :where(ol,ul)>li>:last-child:not(:where([class~=not-prose],[class~=not-prose] *)) { margin-bottom: 0; }
-.prose :where(.prose>ul>li p):not(:where([class~=not-prose],[class~=not-prose] *)) {
-  margin-top: .75em; margin-bottom: .75em;
-}
-.markdown p { margin-top: 0; margin-bottom: .5rem; }
-.markdown-new-styling :is(.markdown p) { margin-block: calc(var(--spacing) * 1); }
-html, :host { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-.break-words { overflow-wrap: break-word; }
-.whitespace-normal { white-space: normal; }
-.text-start { text-align: start; }
-.prose :where(code):not(:where([class~=not-prose],[class~=not-prose] *)) {
-  font-size: .875em; padding: .1875em .375em; border-radius: .375rem; background: oklch(92.8% .006 264.531);
-}
-.prose :where(pre):not(:where([class~=not-prose],[class~=not-prose] *)) {
-  border-radius: .75rem; padding: 1rem; background: #0000000d; overflow: auto;
-}
-.prose :where(hr):not(:where([class~=not-prose],[class~=not-prose] *)) {
-  border-top: 1px solid var(--border-xheavy, #00000040); margin-block: 2rem;
-}
-</style>
-
 </head>
 <body>
     <div id="app-container">

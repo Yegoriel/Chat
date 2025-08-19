@@ -305,6 +305,7 @@
             margin-top: auto;
             background: linear-gradient(to top, var(--background-color) 70%, transparent 100%);
             z-index: 10;
+            scrollbar-gutter: stable; /* === ИЗМЕНЕНИЕ №1 ЗДЕСЬ === */
         }
         #chat-form {
             display: flex; align-items: flex-end; gap: 0.75rem; width: 100%; box-sizing: border-box;
@@ -474,7 +475,7 @@
             .message-container.ai h4 { font-size: 1.05rem; }
         }
 
-        /* === НАЧАЛО ИСПРАВЛЕНИЯ === */
+        /* === ИЗМЕНЕНИЕ №2 ЗДЕСЬ === */
         @media (min-width: 769px) {
             #chat-messages {
                 padding-left: calc((100% - var(--thread-width)) / 2);
@@ -488,9 +489,11 @@
                 padding-left: 0;
                 padding-right: 0;
             }
-            /* Эта секция для #chat-form была удалена, чтобы вернуть оригинальные отступы */
+            #chat-form {
+                padding-left: 0;
+                padding-right: 0;
+            }
         }
-        /* === КОНЕЦ ИСПРАВЛЕНИЯ === */
     </style>
 </head>
 <body>

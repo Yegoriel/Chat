@@ -246,8 +246,7 @@
             scrollbar-gutter: stable both-edges; /* держим место под скроллбар */
             -ms-overflow-style: none;
             touch-action: pan-y;
-            /* === ИЗМЕНЕНИЕ ЗДЕСЬ === */
-            padding: 2rem calc((100% - var(--thread-width)) / 2) calc(var(--input-bar-clearance)) calc((100% - var(--thread-width)) / 2);
+            padding: 2rem 0 calc(var(--input-bar-clearance)) 0; /* нижний отступ = высоте инпут-бара */
         }
 
         .message-container {
@@ -474,6 +473,21 @@
             .message-container.ai h3 { font-size: 1.15rem; }
             .message-container.ai h4 { font-size: 1.05rem; }
         }
+
+        /* === НАЧАЛО ИСПРАВЛЕНИЯ === */
+        @media (min-width: 769px) {
+            #chat-messages {
+                padding-left: calc((100% - var(--thread-width)) / 2);
+                padding-right: calc((100% - var(--thread-width)) / 2);
+            }
+            .ai-content-block,
+            .welcome-message {
+                max-width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+        /* === КОНЕЦ ИСПРАВЛЕНИЯ === */
     </style>
 </head>
 <body>

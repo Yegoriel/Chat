@@ -260,16 +260,22 @@
 
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
-        .message-container.user {
-  padding: 0.65rem 1rem;
-  background-color: var(--user-msg-bg);
-  max-width: 70%;
-            
-  margin-left: auto;
-  margin-right: auto; /* вместо 0 — чтобы центрироваться в рабочей зоне */
-  border-radius: 12px;
-  box-sizing: border-box;
-}
+                .message-container.user {
+                  display: flex;                /* flex-контейнер */
+                  justify-content: flex-end;    /* прижать содержимое вправо */
+                  max-width: var(--thread-width); /* ограничение по ширине, как у инпут-бара */
+                  margin: 0 auto;               /* центрируем рабочую колонку */
+                  padding: 0 var(--space-md);   /* боковые отступы как у формы */
+                  box-sizing: border-box;
+                }
+                
+                .user-bubble {
+                  background-color: var(--user-msg-bg);
+                  padding: 0.65rem 1rem;
+                  border-radius: 12px;
+                  max-width: 70%;               /* не шире 70% рабочей зоны */
+                  word-wrap: break-word;
+                }
 
         .message-container.ai {
             background-color: var(--ai-msg-bg);

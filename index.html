@@ -260,22 +260,9 @@
 
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
-        .message-container.user {
-  display: flex;
-  justify-content: flex-end; /* прижимаем содержимое вправо */
-  padding-left: calc(var(--space-md));
-  padding-right: calc(var(--space-md));
-  box-sizing: border-box;
-}
+            message-container.user { padding: 0.65rem 1rem; background-color: var(--user-msg-bg); max-width: calc(var(--thread-width) * 0.7);  align-self: flex-end; box-sizing: border-box; border-radius: 12px; transition: background-color 0.3s; }
 
-/* Сам пузырь */
-.message-container.user .user-bubble {
-  background-color: var(--user-msg-bg);
-  padding: 0.65rem 1rem;
-  border-radius: 12px;
-  max-width: 70%;   /* пузырь не шире 70% рабочей зоны */
-  word-wrap: break-word;
-}
+
 
         .message-container.ai {
             background-color: var(--ai-msg-bg);

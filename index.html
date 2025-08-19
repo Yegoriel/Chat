@@ -260,9 +260,33 @@
 
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
-            message-container.user { padding: 0.65rem 1rem; background-color: var(--user-msg-bg); max-width: calc(var(--thread-width) * 0.7);  align-self: flex-end; box-sizing: border-box; border-radius: 12px; transition: background-color 0.3s; }
+        .message-container.user {
+  align-self: stretch;
+  width: 100%;
+  padding: 0;               /* фон и паддинги будут у пузыря */
+  background: transparent;  /* убираем фон с контейнера */
+}
 
+/* Внутренняя «рабочая зона» юзер-сообщения — ровно как у #chat-form и .ai-content-block */
+.user-content-block {
+  max-width: var(--thread-width);     /* те же границы, что у инпут-бара */
+  margin: 0 auto;                     /* центрируем рабочую зону */
+  padding-left:  var(--space-md);     /* те же боковые паддинги, что у формы */
+  padding-right: var(--space-md);
+  display: flex;
+  justify-content: flex-end;          /* прижимаем пузырь к правому краю рабочей зоны */
+  box-sizing: border-box;
+}
 
+/* Непосредственно пузырь пользователя */
+.user-bubble {
+  max-width: 70%;                     /* не шире 70% рабочей зоны */
+  background-color: var(--user-msg-bg);
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
 
         .message-container.ai {
             background-color: var(--ai-msg-bg);

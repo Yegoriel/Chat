@@ -261,13 +261,20 @@
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
         .message-container.user {
-  padding: 0.65rem 1rem;
-  background-color: var(--user-msg-bg);
-  max-width: 70%;
-  margin-left: auto;
-  margin-right: 0;
-  border-radius: 12px;
+  display: flex;
+  justify-content: flex-end; /* прижимаем содержимое вправо */
+  padding-left: calc(var(--space-md));
+  padding-right: calc(var(--space-md));
   box-sizing: border-box;
+}
+
+/* Сам пузырь */
+.message-container.user .user-bubble {
+  background-color: var(--user-msg-bg);
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  max-width: 70%;   /* пузырь не шире 70% рабочей зоны */
+  word-wrap: break-word;
 }
 
         .message-container.ai {

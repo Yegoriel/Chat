@@ -183,24 +183,43 @@
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
         #chat-content-wrapper {
-            width: 100%;
-            max-width: min(48rem, 65ch); /* Default narrow width */
-            margin-right: auto;
-            margin-left: auto;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            min-height: 0;
-            padding: 0 1rem;
-            box-sizing: border-box;
-            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+      width: 100%;
+      max-width: var(--thread-content-max-width, 48rem);
+      margin: 0 auto;
+      padding: 0 1rem;
+      box-sizing: border-box;
+      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @media (min-width: 40rem) {
+      #chat-content-wrapper { --thread-content-max-width: 40rem; }
+    }
+    @media (min-width: 48rem) {
+      #chat-content-wrapper { --thread-content-max-width: 48rem; }
+    }
+    @media (min-width: 64rem) {
+      #chat-content-wrapper { --thread-content-max-width: 56rem; }
+    }
+    @media (min-width: 80rem) {
+      #chat-content-wrapper { --thread-content-max-width: 64rem; }
+    }
 
-        /* Dynamically expand content width when sidebar is collapsed */
-        .is-desktop #chat-area.sidebar-collapsed #chat-content-wrapper {
-            max-width: min(56rem, 72ch);
-        }
+    /* Убираем отступ после заголовков и hr, как у .prose */
+    .prose :where(h2+*), .prose :where(h3+*), .prose :where(h4+*), .prose :where(hr+*) {
+      margin-top: 0;
+    }
 
+    /* Отступы для h2 как в инспекторе Tailwind/ChatGPT */
+    .markdown-new-styling :is(.markdown h2) {
+      margin-top: calc(var(--spacing) * 4);
+      margin-bottom: calc(var(--spacing) * 1);
+      font-size: var(--text-xl);
+      line-height: var(--text-xl--line-height);
+    }
+    .markdown h2 {
+      margin-top: calc(var(--spacing) * 8);
+      margin-bottom: calc(var(--spacing) * 3);
+      font-weight: var(--font-weight-semibold);
+    }
         #chat-messages-container { position: relative; flex-grow: 1; overflow: hidden; display: flex; }
         
         #chat-messages {

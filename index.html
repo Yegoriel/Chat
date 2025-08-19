@@ -29,7 +29,7 @@
 
             /* content widths */
             --chat-content-narrow-width: 42rem;
-            --chat-content-expanded-width: 50rem;
+            --chat-content-expanded-width: 48rem;
             /* Управляющая переменная контейнерной ширины (как у ChatGPT) */
             --thread-width: var(--chat-content-narrow-width);
 
@@ -254,7 +254,7 @@
             word-wrap: break-word;
             contain: layout style;
         }
-        .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
+        .message-container.ai, .message-container.user { max-width: 100%; opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
 
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
 
@@ -298,7 +298,11 @@
         }
 
         /* Инпут-бар: вся строка центрируется и ограничивается такой же шириной */
-        #chat-input-area {
+        #chat-input-area .input-wrapper {
+      max-width: 100%;
+      /* Убираем любые margin/padding, которые выбивают его за края */
+      margin: 0 auto;
+      width: 100%;
             position: sticky;
             bottom: 0;
             padding-bottom: 1.5rem;

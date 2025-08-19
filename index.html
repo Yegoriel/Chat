@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,22 +211,24 @@
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
+        /* ВАЖНО: внешний контент-обёртка больше не ограничивает ширину — скролл идёт по всей ширине окна */
         #chat-content-wrapper {
             width: 100%;
-            max-width: none;
+            max-width: none; /* fix */
             margin: 0;
-            padding: 0;
+            padding: 0;       /* убрали внутренние паддинги, чтобы не влиять на скролл */
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             flex: 1 1 auto;
-            min-height: 0;
+            min-height: 0;    /* критично для скролла во флексе */
         }
 
+        /* Скролл-область всегда во всю ширину вьюпорта */
         #chat-messages-container {
             position: relative;
             flex-grow: 1;
-            min-height: 0;
+            min-height: 0;    /* критично для скролла */
             overflow: hidden;
             display: flex;
         }
@@ -233,7 +236,7 @@
         #chat-messages {
             height: 100%;
             flex: 1 1 auto;
-            min-height: 0;
+            min-height: 0;    /* критично для скролла */
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -241,10 +244,10 @@
             box-sizing: border-box;
             scrollbar-width: auto;
             -webkit-overflow-scrolling: touch;
-            scrollbar-gutter: stable both-edges;
+            scrollbar-gutter: stable both-edges; /* держим место под скроллбар */
             -ms-overflow-style: none;
             touch-action: pan-y;
-            padding: 2rem 0 calc(var(--input-bar-clearance)) 0;
+            padding: 2rem 0 calc(var(--input-bar-clearance)) 0; /* нижний отступ = высоте инпут-бара */
         }
 
         .message-container {
@@ -269,12 +272,13 @@
 
         .message-container.ai {
             background-color: var(--ai-msg-bg);
-            align-self: stretch;
+            align-self: stretch;  /* растягиваем контейнер на всю ширину */
             border: none;
             padding: 0;
             width: 100%;
         }
 
+        /* Центрируем и ограничиваем контент ИИ + приветствие как у ChatGPT */
         .ai-content-block,
         .welcome-message {
             max-width: var(--thread-width);
@@ -294,6 +298,7 @@
             border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s, color 0.3s;
         }
 
+        /* Инпут-бар: вся строка центрируется и ограничивается такой же шириной */
         #chat-input-area {
             position: sticky;
             bottom: 0;
@@ -305,8 +310,7 @@
         #chat-form {
             display: flex; align-items: flex-end; gap: 0.75rem; width: 100%; box-sizing: border-box;
             max-width: var(--thread-width);
-            margin-left: auto;
-            margin-right: auto;
+            margin-left: auto; margin-right: auto;
             padding: 0 calc(var(--space-md));
         }
         #chat-input {
@@ -385,6 +389,7 @@
         .message-container.ai h1 { font-size: var(--font-size-h1); }
         .message-container.ai h2 {
             font-size: var(--font-size-h2);
+            /* пример calc(var * n) как в инспекторе */
             margin-top: calc(var(--space-lg) * 2);
             margin-bottom: calc(var(--space-md) * 1);
         }
@@ -460,17 +465,22 @@
         .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
         /* --- END: TYPOGRAPHY --- */
 
+        @media (max-width: 768px) {
+            /* На мобильном контент на всю ширину, но мы и так ограничиваем внутренними max-width */
+            .ai-content-block, #chat-form { max-width: 100%; }
+            .message-container.ai .ai-content-block { font-size: 1rem; }
+            .message-container.ai h1 { font-size: 1.6rem; }
+            .message-container.ai h2 { font-size: 1.3rem; }
+            .message-container.ai h3 { font-size: 1.15rem; }
+            .message-container.ai h4 { font-size: 1.05rem; }
+        }
+
         /* === НАЧАЛО ИСПРАВЛЕНИЯ === */
         @media (min-width: 769px) {
-            /* 1. Задаем общие отступы для контейнеров сообщений и поля ввода */
-            #chat-messages-container,
-            #chat-input-area {
+            #chat-messages {
                 padding-left: calc((100% - var(--thread-width)) / 2);
                 padding-right: calc((100% - var(--thread-width)) / 2);
-                box-sizing: border-box;
             }
-
-            /* 2. Убираем дублирующие стили центрирования у дочерних элементов */
             .ai-content-block,
             .welcome-message {
                 max-width: 100%;
@@ -480,23 +490,11 @@
                 padding-right: 0;
             }
             #chat-form {
-                max-width: 100%;
-                margin-left: 0;
-                margin-right: 0;
                 padding-left: 0;
                 padding-right: 0;
             }
         }
         /* === КОНЕЦ ИСПРАВЛЕНИЯ === */
-
-        @media (max-width: 768px) {
-            .ai-content-block, #chat-form { max-width: 100%; }
-            .message-container.ai .ai-content-block { font-size: 1rem; }
-            .message-container.ai h1 { font-size: 1.6rem; }
-            .message-container.ai h2 { font-size: 1.3rem; }
-            .message-container.ai h3 { font-size: 1.15rem; }
-            .message-container.ai h4 { font-size: 1.05rem; }
-        }
     </style>
 </head>
 <body>

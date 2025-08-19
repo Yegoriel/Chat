@@ -261,24 +261,21 @@
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
                 .message-container.user {
-                  padding: 0.65rem 1rem;
-                  background-color: var(--user-msg-bg);
-                  align-self: flex-end;  
-                  max-width: 65%; 
-                  margin: 0 auto;  
-                    border-radius: 12px;
-                  padding: 0 var(--space-md);   
-                  box-sizing: border-box;
-                    transition: background-color 0.3s;
-                }
-                
-                .user-bubble {
-                  background-color: var(--user-msg-bg);
-                  padding: 0.65rem 1rem;
-                  border-radius: 12px;
-                  max-width: 70%;               /* не шире 70% рабочей зоны */
-                  word-wrap: break-word;
-                }
+  display: flex;                /* создаем flex-контейнер */
+  justify-content: flex-end;    /* прижимаем всё содержимое к правому краю внутри контейнера */
+  max-width: var(--thread-width); /* ограничиваем ширину контейнера "рабочей зоной" */
+  margin: 0 auto;               /* центрируем контейнер по горизонтали */
+  padding: 0 var(--space-md);   /* боковые отступы как у input-формы */
+  box-sizing: border-box;
+}
+
+.message-container.user > .user-bubble {
+  background-color: var(--user-msg-bg);
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  max-width: 70%;               /* не шире 70% рабочей зоны */
+  word-wrap: break-word;
+}
 
         .message-container.ai {
             background-color: var(--ai-msg-bg);

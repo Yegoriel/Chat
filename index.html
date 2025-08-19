@@ -261,21 +261,22 @@
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
                 .message-container.user {
-  display: flex;                /* создаем flex-контейнер */
-  justify-content: flex-end;    /* прижимаем всё содержимое к правому краю внутри контейнера */
-  max-width: var(--thread-width); /* ограничиваем ширину контейнера "рабочей зоной" */
-  margin: 0 auto;               /* центрируем контейнер по горизонтали */
-  padding: 0 var(--space-md);   /* боковые отступы как у input-формы */
-  box-sizing: border-box;
-}
-
-.message-container.user > .user-bubble {
-  background-color: var(--user-msg-bg);
-  padding: 0.65rem 1rem;
-  border-radius: 12px;
-  max-width: 70%;               /* не шире 70% рабочей зоны */
-  word-wrap: break-word;
-}
+                  display: flex;                /* включаем flex */
+                  justify-content: flex-end;    /* прижатие вправо в колонке */
+                  max-width: var(--thread-width); /* ограничиваем рабочую зону */
+                  margin: 0 auto;               /* центрируем её, как инпут */
+                  padding: 0 var(--space-md);   /* боковые отступы согласованы с формой */
+                  box-sizing: border-box;
+                }
+                
+                /* Применим фон и отступы непосредственно к содержимому */
+                .message-container.user {
+                  background-color: var(--user-msg-bg);
+                  padding: 0.65rem 1rem;
+                  border-radius: 12px;
+                  max-width: 70%;               /* не больше 70% колонки */
+                  word-wrap: break-word;
+                }
 
         .message-container.ai {
             background-color: var(--ai-msg-bg);

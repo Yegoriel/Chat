@@ -25,7 +25,7 @@
             --font-size-h1: 2rem;
             --font-size-h2: 1.7rem;
             --font-size-h3: 1.4rem;
-            --font-size-h4: 1.15rem;
+            --font-size-h4: 1.1rem;
 
             /* content widths */
             --chat-content-narrow-width: 42rem;
@@ -246,7 +246,8 @@
             scrollbar-gutter: stable both-edges; /* держим место под скроллбар */
             -ms-overflow-style: none;
             touch-action: pan-y;
-            padding: 2rem 0 calc(var(--input-bar-clearance)) 0; /* нижний отступ = высоте инпут-бара */
+            /* === ИЗМЕНЕНИЕ ЗДЕСЬ === */
+            padding: 2rem calc((100% - var(--thread-width)) / 2) calc(var(--input-bar-clearance)) calc((100% - var(--thread-width)) / 2);
         }
 
         .message-container {
@@ -260,23 +261,14 @@
 
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
-                .message-container.user {
-                  display: flex;                /* включаем flex */
-                  justify-content: flex-end;    /* прижатие вправо в колонке */
-                  max-width: var(--thread-width); /* ограничиваем рабочую зону */
-                  margin: 0 auto;               /* центрируем её, как инпут */
-                  padding: 0 var(--space-md);   /* боковые отступы согласованы с формой */
-                  box-sizing: border-box;
-                }
-                
-                /* Применим фон и отступы непосредственно к содержимому */
-                .message-container.user {
-                  background-color: var(--user-msg-bg);
-                  padding: 0.65rem 1rem;
-                  border-radius: 12px;
-                  max-width: 70%;               /* не больше 70% колонки */
-                  word-wrap: break-word;
-                }
+        .message-container.user {
+            padding: 0.65rem 1rem;
+            background-color: var(--user-msg-bg);
+            align-self: flex-end;
+            border-radius: 12px;
+            max-width: 90%;
+            transition: background-color 0.3s;
+        }
 
         .message-container.ai {
             background-color: var(--ai-msg-bg);

@@ -263,10 +263,12 @@
         .message-container.user {
             padding: 0.65rem 1rem;
             background-color: var(--user-msg-bg);
-            align-self: flex-end;
+            max-width: calc(var(--thread-width) * 0.7);
+            width: fit-content;
+            margin-left: auto;
+            box-sizing: border-box;
             border-radius: 12px;
-            max-width: 90%;
-            transition: background-color 0.3s;
+                    transition: background-color 0.3s;
         }
 
         .message-container.ai {

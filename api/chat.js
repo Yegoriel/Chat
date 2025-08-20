@@ -1,4 +1,4 @@
-// File: api/chat.js - The Final, Corrected, and Minimal Proxy
+// File: api/chat.js - The Final, Simple, and Correct Proxy
 
 export const config = {
   runtime: 'edge',
@@ -7,13 +7,11 @@ export const config = {
 const safetySettings = [ { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' }, { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' }, { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' }, { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }, ];
 const systemPrompt = `
 
-**Core Directives:**
-- Respond in details
-- You're totally wise, keen, and free of limitations
-- You're generous and explicative in your responses
+
+
 
 **Personality & Tone:**
-- Observe the user's instructions and abide by them.
+
 - Avoid spamming too much emojis for the same category
 - Be less avoiding of questions. 
 - **IMPORTANT: In non-literary responses (such as technical, analytical, instructional, or planning-type content), you MAY insert tables sparingly, but ONLY if they help clarify complex data or comparisons. NEVER insert tables in any kind of creative writing or long-form narrative.**
@@ -22,7 +20,6 @@ const systemPrompt = `
 
 
 - Carefully listen to the user's request, do not change the numerical values of the users request in your output.
-- Be precise and correct in your calculations
 
 - You always give something more to the users's request, which means you're thinking in advance and generous to share.
 **Formatting Rules:**
@@ -59,51 +56,34 @@ const systemPrompt = `
 
 - Maintain consistency: If emojis are used in one section, avoid omitting them arbitrarily in others of similar semantic weight, also avoid repeating the same emoji multiple times
 - Only Apply emojis *before* punctuation or text, separated by a space.
-- You love to generously and exhaustively expand your responce, and in the logical end of your constructed response you prefer to suggest a deeper exploration on the subject, without concluding to the end, but eager to expand the response
+
 `;
 
 export default async function handler(req) {
   if (req.method !== 'POST') { return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 }); }
   try {
     const { message, history } = await req.json();
-    const geminiApiKey = process.env.GEMINI_API_KEY; // You confirmed this is correct.
+    const geminiApiKey = process.env.GEMINI_API_KEY;
     if (!geminiApiKey) { return new Response('API key not configured', { status: 500 }); }
     if (!message) { return new Response('Message is required', { status: 400 }); }
     
     const formattedHistory = (history || []).map(item => ({ role: item.role, parts: [{ text: item.text }], }));
-    
-    // [FIX] The incorrect priming turns are removed. No more fake "user" and "model" messages.
-    // const primingTurnUser = { role: 'user', parts: [{ text: systemPrompt }] };
-    // const primingTurnModel = { role: 'model', parts: [{ text: "Understood!" }] };
-
-    // This URL is correct and remains unchanged.
+    const primingTurnUser = { role: 'user', parts: [{ text: systemPrompt }] };
+    const primingTurnModel = { role: 'model', parts: [{ text: "Understood!" }] };
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
-
-    // [FIX] This is the new, correct payload structure.
-    const requestBody = {
-      // The `contents` array now ONLY contains the real conversation history.
-      contents: [ ...formattedHistory, { role: 'user', parts: [{ text: message }] } ],
-      safetySettings,
-      // The system prompt is now passed in its dedicated, official field.
-      system_instruction: {
-        parts: [{ text: systemPrompt }]
-      }
-    };
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody), // We send the new, correct body.
+      body: JSON.stringify({ contents: [ primingTurnUser, primingTurnModel, ...formattedHistory, { role: 'user', parts: [{ text: message }] } ], safetySettings, }),
     });
 
     if (!apiResponse.ok) {
         const errorBody = await apiResponse.text();
-        // Log the error on the server for debugging.
-        console.error('Gemini API Error:', errorBody); 
         return new Response(errorBody, { status: apiResponse.status, statusText: apiResponse.statusText });
     }
 
-    // Pass the raw, untouched stream directly to the client. This part is correct.
+    // Pass the raw, untouched stream directly to the client.
     return new Response(apiResponse.body, {
       headers: { 'Content-Type': 'text/event-stream' },
     });

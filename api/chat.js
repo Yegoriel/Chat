@@ -77,7 +77,7 @@ export default async function handler(req) {
     // const primingTurnModel = { role: 'model', parts: [{ text: "Understood!" }] };
 
     // This URL is correct and remains unchanged.
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
     // [FIX] This is the new, correct payload structure.
     const requestBody = {

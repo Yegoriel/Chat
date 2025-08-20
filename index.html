@@ -9,7 +9,9 @@
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVEMVIhbGKLCePo2reqvC1S+kQufej0+ll4acVLG8xL93cVyo5U" crossorigin="anonymous">
     
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax5AScKmpS5OUmfPR5WupJ4W_eSOWYSwCLd" crossorigin="anonymous"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -37,7 +39,6 @@
             --user-msg-bg: #f0f2f5;
             --ai-msg-bg: transparent;
             --code-bg: #f7f7f8;
-            --formula-bg: #f7f7f9;
             --code-text-color: #383a42;
             --scroll-btn-bg: var(--background-color);
             --scroll-btn-color: #555;
@@ -59,7 +60,6 @@
             --user-msg-bg: #3a3a3a;
             --ai-msg-bg: transparent;
             --code-bg: #2c2c2c;
-            --formula-bg: #2c2c32;
             --code-text-color: #abb2bf;
             --scroll-btn-bg: #2c2c2c;
             --scroll-btn-color: #e0e0e0;
@@ -238,30 +238,37 @@
             flex-direction: column;
             flex: 1 1 auto;
             min-height: 0;
-            position: relative; /* For the input area */
         }
-        
+
         #chat-messages-container {
-            flex-grow: 1;
-            overflow-y: auto;
             position: relative;
+            flex-grow: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
         }
 
         #chat-messages {
+            height: 100%;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             width: 100%;
             box-sizing: border-box;
-            padding: 2rem 0;
+            scrollbar-width: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable both-edges;
+            -ms-overflow-style: none;
+            touch-action: pan-y;
+            padding: 2rem 0 calc(var(--input-bar-clearance)) 0;
         }
-        
+
         .message-container {
-            max-width: var(--thread-width);
-            margin-left: auto;
-            margin-right: auto;
-            padding: 0 var(--space-md);
             margin-bottom: 1.25rem;
             word-wrap: break-word;
+            contain: layout style;
         }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
 
@@ -276,40 +283,47 @@
             border-radius: 12px;
             max-width: 90%;
             transition: background-color 0.3s;
-            margin-left: auto; /* Keep user messages to the right */
-            margin-right: 0;
         }
         
+        /* MODIFIED: Wrapper for file block to center it */
         .message-container.user-file {
-            align-self: center; /* Center the file block */
+            align-self: stretch;
+            display: flex;
+            justify-content: center;
             background-color: transparent;
             padding: 0;
-            margin-right: auto; /* Ensure it's centered with margin: auto */
         }
 
         .message-container.ai {
-            align-self: center;
             background-color: var(--ai-msg-bg);
+            align-self: stretch;
             border: none;
             padding: 0;
             width: 100%;
         }
 
-        .ai-content-block { min-height: 2.5rem; }
+        .ai-content-block,
+        .welcome-message {
+            max-width: var(--thread-width);
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: calc(var(--space-md));
+            padding-right: calc(var(--space-md));
+        }
 
-        .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; animation: fadeInAndRise 0.4s ease forwards; }
+        .ai-content-block { padding-top: 0; padding-bottom: 0; min-height: 2.5rem; }
+
+        .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding-top: 0 !important; padding-bottom: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
 
         #login-btn {
             margin-top: 1rem; padding: 0.75rem 1.5rem;
             background-color: var(--primary-accent); color: var(--background-color);
             border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s, color 0.3s;
         }
-        
+
         #chat-input-area {
-            position: absolute;
+            position: sticky;
             bottom: 0;
-            left: 0;
-            right: 0;
             padding-bottom: 1.5rem;
             margin-top: auto;
             background: linear-gradient(to top, var(--background-color) 70%, transparent 100%);
@@ -317,10 +331,10 @@
         }
         #chat-form-container {
             max-width: var(--thread-width);
-            margin: 0 auto;
+            margin-left: auto;
+            margin-right: auto;
             padding: 0 var(--space-md);
         }
-
         #chat-form {
             display: flex; align-items: flex-end; gap: 0.75rem; width: 100%; box-sizing: border-box;
         }
@@ -425,7 +439,6 @@
 
         /* --- START: CHATGPT-STYLE TYPOGRAPHY --- */
         .message-container.ai * { box-sizing: border-box; word-wrap: break-word; }
-        
         .message-container.ai .ai-content-block {
             font-size: var(--font-size-body);
             line-height: var(--line-height-body);
@@ -437,26 +450,6 @@
         .message-container.ai p { margin: 1em 0; }
         .message-container.ai blockquote, .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper, .message-container.ai hr { margin: 1.5em 0; }
-
-        /* === START: Definitive Fix for Math Formulas === */
-        .math-block-wrapper {
-            background-color: var(--formula-bg);
-            padding: 1em;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 1em 0;
-        }
-        .math-inline-wrapper {
-            font-size: 0.95em;
-            background-color: var(--formula-bg);
-            padding: 0.1em 0.3em;
-            border-radius: 4px;
-        }
-        .math-block-wrapper::-webkit-scrollbar { height: 6px; }
-        .math-block-wrapper::-webkit-scrollbar-track { background: transparent; }
-        .math-block-wrapper::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 10px; }
-        .math-block-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
-        /* === END: Definitive Fix for Math Formulas === */
 
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 { font-weight: 600 !important; }
         .message-container.ai h1 { font-size: var(--font-size-h1); }
@@ -490,13 +483,13 @@
         }
         body.dark-theme .message-container.ai blockquote { color: rgba(255,255,255,0.7); }
 
-        .message-container.ai code:not(pre > code):not(.language-math) {
+        .message-container.ai code:not(pre > code) {
             font-size: 0.875em; padding: 0.2em 0.4em; background-color: var(--code-bg);
             border-radius: 4px; font-family: 'Fira Code', 'SF Mono', monospace;
             border: 1px solid var(--border-color);
         }
         .message-container.ai hr { border: 0; height: 1px; background-color: var(--border-color); }
-        
+
         .code-block-wrapper, .table-wrapper {
             max-width: 100%; overflow-x: auto; position: relative;
             touch-action: auto; -webkit-overflow-scrolling: touch;
@@ -705,27 +698,47 @@
         /* === END: FULLSCREEN EDITOR MODAL === */
 
         @media (max-width: 768px) {
-            .message-container, #chat-form-container { 
-                max-width: 100%;
-                padding: 0 var(--space-md);
-            }
+            .ai-content-block, #chat-form-container { max-width: 100%; }
             .message-container.ai .ai-content-block { font-size: 1rem; }
             .message-container.ai h1 { font-size: 1.6rem; }
             .message-container.ai h2 { font-size: 1.3rem; }
             .message-container.ai h3 { font-size: 1.15rem; }
             .message-container.ai h4 { font-size: 1.05rem; }
         }
+
+        @media (min-width: 769px) {
+            #chat-messages {
+                padding-left: calc((100% - var(--thread-width)) / 2);
+                padding-right: calc((100% - var(--thread-width)) / 2);
+            }
+            .ai-content-block,
+            .welcome-message {
+                max-width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+                padding-left: 0;
+                padding-right: 0;
+            }
+            #chat-form-container {
+                padding-left: 0;
+                padding-right: 0;
+            }
+        }
         
         body.initial-state #chat-content-wrapper {
             justify-content: flex-end;
+            padding-bottom: 30vh;
         }
+
         body.initial-state #chat-messages-container {
-            justify-content: center;
+            flex-grow: 0;
         }
+
         body.initial-state #chat-input-area {
             position: relative;
             background: transparent;
-            padding-bottom: 30vh;
+            padding-bottom: 2rem;
+            margin-top: 1rem;
         }
 
         body.initial-state #chat-form-container {
@@ -750,7 +763,6 @@
     </style>
 </head>
 <body class="initial-state">
-    <!-- Main HTML structure remains the same -->
     <div id="app-container">
         <!-- Sidebar and Main Chat Area remain the same -->
         <div id="sidebar-overlay"></div>
@@ -833,6 +845,7 @@
         </div>
     </div>
     
+    <!-- ADDED: Fullscreen Editor Modal HTML -->
     <div id="editor-modal-overlay">
         <div id="editor-modal">
             <div class="editor-header">
@@ -852,10 +865,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // The JavaScript logic from the previous version is correct and complete.
-            // It remains unchanged as the final fixes were purely in CSS and library versioning.
-            // All functions like handleSendMessage, file handling, editor modal logic,
-            // and Firebase integration are included below.
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
                 authDomain: "ai-chatbot-b38da.firebaseapp.com",
@@ -873,7 +882,7 @@
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null;
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
             let attachedFile = null;
-            let activeFileBlockForEdit = null;
+            let activeFileBlockForEdit = null; // To track which file block is being edited
 
             // --- DOM ELEMENTS ---
             const chatHistoryList = document.getElementById('chat-history-list'),
@@ -897,42 +906,28 @@
                 editorCancelBtn = document.getElementById('editor-cancel-btn'),
                 editorDownloadBtn = document.getElementById('editor-download-btn');
 
-            // --- MARKED & KATEX CONFIG ---
-            const renderer = new marked.Renderer();
-            const originalCodeRenderer = renderer.code;
-            renderer.code = (code, lang, escaped) => {
-                if (lang === 'math') {
+            // --- MARKED CONFIG ---
+            marked.setOptions({ gfm: true, breaks: true });
+            
+            // --- RENDER MATH ---
+            const renderMath = (element) => {
+                if (window.renderMathInElement) {
                     try {
-                        const html = katex.renderToString(code, {
-                            throwOnError: false,
-                            displayMode: true
+                        renderMathInElement(element, {
+                            delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '$', right: '$', display: false},
+                                {left: '\\(', right: '\\)', display: false},
+                                {left: '\\[', right: '\\]', display: true}
+                            ],
+                            throwOnError: false
                         });
-                        return `<div class="math-block-wrapper">${html}</div>`;
                     } catch (e) {
-                        return `Error rendering math: ${e.message}`;
+                        console.error("KaTeX rendering error:", e);
                     }
                 }
-                return originalCodeRenderer.call(renderer, code, lang, escaped);
-            };
-            const originalCodespanRenderer = renderer.codespan;
-            renderer.codespan = (code) => {
-                if (code.startsWith('$') && code.endsWith('$') && code.length > 2) {
-                    try {
-                        const math = code.substring(1, code.length - 1);
-                        const html = katex.renderToString(math, {
-                            throwOnError: false,
-                            displayMode: false
-                        });
-                        return `<span class="math-inline-wrapper">${html}</span>`;
-                    } catch (e) {
-                         // fallback to default
-                    }
-                }
-                return originalCodespanRenderer.call(renderer, code);
             };
 
-            marked.use({ renderer });
-            
             // --- PROFESSIONAL RENDERER ---
             class ProfessionalRenderer {
                 constructor(container) {
@@ -969,6 +964,7 @@
 
                 render() {
                     this.container.innerHTML = marked.parse(this.textBuffer);
+                    renderMath(this.container);
                     const codeBlocks = this.container.querySelectorAll('pre code');
                     if (codeBlocks.length > 0) {
                         codeBlocks.forEach(el => hljs.highlightElement(el));
@@ -1076,6 +1072,7 @@
                         const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
                         const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                         contentBlock.innerHTML = marked.parse(msg.text || "");
+                        renderMath(contentBlock);
                         contentBlock.querySelectorAll('pre code').forEach(el => {
                             hljs.highlightElement(el);
                         });
@@ -1344,7 +1341,7 @@
                 }
 
                 if (target.closest('.file-copy-btn')) {
-                    const content = fileBlock.dataset.fileContent.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                    const content = fileBlock.dataset.fileContent;
                     navigator.clipboard.writeText(content).then(() => {
                         alert('Content copied to clipboard!');
                     });
@@ -1352,7 +1349,7 @@
 
                 if (target.closest('.file-edit-btn')) {
                     activeFileBlockForEdit = fileBlock;
-                    openEditorModal(fileBlock.dataset.fileName, fileBlock.dataset.fileContent.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
+                    openEditorModal(fileBlock.dataset.fileName, fileBlock.dataset.fileContent);
                 }
             });
 
@@ -1371,10 +1368,10 @@
             editorSaveBtn.addEventListener('click', () => {
                 if (activeFileBlockForEdit) {
                     const newContent = editorTextarea.value;
-                    const escapedContent = newContent.replace(/"/g, '&quot;').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const escapedContent = newContent.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     
-                    activeFileBlockForEdit.dataset.fileContent = escapedContent;
-                    activeFileBlockForEdit.querySelector('.file-content-body').innerHTML = newContent.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    activeFileBlockForEdit.dataset.fileContent = newContent;
+                    activeFileBlockForEdit.querySelector('.file-content-body').innerHTML = escapedContent;
                     
                     if (attachedFile && activeFileBlockForEdit.dataset.fileName === attachedFile.name) {
                         attachedFile.content = newContent;

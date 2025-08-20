@@ -9,11 +9,12 @@
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVEMVIhbGKLCePo2reqvC1S+kQufej0+ll4acVLG8xL93cVyo5U" crossorigin="anonymous">
     
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax5AScKmpS5OUmfPR5WupJ4W_eSOWYSwCLd" crossorigin="anonymous"></script>
-    
+    <!-- MODIFIED: Using compatible versions of all libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DEFINITIVE FIX: Upgraded marked-katex-extension to compatible version 2.0.2 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@2.0.2/lib/index.umd.js"></script>
 
     <style>
         :root {
@@ -285,7 +286,6 @@
             transition: background-color 0.3s;
         }
         
-        /* MODIFIED: Wrapper for file block to center it */
         .message-container.user-file {
             align-self: stretch;
             display: flex;
@@ -443,6 +443,13 @@
             font-size: var(--font-size-body);
             line-height: var(--line-height-body);
             color: var(--text-color);
+        }
+        /* ADDED: CSS Safeguard for KaTeX formulas */
+        .katex-display, .katex {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            text-align: left;
         }
         .message-container.ai .ai-content-block > *:first-child { margin-top: 0 !important; }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
@@ -629,7 +636,7 @@
             transition: opacity 0.3s ease;
         }
         #editor-modal-overlay.visible {
-            display: flex;
+            display: flex; /* Use flex for centering */
             align-items: center;
             justify-content: center;
             opacity: 1;
@@ -764,7 +771,7 @@
 </head>
 <body class="initial-state">
     <div id="app-container">
-        <!-- Sidebar and Main Chat Area remain the same -->
+        <!-- HTML structure remains identical -->
         <div id="sidebar-overlay"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
@@ -845,7 +852,6 @@
         </div>
     </div>
     
-    <!-- ADDED: Fullscreen Editor Modal HTML -->
     <div id="editor-modal-overlay">
         <div id="editor-modal">
             <div class="editor-header">
@@ -882,7 +888,7 @@
             let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null;
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
             let attachedFile = null;
-            let activeFileBlockForEdit = null; // To track which file block is being edited
+            let activeFileBlockForEdit = null;
 
             // --- DOM ELEMENTS ---
             const chatHistoryList = document.getElementById('chat-history-list'),
@@ -906,28 +912,20 @@
                 editorCancelBtn = document.getElementById('editor-cancel-btn'),
                 editorDownloadBtn = document.getElementById('editor-download-btn');
 
-            // --- MARKED CONFIG ---
-            marked.setOptions({ gfm: true, breaks: true });
-            
-            // --- RENDER MATH ---
-            const renderMath = (element) => {
-                if (window.renderMathInElement) {
-                    try {
-                        renderMathInElement(element, {
-                            delimiters: [
-                                {left: '$$', right: '$$', display: true},
-                                {left: '$', right: '$', display: false},
-                                {left: '\\(', right: '\\)', display: false},
-                                {left: '\\[', right: '\\]', display: true}
-                            ],
-                            throwOnError: false
-                        });
-                    } catch (e) {
-                        console.error("KaTeX rendering error:", e);
-                    }
+            // --- MARKED CONFIG WITH KATEX ---
+            try {
+                if (window.markedKatex) {
+                    const katexExtension = window.markedKatex({
+                        throwOnError: false
+                    });
+                    marked.use(katexExtension);
+                } else {
+                     console.error("markedKatex extension not loaded. Math formulas will not render.");
                 }
-            };
-
+            } catch (e) {
+                 console.error("Error initializing markedKatex:", e);
+            }
+            
             // --- PROFESSIONAL RENDERER ---
             class ProfessionalRenderer {
                 constructor(container) {
@@ -964,7 +962,6 @@
 
                 render() {
                     this.container.innerHTML = marked.parse(this.textBuffer);
-                    renderMath(this.container);
                     const codeBlocks = this.container.querySelectorAll('pre code');
                     if (codeBlocks.length > 0) {
                         codeBlocks.forEach(el => hljs.highlightElement(el));
@@ -1072,7 +1069,6 @@
                         const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
                         const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                         contentBlock.innerHTML = marked.parse(msg.text || "");
-                        renderMath(contentBlock);
                         contentBlock.querySelectorAll('pre code').forEach(el => {
                             hljs.highlightElement(el);
                         });

@@ -70,7 +70,7 @@ export default async function handler(req) {
     const formattedHistory = (history || []).map(item => ({ role: item.role, parts: [{ text: item.text }], }));
     const primingTurnUser = { role: 'user', parts: [{ text: systemPrompt }] };
     const primingTurnModel = { role: 'model', parts: [{ text: "Understood!" }] };
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-latest:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',

@@ -605,57 +605,33 @@
             // --- MARKED CONFIG ---
             marked.setOptions({ gfm: true, breaks: true });
 
-            // --- PROFESSIONAL RENDERER ---
+            // --- [OPTIMIZED] PROFESSIONAL RENDERER ---
             class ProfessionalRenderer {
                 constructor(container) {
                     this.container = container;
                     this.textBuffer = '';
-                    this.queue = [];
-                    this.isRendering = false;
-                    this.renderInterval = null;
-                    this.container.innerHTML = '';
+                    this.renderScheduled = false;
                 }
 
                 update(chunk) {
-                    this.queue.push(...chunk.split(''));
-                    if (!this.isRendering) {
-                        this.start();
-                    }
-                }
-
-                start() {
-                    this.isRendering = true;
-                    this.renderInterval = setInterval(() => this.processQueue(), 20);
-                }
-
-                processQueue() {
-                    if (this.queue.length === 0) {
-                        this.stop();
-                        return;
-                    }
-                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 5));
-                    const chunk = this.queue.splice(0, charsToProcess).join('');
                     this.textBuffer += chunk;
-                    this.render();
+                    if (!this.renderScheduled) {
+                        this.renderScheduled = true;
+                        requestAnimationFrame(this.render.bind(this));
+                    }
                 }
 
                 render() {
                     this.container.innerHTML = marked.parse(this.textBuffer);
-                    const codeBlocks = this.container.querySelectorAll('pre code');
-                    if (codeBlocks.length > 0) {
-                        codeBlocks.forEach(el => hljs.highlightElement(el));
-                    }
-                }
-
-                stop() {
-                    this.isRendering = false;
-                    clearInterval(this.renderInterval);
+                    this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => {
+                        hljs.highlightElement(el);
+                    });
+                    this.renderScheduled = false;
                 }
 
                 finish() {
-                    this.stop();
-                    this.textBuffer += this.queue.splice(0, this.queue.length).join('');
-                    this.render();
+                    this.renderScheduled = false; // Cancel any pending animation frame
+                    this.render(); // Perform the final, complete render
                     finalizeMessageFormatting(this.container);
                 }
             }
@@ -835,10 +811,12 @@
                 const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
+                // --> ADDED THINKING INDICATOR <--
+                contentBlock.innerHTML = `<div class="thinking-indicator"><span></span><span></span><span></span></div>`;
+
                 currentStreamController = new AbortController();
                 const renderer = new ProfessionalRenderer(contentBlock);
                 let accumulatedResponseText = '';
-                let sseBuffer = '';
 
                 const processChunk = (textPart) => {
                     renderer.update(textPart);
@@ -846,6 +824,7 @@
                     localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                 }
 
+                // --- [IMPROVED] STREAM PROCESSING ---
                 const fetchAndProcessStream = async () => {
                     try {
                         const response = await fetch('/api/chat', {
@@ -855,10 +834,14 @@
                             signal: currentStreamController.signal
                         });
 
-                        if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
+                        if (!response.ok || !response.body) {
+                            const errorText = await response.text();
+                            throw new Error(`API response error: ${response.status} - ${errorText}`);
+                        }
                         
                         const reader = response.body.getReader();
                         const decoder = new TextDecoder();
+                        let sseBuffer = '';
                         
                         while (true) {
                             if (currentStreamController.signal.aborted) break;
@@ -866,26 +849,31 @@
                             if (done) break;
                             
                             sseBuffer += decoder.decode(value, { stream: true });
-                            const lines = sseBuffer.split('\n');
-                            sseBuffer = lines.pop() || '';
+                            const eventMessages = sseBuffer.split('\n\n');
+                            sseBuffer = eventMessages.pop() || '';
 
-                            for (const line of lines) {
-                                if (line.trim().startsWith('data:')) {
+                            for (const message of eventMessages) {
+                                const dataLine = message.split('\n').find(line => line.startsWith('data:'));
+                                if (dataLine) {
                                     try {
-                                        const jsonStr = line.substring(5).trim();
-                                        const parsed = JSON.parse(jsonStr);
-                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                        if (textPart) {
-                                            processChunk(textPart);
+                                        const jsonStr = dataLine.substring(5).trim();
+                                        if (jsonStr) {
+                                            const parsed = JSON.parse(jsonStr);
+                                            const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                            if (textPart) {
+                                                processChunk(textPart);
+                                            }
                                         }
-                                    } catch (parseError) { /* Ignore incomplete JSON */ }
+                                    } catch (parseError) { 
+                                        console.warn("Incomplete JSON received and skipped:", jsonStr, parseError);
+                                    }
                                 }
                             }
                         }
                     } catch (error) {
                         if (error.name !== 'AbortError') {
                             console.error("AI Streaming Error:", error);
-                            contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                            contentBlock.innerHTML = `<p>Sorry, an error occurred while getting a response. Details: ${error.message}</p>`;
                         }
                     } finally {
                         cleanUpStream(accumulatedResponseText, renderer);

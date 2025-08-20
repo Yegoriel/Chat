@@ -88,22 +88,39 @@ export default async function handler(req) {
   try {
     const { message, history } = await req.json();
     const geminiApiKey = process.env.GEMINI_API_KEY;
+    
+    // 1. Define the model via an environment variable for flexibility.
+    // It defaults to a stable, recent model if you don't set it.
+    // Set GEMINI_MODEL_NAME to "gemini-2.5-pro" in your hosting environment.
+    const modelName = process.env.GEMINI_MODEL_NAME || 'gemini-2.5-pro-latest';
+
     if (!geminiApiKey) { return new Response('API key not configured', { status: 500 }); }
     if (!message) { return new Response('Message is required', { status: 400 }); }
     
     const formattedHistory = (history || []).map(item => ({ role: item.role, parts: [{ text: item.text }], }));
-    const primingTurnUser = { role: 'user', parts: [{ text: systemPrompt }] };
-    const primingTurnModel = { role: 'model', parts: [{ text: "Understood!" }] };
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+    
+    // 2. Correctly format the system instruction for the API.
+    const systemInstruction = { role: 'system', parts: [{ text: systemPrompt }] };
+    
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+
+    // 3. Construct the final payload with the system_instruction at the top level.
+    // The incorrect priming turns have been removed.
+    const payload = {
+      contents: [...formattedHistory, { role: 'user', parts: [{ text: message }] }],
+      safetySettings,
+      system_instruction: systemInstruction.parts[0] // The API expects the content directly
+    };
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [ primingTurnUser, primingTurnModel, ...formattedHistory, { role: 'user', parts: [{ text: message }] } ], safetySettings, }),
+      body: JSON.stringify(payload),
     });
 
     if (!apiResponse.ok) {
         const errorBody = await apiResponse.text();
+        console.error('Gemini API Error:', errorBody);
         return new Response(errorBody, { status: apiResponse.status, statusText: apiResponse.statusText });
     }
 

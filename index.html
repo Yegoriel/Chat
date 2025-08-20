@@ -761,58 +761,6 @@
              align-self: center;
         }
     </style>
-
-<!-- Responsive KaTeX fix: prevent square-root and other large constructs from overflowing the viewport -->
-<style>
-/* Make KaTeX responsive: limit width and allow wrapping where possible */
-.katex, .katex-display {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  overflow-wrap: anywhere !important;
-  word-break: break-word !important;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Display-mode math should behave like block elements and be scrollable if necessary */
-.katex-display {
-  display: block !important;
-  margin: 0.6rem 0 !important;
-  padding: 0 0.25rem !important;
-  overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-}
-
-/* Ensure inner HTML/mathml wrappers respect container sizing */
-.katex .katex-html, .katex .katex-mathml {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  display: inline-block !important;
-  vertical-align: middle !important;
-}
-
-/* Prefer allowing horizontal scroll for very wide radicals instead of letting them escape the viewport */
-.katex-display > span, .katex > span {
-  min-width: 0 !important;
-}
-
-/* Improve general chat text wrapping so long formulas don't break layout */
-.message-content, .chat-content, .content, .rendered-markdown {
-  overflow-wrap: anywhere !important;
-  word-break: break-word !important;
-}
-
-/* Small tweak: reduce the root index impact on layout for multi-level roots */
-.katex .katex-mroot .katex-surd {
-  transform-origin: left center !important;
-  max-width: 100% !important;
-}
-
-/* Accessibility: allow keyboard users to scroll math blocks */
-.katex-display:focus { outline: 2px solid rgba(0,0,0,0.08); }
-</style>
-<!-- End KaTeX responsive fix -->
-
 </head>
 <body class="initial-state">
     <div id="app-container">
@@ -1702,5 +1650,20 @@
             document.addEventListener('click', (e) => { if (activeDropdown && !e.target.closest('.actions-dropdown')) { activeDropdown.style.display = 'none'; activeDropdown = null; } if (!e.target.closest('.rename-input')) cancelAllRenames(); });
         });
     </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: "$$", right: "$$", display: true },
+      { left: "\\[", right: "\\]", display: true },
+      { left: "$", right: "$", display: false },
+      { left: "\\(", right: "\\)", display: false }
+    ],
+    throwOnError: false
+  });
+});
+</script>
+
 </body>
 </html>

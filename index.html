@@ -16,40 +16,6 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-
-/* KATEX_RESPONSIVE_FIX_MARKER - Start */
-/* === KaTeX responsive / overflow fix (inserted automatically) === */
-.ai-content-block .katex,
-.ai-content-block .katex-display {
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* make display-mode formulas horizontally scrollable (mobile-friendly) */
-.ai-content-block .katex-display {
-  display: block;
-  overflow-x: auto;
-  overflow-y: hidden; /* avoids unwanted vertical scrollbar */
-  -webkit-overflow-scrolling: touch;
-  padding: 0.25rem 0;
-  margin: 0.5rem 0;
-}
-
-/* allow inline formulas to break/wrap if needed (useful for very long inline formulas) */
-.ai-content-block .katex {
-  display: inline-block;
-  white-space: normal !important;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-
-/* ensure KaTeX's internal html container respects parent's max-width */
-.ai-content-block .katex .katex-html {
-  max-width: 100%;
-  box-sizing: border-box;
-}
-/* KATEX_RESPONSIVE_FIX_MARKER - End */
-
         :root {
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             --space-sm: 0.5rem;
@@ -574,6 +540,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: box-shadow 0.2s;
             width: 100%; /* Ensure it takes up space to be centered */
+            align-self: flex;
             max-width: var(--thread-width);
         }
         .file-content-block:hover {
@@ -962,28 +929,6 @@
                 }
             };
 
-<script>
-
-/* KATEX_RESPONSIVE_FIX_MARKER - Start */
-/* Helper to apply small inline styles so KaTeX display-mode math is scrollable and not clipped. */
-function applyKatexResponsiveFix(container){
-  if(!container) return;
-  container.querySelectorAll('.katex-display').forEach(el => {
-    el.style.maxWidth = '100%';
-    el.style.overflowX = 'auto';
-    el.style.overflowY = 'hidden';
-    el.style.webkitOverflowScrolling = 'touch';
-  });
-  container.querySelectorAll('.katex').forEach(el => {
-    el.style.maxWidth = '100%';
-    el.style.boxSizing = 'border-box';
-  });
-}
-/* KATEX_RESPONSIVE_FIX_MARKER - End */
-
-</script>
-
-
             // --- PROFESSIONAL RENDERER ---
             class ProfessionalRenderer {
                 constructor(container) {
@@ -1021,7 +966,6 @@ function applyKatexResponsiveFix(container){
                 render() {
                     this.container.innerHTML = marked.parse(this.textBuffer);
                     renderMath(this.container);
-                    applyKatexResponsiveFix(this.container);
                     const codeBlocks = this.container.querySelectorAll('pre code');
                     if (codeBlocks.length > 0) {
                         codeBlocks.forEach(el => hljs.highlightElement(el));
@@ -1130,7 +1074,6 @@ function applyKatexResponsiveFix(container){
                         const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                         contentBlock.innerHTML = marked.parse(msg.text || "");
                         renderMath(contentBlock);
-                        applyKatexResponsiveFix(contentBlock);
                         contentBlock.querySelectorAll('pre code').forEach(el => {
                             hljs.highlightElement(el);
                         });

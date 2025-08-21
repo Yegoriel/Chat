@@ -1022,13 +1022,16 @@
                 editorDownloadBtn = document.getElementById('editor-download-btn');
 
             // --- MARKED CONFIG WITH KATEX ---
+            // DEFINITIVE FIX: Create a single, configured instance of Marked according to the modern API.
+            // This solves the crash caused by deprecated global configuration methods and fixes table parsing.
             const myMarked = new marked.Marked({
-                gfm: true,
-                breaks: true
+                gfm: true,      // Use GitHub Flavored Markdown for robust table parsing
+                breaks: true    // Render single line breaks as <br>
             });
 
             try {
                 if (window.markedKatex) {
+                    // Apply the KaTeX extension to our specific instance
                     myMarked.use(window.markedKatex({
                         throwOnError: false
                     }));
@@ -1048,7 +1051,6 @@
                     this.isRendering = false;
                     this.renderInterval = null;
                     this.container.innerHTML = '';
-                    this.lastSuccessfulHTML = ''; // Used to prevent crashes on partial renders
                 }
 
                 update(chunk) {
@@ -1075,21 +1077,10 @@
                 }
 
                 render() {
-                    try {
-                        // DEFINITIVE FIX: Parse the text and only update the DOM if successful.
-                        // This prevents the renderer from crashing on incomplete Markdown (like a partial table).
-                        const newHTML = myMarked.parse(this.textBuffer);
-                        this.container.innerHTML = newHTML;
-                        this.lastSuccessfulHTML = newHTML; // Save the last good state
-                        const codeBlocks = this.container.querySelectorAll('pre code');
-                        if (codeBlocks.length > 0) {
-                            codeBlocks.forEach(el => hljs.highlightElement(el));
-                        }
-                    } catch (e) {
-                        // If parsing fails, do nothing. The UI will show the last successful render,
-                        // preventing hangs and visual glitches while the textBuffer continues to build.
-                        console.warn("Harmless parse error on partial content, waiting for more text.");
-                        this.container.innerHTML = this.lastSuccessfulHTML;
+                    this.container.innerHTML = myMarked.parse(this.textBuffer);
+                    const codeBlocks = this.container.querySelectorAll('pre code');
+                    if (codeBlocks.length > 0) {
+                        codeBlocks.forEach(el => hljs.highlightElement(el));
                     }
                 }
 

@@ -9,123 +9,124 @@
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVEMVIhbGKLCePo2reqvC1S+kQufej0+ll4acVLG8xL93cVyo5U" crossorigin="anonymous">
     
+    <!-- MODIFIED: Using compatible versions of all libraries -->
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DEFINITIVE FIX: Upgraded marked-katex-extension to compatible version 2.0.2 -->
     <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@2.0.2/lib/index.umd.js"></script>
 
     <style>
         :root {
             --system-font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
             --spacing: .25rem;
-            --space-sm: 0.5rem;
-            --space-md: 1rem;
-            --space-lg: 1.25rem;
-            --breakpoint-md: 48rem;
-            --breakpoint-lg: 64rem;
-            --breakpoint-xl: 80rem;
-            --breakpoint-2xl: 96rem;
-            --container-xs: 20rem;
-            --container-sm: 24rem;
-            --container-md: 28rem;
-            --container-lg: 32rem;
-            --container-xl: 36rem;
-            --container-2xl: 42rem;
-            --container-3xl: 48rem;
-            --container-4xl: 56rem;
-            --container-5xl: 64rem;
-            --container-6xl: 72rem;
-            --text-xs: .75rem;
-            --text-xs--line-height: 1.33333;
-            --text-sm: .875rem;
-            --text-sm--line-height: 1.42857;
-            --text-base: 1rem;
-            --text-base--line-height: 1.75;
-            --line-height-body: 1.75;
-            --text-lg: 1.125rem;
-            --text-lg--line-height: 1.55556;
-            --text-xl: 1.25rem;
-            --text-xl--line-height: 1.4;
-            --text-2xl: 1.5rem;
-            --text-2xl--line-height: 1.33333;
-            --text-3xl: 1.875rem;
-            --text-3xl--line-height: 1.2;
-            --text-4xl: 2.25rem;
-            --text-4xl--line-height: 1.11111;
-            --text-5xl: 3rem;
-            --text-5xl--line-height: 1;
-            --text-6xl: 3.75rem;
-            --text-6xl--line-height: 1;
-            --text-7xl: 4.5rem;
-            --text-7xl--line-height: 1;
-            --font-weight-extralight: 200;
-            --font-weight-light: 300;
-            --font-weight-normal: 400;
-            --font-weight-medium: 500;
-            --font-weight-semibold: 600;
-            --font-weight-bold: 700;
-            --font-weight-extrabold: 800;
-            --font-weight-black: 900;
-            --tracking-tighter: -.05em;
-            --tracking-tight: -.025em;
-            --tracking-normal: 0em;
-            --tracking-wide: .025em;
-            --tracking-widest: .1em;
-            --leading-tight: 1.25;
-            --leading-snug: 1.375;
-            --leading-normal: 1.5;
-            --leading-relaxed: 1.625;
-            --radius-xs: .125rem;
-            --radius-sm: .25rem;
-            --radius-md: .375rem;
-            --radius-lg: .5rem;
-            --radius-xl: .75rem;
-            --radius-2xl: 1rem;
-            --radius-3xl: 1.5rem;
-            --radius-4xl: 2rem;
-            --drop-shadow-xs: 0 1px 1px #0000000d;
-            --drop-shadow-sm: 0 1px 2px #00000026;
-            --drop-shadow-md: 0 3px 3px #0000001f;
-            --ease-in: cubic-bezier(.4,0,1,1);
-            --ease-out: cubic-bezier(0,0,.2,1);
-            --ease-in-out: cubic-bezier(.4,0,.2,1);
-            --animate-spin: spin 1s linear infinite;
-            --animate-pulse: pulse 2s cubic-bezier(.4,0,.6,1) infinite;
-            --animate-bounce: bounce 1s infinite;
-            --blur-xs: 4px;
-            --blur-sm: 8px;
-            --blur-md: 12px;
-            --blur-lg: 16px;
-            --blur-xl: 24px;
-            --blur-2xl: 40px;
-            --blur-3xl: 64px;
-            --aspect-video: 16 / 9;
-            --default-transition-duration: .15s;
-            --default-transition-timing-function: cubic-bezier(.4,0,.2,1);
-            --text-heading-2: 1.5rem;
-            --text-heading-2--line-height: 1.75rem;
-            --text-heading-2--letter-spacing: -.015625rem;
-            --text-heading-2--font-weight: 600;
-            --text-heading-3: 1.125rem;
-            --text-heading-3--line-height: 1.625rem;
-            --text-heading-3--letter-spacing: -.028125rem;
-            --text-heading-3--font-weight: 600;
-            --text-body-small-regular: .875rem;
-            --text-body-small-regular--line-height: 1.125rem;
-            --text-body-small-regular--letter-spacing: -.01875rem;
-            --text-body-small-regular--font-weight: 400;
-            --text-body-small-emphasized: .875rem;
-            --text-body-small-emphasized--line-height: 1.125rem;
-            --text-body-small-emphasized--letter-spacing: -.01875rem;
-            --text-body-small-emphasized--font-weight: 600;
-            --text-monospace: .9375rem;
-            --text-monospace--line-height: 1.375rem;
-            --text-monospace--letter-spacing: -.025rem;
-            --text-monospace--font-weight: 400;
-            --text-caption-regular: .75rem;
-            --text-caption-regular--line-height: 1rem;
-            --text-caption-regular--letter-spacing: -.00625rem;
-            --text-caption-regular--font-weight: 400;
+    --breakpoint-md: 48rem;
+    --breakpoint-lg: 64rem;
+    --breakpoint-xl: 80rem;
+    --breakpoint-2xl: 96rem;
+    --container-xs: 20rem;
+    --container-sm: 24rem;
+    --container-md: 28rem;
+    --container-lg: 32rem;
+    --container-xl: 36rem;
+    --container-2xl: 42rem;
+    --container-3xl: 48rem;
+    --container-4xl: 56rem;
+    --container-5xl: 64rem;
+    --container-6xl: 72rem;
+    --text-xs: .75rem;
+    --text-xs--line-height: 1.33333;
+    --text-sm: .875rem;
+    --text-sm--line-height: 1.42857;
+    --text-base: 1rem;
+    --text-base--line-height: 1.75;
+    --line-height-body: 1.75;
+    --text-lg: 1.125rem;
+    --text-lg--line-height: 1.55556;
+    --text-xl: 1.25rem;
+    --text-xl--line-height: 1.4;
+    --text-2xl: 1.5rem;
+    --text-2xl--line-height: 1.33333;
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: 1.2;
+    --text-4xl: 2.25rem;
+    --text-4xl--line-height: 1.11111;
+    --text-5xl: 3rem;
+    --text-5xl--line-height: 1;
+    --text-6xl: 3.75rem;
+    --text-6xl--line-height: 1;
+    --text-7xl: 4.5rem;
+    --text-7xl--line-height: 1;
+    --font-weight-extralight: 200;
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
+    --tracking-tighter: -.05em;
+    --tracking-tight: -.025em;
+    --tracking-normal: 0em;
+    --tracking-wide: .025em;
+    --tracking-widest: .1em;
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --radius-xs: .125rem;
+    --radius-sm: .25rem;
+    --radius-md: .375rem;
+    --radius-lg: .5rem;
+    --radius-xl: .75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.5rem;
+    --radius-4xl: 2rem;
+    --drop-shadow-xs: 0 1px 1px #0000000d;
+    --drop-shadow-sm: 0 1px 2px #00000026;
+    --drop-shadow-md: 0 3px 3px #0000001f;
+    --ease-in: cubic-bezier(.4,0,1,1);
+    --ease-out: cubic-bezier(0,0,.2,1);
+    --ease-in-out: cubic-bezier(.4,0,.2,1);
+    --animate-spin: spin 1s linear infinite;
+    --animate-pulse: pulse 2s cubic-bezier(.4,0,.6,1) infinite;
+    --animate-bounce: bounce 1s infinite;
+    --blur-xs: 4px;
+    --blur-sm: 8px;
+    --blur-md: 12px;
+    --blur-lg: 16px;
+    --blur-xl: 24px;
+    --blur-2xl: 40px;
+    --blur-3xl: 64px;
+    --aspect-video: 16 / 9;
+    --default-transition-duration: .15s;
+    --default-transition-timing-function: cubic-bezier(.4,0,.2,1);
+    --text-heading-2: 1.5rem;
+    --text-heading-2--line-height: 1.75rem;
+    --text-heading-2--letter-spacing: -.015625rem;
+    --text-heading-2--font-weight: 600;
+    --text-heading-3: 1.125rem;
+    --text-heading-3--line-height: 1.625rem;
+    --text-heading-3--letter-spacing: -.028125rem;
+    --text-heading-3--font-weight: 600;
+    --text-body-small-regular: .875rem;
+    --text-body-small-regular--line-height: 1.125rem;
+    --text-body-small-regular--letter-spacing: -.01875rem;
+    --text-body-small-regular--font-weight: 400;
+    --text-body-small-emphasized: .875rem;
+    --text-body-small-emphasized--line-height: 1.125rem;
+    --text-body-small-emphasized--letter-spacing: -.01875rem;
+    --text-body-small-emphasized--font-weight: 600;
+    --text-monospace: .9375rem;
+    --text-monospace--line-height: 1.375rem;
+    --text-monospace--letter-spacing: -.025rem;
+    --text-monospace--font-weight: 400;
+    --text-caption-regular: .75rem;
+    --text-caption-regular--line-height
+1rem
+: 1rem;
+    --text-caption-regular--letter-spacing: -.00625rem;
+    --text-caption-regular--font-weight: 400;
 
             --chat-content-narrow-width: 42rem;
             --chat-content-expanded-width: 50rem;
@@ -282,19 +283,20 @@
             min-height: 0;
             overflow: hidden;
             transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            position: relative; /* ADDED: Required for the ::after pseudo-element */
         }
 
+        /* DEFINITIVE FIX: Creates a single, clean gradient layer behind the input bar to fade scrolling content. */
         #chat-area::after {
             content: '';
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 180px;
+            height: 180px; /* A taller gradient for a smoother fade effect */
             background: linear-gradient(to top, var(--background-color) 30%, transparent 100%);
-            pointer-events: none;
-            z-index: 5;
+            pointer-events: none; /* Allows clicks to pass through to elements behind it */
+            z-index: 5; /* Positioned below the input bar but above the chat messages */
             transition: background-color 0.3s;
         }
 
@@ -371,14 +373,14 @@
             flex-direction: column;
             width: 100%;
             box-sizing: border-box;
-            scrollbar-width: none;
+            scrollbar-width: none; /* Hides scrollbar for Firefox */
             -webkit-overflow-scrolling: touch;
-            -ms-overflow-style: none;
+            -ms-overflow-style: none; /* Hides scrollbar for IE and Edge */
             touch-action: pan-y;
             padding: 2rem 0 calc(var(--input-bar-clearance)) 0;
         }
         #chat-messages::-webkit-scrollbar {
-            display: none;
+            display: none; /* Hides scrollbar for Chrome, Safari, and Opera */
         }
 
         .message-container {
@@ -441,7 +443,7 @@
             bottom: 0;
             padding-bottom: 1.5rem;
             margin-top: auto;
-            background: transparent;
+            background: transparent; /* MODIFIED: Made transparent so the ::after pseudo-element on #chat-area is visible */
             z-index: 10;
         }
         #chat-form-container {
@@ -455,7 +457,7 @@
         }
         #chat-input {
             flex-grow: 1; border: none; background-color: transparent; border-radius: 0;
-            padding: 0.8rem 1rem; font-size: var(--text-base); font-family: var(--system-font);
+            padding: 0.8rem 1rem; font-size: var(--font-size-body); font-family: var(--system-font);
             resize: none; max-height: 150px; overflow-y: auto;
             line-height: 1.5; color: var(--text-color);
         }
@@ -555,17 +557,18 @@
         /* --- START: CHATGPT-STYLE TYPOGRAPHY --- */
         .message-container.ai * { box-sizing: border-box; word-wrap: break-word; }
         .message-container.ai .ai-content-block {
-            font-size: var(--text-base);
+            font-size: var(--font-size-body);
             line-height: var(--line-height-body);
             color: var(--text-color);
         }
+        /* ADDED: CSS Safeguard for KaTeX formulas */
         .katex-display, .katex {
             max-width: 100%;
             overflow-x: auto;
             overflow-y: hidden;
             text-align: left;
         }
-        .message-container.ai .ai-content-block > *:first-child { margin-top: 0; }
+        .message-container.ai .ai-content-block > *:first-child { margin-top: calc(var(--spacing) * 0); }
         .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
 
         .message-container.ai p { margin: 1em 0; }
@@ -573,16 +576,17 @@
         .message-container.ai .table-wrapper, .message-container.ai hr { margin: 1.5em 0; }
 
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 { font-weight: 600 !important; }
-        .message-container.ai h1 { font-size: var(--text-2xl); line-height: var(--text-2xl--line-height); margin-bottom: calc(var(--spacing) * 2); }
-        .message-container.ai h2 { font-size: var(--text-xl); line-height: var(--text-xl--line-height); margin-top: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 1); }
-        .message-container.ai h3 { font-size: var(--text-lg); line-height: var(--text-lg--line-height); margin-top: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 1); }
-        .message-container.ai h4 { font-size: var(--text-base); margin-top: var(--space-lg); margin-bottom: var(--space-sm); }
+        .message-container.ai h1 { --tw-tracking: var(--tracking-normal); font-size: var(--text-2xl); letter-spacing: var(--tracking-normal); line-height: var(--tw-leading, var(--text-2xl--line-height)); margin-bottom: calc(var(--spacing) * 2); }
+        .message-container.ai h2 { font-size: var(--text-xl); line-height: var(--tw-leading, var(--text-xl--line-height)); margin-top: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 1);
+        }
+        .message-container.ai h3 { font-size: var(--text-lg); line-height: var(--tw-leading, var(--text-lg--line-height)); margin-top: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 1); }
+        .message-container.ai h4 { font-size: var(--font-size-h4); margin-top: var(--space-lg); margin-bottom: var(--space-sm); }
         .message-container.ai h5 { font-size: 1.05rem; }
         .message-container.ai h6 { font-size: 1rem; opacity: 0.8; }
         .message-container.ai strong { font-weight: 600; }
 
         .message-container.ai ul, .message-container.ai ol { margin: 1.25em 0; padding-inline-start: 2em; }
-        .message-container.ai li { margin: 0.5em 0; padding-left: 0; }
+        .message-container.ai li { margin: 0.5em 0; padding-left: 0em; }
         .message-container.ai li p { margin: 0; }
         .message-container.ai li > *:first-child { margin-top: 0; }
         .message-container.ai li > *:last-child { margin-bottom: 0; }
@@ -636,15 +640,8 @@
             padding: 0.5rem 0.75rem; text-align: left;
             border-bottom: 1px solid var(--border-color); font-size: 0.9em;
         }
-        .message-container.ai thead th { 
-            font-weight: 600; 
-            background-color: transparent;
-            border-bottom-width: 2px;
-        }
+        .message-container.ai thead th { font-weight: 600; background-color: transparent;  border-bottom-width: 2px; }
         .message-container.ai tbody tr:last-child td { border-bottom: none; }
-        .message-container.ai tbody tr:nth-of-type(even) {
-            background-color: var(--sidebar-bg);
-        }
 
         .code-block-wrapper::-webkit-scrollbar, .table-wrapper::-webkit-scrollbar { height: 8px; }
         .code-block-wrapper::-webkit-scrollbar-track, .table-wrapper::-webkit-scrollbar-track { background: transparent; }
@@ -753,7 +750,7 @@
             transition: opacity 0.3s ease;
         }
         #editor-modal-overlay.visible {
-            display: flex;
+            display: flex; /* Use flex for centering */
             align-items: center;
             justify-content: center;
             opacity: 1;
@@ -823,7 +820,7 @@
 
         @media (max-width: 768px) {
             .ai-content-block, #chat-form-container { max-width: 100%; }
-            .message-container.ai .ai-content-block, .message-container.user { font-size: 1.05rem; }
+            .message-container.ai .ai-content-block { font-size: 1.05rem; }
             .message-container.ai h1 { font-size: 1.6rem; }
             .message-container.ai h2 { font-size: 1.3rem; }
             .message-container.ai h3 { font-size: 1.15rem; }
@@ -888,6 +885,7 @@
 </head>
 <body class="initial-state">
     <div id="app-container">
+        <!-- HTML structure remains identical -->
         <div id="sidebar-overlay"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
@@ -1029,19 +1027,12 @@
                 editorDownloadBtn = document.getElementById('editor-download-btn');
 
             // --- MARKED CONFIG WITH KATEX ---
-            // DEFINITIVE FIX: Create a single, configured instance of Marked according to the modern API.
-            // This solves the crash caused by deprecated global configuration methods and fixes table parsing.
-            const myMarked = new marked.Marked({
-                gfm: true,      // Use GitHub Flavored Markdown for robust table parsing
-                breaks: true    // Render single line breaks as <br>
-            });
-
             try {
                 if (window.markedKatex) {
-                    // Apply the KaTeX extension to our specific instance
-                    myMarked.use(window.markedKatex({
+                    const katexExtension = window.markedKatex({
                         throwOnError: false
-                    }));
+                    });
+                    marked.use(katexExtension);
                 } else {
                      console.error("markedKatex extension not loaded. Math formulas will not render.");
                 }
@@ -1084,7 +1075,7 @@
                 }
 
                 render() {
-                    this.container.innerHTML = myMarked.parse(this.textBuffer);
+                    this.container.innerHTML = marked.parse(this.textBuffer);
                     const codeBlocks = this.container.querySelectorAll('pre code');
                     if (codeBlocks.length > 0) {
                         codeBlocks.forEach(el => hljs.highlightElement(el));
@@ -1191,7 +1182,7 @@
                     } else if (msg.role === 'model') {
                         const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
                         const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
-                        contentBlock.innerHTML = myMarked.parse(msg.text || "");
+                        contentBlock.innerHTML = marked.parse(msg.text || "");
                         contentBlock.querySelectorAll('pre code').forEach(el => {
                             hljs.highlightElement(el);
                         });
@@ -1399,6 +1390,9 @@
             
             // --- EVENT LISTENERS ---
             
+            document.addEventListener("visibilitychange", () => { /* ... */ });
+            
+            // DEFINITIVE FIX: Implemented the logic to abort the fetch request when the stop button is clicked.
             stopBtn.addEventListener('click', () => {
                 if (currentStreamController) {
                     currentStreamController.abort();
@@ -1476,6 +1470,7 @@
                 }
             });
 
+            // --- EDITOR MODAL LOGIC ---
             function openEditorModal(filename, content) {
                 editorFilename.textContent = filename;
                 editorTextarea.value = content;
@@ -1524,6 +1519,8 @@
                     closeEditorModal();
                 }
             });
+
+            // --- The rest of your existing JS functions ---
 
             function attachChatHistoryListener() {
                 if (chatHistoryListener) chatHistoryListener.off();

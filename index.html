@@ -7,12 +7,12 @@
 
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVEMVIhbGKLCePo2reqvC1S+kQufej0+ll4acVLG8xL93cVyo5U" crossorigin="anonymous">
+
     
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+  
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@2.0.2/lib/index.umd.js"></script>
+   
 
     <style>
         :root {
@@ -1029,18 +1029,7 @@
                 breaks: true    // Render single line breaks as <br>
             });
 
-            try {
-                if (window.markedKatex) {
-                    // Apply the KaTeX extension to our specific instance
-                    myMarked.use(window.markedKatex({
-                        throwOnError: false
-                    }));
-                } else {
-                     console.error("markedKatex extension not loaded. Math formulas will not render.");
-                }
-            } catch (e) {
-                 console.error("Error initializing markedKatex:", e);
-            }
+           
             
             // --- PROFESSIONAL RENDERER ---
             class ProfessionalRenderer {

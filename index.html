@@ -15,8 +15,7 @@
 <!-- DEFINITIVE FIX: Upgraded marked-katex-extension to compatible version 2.0.2 -->
 <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@2.0.2/lib/index.umd.js"></script>
 <style>
-/* retained original styles (filtered) */
-:root {
+        :root {
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             --spacing: .25rem;
     --breakpoint-md: 48rem;
@@ -387,6 +386,7 @@
             word-wrap: break-word;
             contain: layout style;
         }
+        .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
 
         #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
 
@@ -408,6 +408,25 @@
             background-color: transparent;
             padding: 0;
         }
+
+        .message-container.ai {
+            background-color: var(--ai-msg-bg);
+            align-self: stretch;
+            border: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        .ai-content-block,
+        .welcome-message {
+            max-width: 100%;
+            margin-left: 0;
+            margin-right: 0;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .ai-content-block { padding-top: 0; padding-bottom: 0; min-height: 2.5rem; }
 
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding-top: 0 !important; padding-bottom: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
 
@@ -532,6 +551,14 @@
         #chat-history-list::-webkit-scrollbar-track { background: transparent; }
         #chat-history-list::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
+
+        /* --- START: CHATGPT-STYLE TYPOGRAPHY --- */
+        .message-container.ai * { box-sizing: border-box; word-wrap: break-word; }
+        .message-container.ai .ai-content-block {
+            font-size: var(--font-size-body);
+            line-height: var(--line-height-body);
+            color: var(--text-color);
+        }
         /* ADDED: CSS Safeguard for KaTeX formulas */
         .katex-display, .katex {
             max-width: 100%;
@@ -539,10 +566,60 @@
             overflow-y: hidden;
             text-align: left;
         }
+        .message-container.ai .ai-content-block > *:first-child { margin-top: calc(var(--spacing) * 0); }
+        .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
+
+        .message-container.ai p { margin: 1em 0; }
+        .message-container.ai blockquote, .message-container.ai .code-block-wrapper,
+        .message-container.ai .table-wrapper, .message-container.ai hr { margin: 1.5em 0; }
+
+        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 { font-weight: 600 !important; }
+        .message-container.ai h1 { --tw-tracking: var(--tracking-normal); font-size: var(--text-2xl); letter-spacing: var(--tracking-normal); line-height: var(--tw-leading, var(--text-2xl--line-height)); margin-bottom: calc(var(--spacing) * 2); }
+        .message-container.ai h2 { font-size: var(--text-xl); line-height: var(--tw-leading, var(--text-xl--line-height)); margin-top: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 1);
+        }
+        .message-container.ai h3 { font-size: var(--text-lg); line-height: var(--tw-leading, var(--text-lg--line-height)); margin-top: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 1); }
+        .message-container.ai h4 { font-size: var(--font-size-h4); margin-top: var(--space-lg); margin-bottom: var(--space-sm); }
+        .message-container.ai h5 { font-size: 1.05rem; }
+        .message-container.ai h6 { font-size: 1rem; opacity: 0.8; }
+        .message-container.ai strong { font-weight: 600; }
+
+        .message-container.ai ul, .message-container.ai ol { margin: 1.25em 0; padding-inline-start: 2em; }
+        .message-container.ai li { margin: 0.5em 0; padding-left: 0em; }
+        .message-container.ai li p { margin: 0; }
+        .message-container.ai li > *:first-child { margin-top: 0; }
+        .message-container.ai li > *:last-child { margin-bottom: 0; }
+        .message-container.ai li > ul, .message-container.ai li > ol { margin: 1em 0; padding-inline-start: 1em; }
+
+        .message-container.ai ul { list-style-type: disc; }
+        .message-container.ai ol { list-style-type: decimal; }
+        .message-container.ai ::marker { color: rgba(0, 0, 0, 0.5); font-weight: bold; }
+        body.dark-theme .message-container.ai ::marker { color: rgba(255, 255, 255, 0.5); }
+
+        .message-container.ai blockquote {
+            padding: 0.1em 0 0.1em 1rem;
+            border-left: 2px solid var(--border-color);
+            color: rgba(0,0,0,0.7);
+        }
+        body.dark-theme .message-container.ai blockquote { color: rgba(255,255,255,0.7); }
+
+        .message-container.ai code:not(pre > code) {
+            font-size: 0.875em; padding: 0.2em 0.4em; background-color: var(--code-bg);
+            border-radius: 4px; font-family: 'Fira Code', 'SF Mono', monospace;
+            border: 1px solid var(--border-color);
+        }
+        .message-container.ai hr { border: 0; height: 1px; background-color: var(--border-color); }
         .code-block-wrapper, .table-wrapper {
             max-width: 100%; overflow-x: auto; position: relative;
             touch-action: auto; -webkit-overflow-scrolling: touch;
         }
+        .message-container.ai pre {
+        background-color: var(--code-bg); color: var(--code-text-color);
+        padding: calc(var(--spacing) * 4); /* <-- This is the corrected line */
+        border-radius: 8px; border: 1px solid var(--border-color);
+        overflow-x: auto; font-family: 'SF Mono', 'Fira Code', 'monospace';
+        font-size: 0.875rem; line-height: 1.6; margin: 0;
+    }
+        .message-container.ai pre code.hljs { padding: 0; background: transparent; }
 
         .copy-btn {
             position: absolute; top: 8px; right: 8px; background: rgba(233, 233, 235, 0.8); color: #555;
@@ -557,6 +634,12 @@
         .copy-btn:active { transform: scale(0.95); }
 
         .table-wrapper table { width: 100%; border-collapse: collapse; }
+        .message-container.ai th, .message-container.ai td {
+            padding: 0.5rem 0.75rem; text-align: left;
+            border-bottom: 1px solid var(--border-color); font-size: 0.9em;
+        }
+        .message-container.ai thead th { font-weight: 600; background-color: transparent; border-bottom-width: 2px; }
+        .message-container.ai tbody tr:last-child td { border-bottom: none; }
 
         .code-block-wrapper::-webkit-scrollbar, .table-wrapper::-webkit-scrollbar { height: 8px; }
         .code-block-wrapper::-webkit-scrollbar-track, .table-wrapper::-webkit-scrollbar-track { background: transparent; }
@@ -731,12 +814,29 @@
             color: var(--background-color);
             border-color: var(--primary-accent);
         }
+        /* === END: FULLSCREEN EDITOR MODAL === */
+
+        @media (max-width: 768px) {
+            .ai-content-block, #chat-form-container { max-width: 100%; }
+            .message-container.ai .ai-content-block, .message-container.user { font-size: 1.05rem; }
+            .message-container.ai h1 { font-size: 1.6rem; }
+            .message-container.ai h2 { font-size: 1.3rem; }
+            .message-container.ai h3 { font-size: 1.15rem; }
+            .message-container.ai h4 { font-size: 1.05rem; }
         }
 
         @media (min-width: 769px) {
             #chat-messages {
                 padding-left: calc((100% - var(--thread-width)) / 2);
                 padding-right: calc((100% - var(--thread-width)) / 2);
+            }
+            .ai-content-block,
+            .welcome-message {
+                max-width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+                padding-left: 0;
+                padding-right: 0;
             }
             #chat-form-container {
                 padding-left: 0;
@@ -778,54 +878,132 @@
              margin-top: 0;
              margin-bottom: 2rem;
              align-self: center;
-        }</style>
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/><style>
-/* === TAILWIND + PROSE: authoritative ChatGPT-like typography for AI output ===
-   This block REPLACES previous markdown/list/prose styling and is intentionally
-   high-specificity and placed last so it wins. It does not touch JS or engine code.
-=== */
+        }
+    </style>
+<style>
+/* ===== CHATGPT-LIKE TYPography & Headings — authoritative overrides =====
+   High specificity and !important to ensure these styles apply visually identical
+   for AI output areas (.message-container.ai .ai-content-block and .prose).
+   This only changes presentation (CSS). JS and functionality are untouched.
+*/
 
-/* Scope to message container / ai content specifically */
+/* Use system UI font stack similar to ChatGPT */
+.message-container.ai .ai-content-block,
 .message-container.ai .prose,
-.message-container.ai .ai-content-block.prose,
-.prose.ai-content,
-.prose.markdown,
-.prose.markdown-body,
 .prose {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", "Microsoft YaHei",
+               "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+  color: var(--text-color, #0f172a) !important;
   font-size: 1rem !important;
   line-height: 1.75 !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
-  color: inherit !important;
 }
 
-/* Paragraph rules (ChatGPT inspector parity) */
+/* Paragraphs */
+.message-container.ai .ai-content-block p,
 .message-container.ai .prose p,
 .prose p {
   margin-block-start: 1.25em !important;
   margin-block-end: 1.25em !important;
+  font-weight: 400 !important;
+  color: inherit !important;
 }
-.message-container.ai .prose > *:first-child,
-.prose > *:first-child { margin-top: 0 !important; }
-.message-container.ai .prose > *:last-child,
-.prose > *:last-child { margin-bottom: 0 !important; }
 
-/* Root lists (ul/ol) */
+/* First/last child trimming to avoid double gaps */
+.message-container.ai .ai-content-block > *:first-child,
+.message-container.ai .prose > *:first-child,
+.prose > *:first-child {
+  margin-top: 0 !important;
+}
+.message-container.ai .ai-content-block > *:last-child,
+.message-container.ai .prose > *:last-child,
+.prose > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Headings scale and spacing — tuned to match ChatGPT visual hierarchy */
+.message-container.ai .ai-content-block h1,
+.message-container.ai .prose h1,
+.prose h1 {
+  font-size: 1.5rem !important; /* 24px */
+  line-height: 1.25 !important;
+  margin-top: 1.25em !important;
+  margin-bottom: 0.75em !important;
+  font-weight: 600 !important;
+}
+
+.message-container.ai .ai-content-block h2,
+.message-container.ai .prose h2,
+.prose h2 {
+  font-size: 1.25rem !important; /* 20px */
+  line-height: 1.3 !important;
+  margin-top: 1.25em !important;
+  margin-bottom: 0.6em !important;
+  font-weight: 600 !important;
+}
+
+.message-container.ai .ai-content-block h3,
+.message-container.ai .prose h3,
+.prose h3 {
+  font-size: 1.125rem !important; /* 18px */
+  line-height: 1.4 !important;
+  margin-top: 1.1em !important;
+  margin-bottom: 0.5em !important;
+  font-weight: 600 !important;
+}
+
+.message-container.ai .ai-content-block h4,
+.message-container.ai .prose h4,
+.prose h4 {
+  font-size: 1rem !important; /* 16px */
+  line-height: 1.5 !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
+  font-weight: 600 !important;
+}
+
+.message-container.ai .ai-content-block h5,
+.message-container.ai .prose h5,
+.prose h5 {
+  font-size: 0.95rem !important; /* ~15px */
+  line-height: 1.5 !important;
+  margin-top: 0.9em !important;
+  margin-bottom: 0.4em !important;
+  font-weight: 600 !important;
+}
+
+.message-container.ai .ai-content-block h6,
+.message-container.ai .prose h6,
+.prose h6 {
+  font-size: 0.875rem !important; /* 14px */
+  line-height: 1.5 !important;
+  margin-top: 0.8em !important;
+  margin-bottom: 0.4em !important;
+  font-weight: 600 !important;
+}
+
+/* Lists: root lists */
+.message-container.ai .ai-content-block :is(ul,ol),
 .message-container.ai .prose :is(ul,ol),
 .prose :is(ul,ol) {
   margin-block-start: 1.25em !important;
   margin-block-end: 1.25em !important;
-  padding-inline-start: 1.625em !important; /* ChatGPT inspector value */
+  padding-inline-start: 1.625em !important; /* inspector parity */
   list-style-position: outside !important;
 }
 
-/* List styles */
+/* List types */
+.message-container.ai .ai-content-block ul,
 .message-container.ai .prose ul,
 .prose ul { list-style-type: disc !important; }
+.message-container.ai .ai-content-block ol,
 .message-container.ai .prose ol,
 .prose ol { list-style-type: decimal !important; }
 
-/* List item spacing */
+/* List items spacing and paragraphs inside */
+.message-container.ai .ai-content-block li,
 .message-container.ai .prose li,
 .prose li {
   margin-block-start: 0.5em !important;
@@ -833,20 +1011,24 @@
   overflow: visible !important;
 }
 
-/* Paragraphs inside list items */
+.message-container.ai .ai-content-block li > p,
 .message-container.ai .prose li > p,
 .prose li > p {
   margin-block-start: 0.75em !important;
   margin-block-end: 0.75em !important;
 }
 
-/* When a list item's first/last child is a paragraph, match ChatGPT spacing */
+/* Special: when li contains paragraph as first/last child, match ChatGPT spacing */
+.message-container.ai .ai-content-block :is(ul,ol) > li > p:first-child,
 .message-container.ai .prose :is(ul,ol) > li > p:first-child,
 .prose :is(ul,ol) > li > p:first-child { margin-top: 1.25em !important; }
+
+.message-container.ai .ai-content-block :is(ul,ol) > li > p:last-child,
 .message-container.ai .prose :is(ul,ol) > li > p:last-child,
 .prose :is(ul,ol) > li > p:last-child { margin-bottom: 1.25em !important; }
 
-/* Nested lists (slightly tighter) */
+/* Nested lists slightly tighter */
+.message-container.ai .ai-content-block li > :is(ul,ol),
 .message-container.ai .prose li > :is(ul,ol),
 .prose li > :is(ul,ol) {
   margin-block-start: 1em !important;
@@ -854,7 +1036,8 @@
   padding-inline-start: 1em !important;
 }
 
-/* Marker stability for multi-digit numbers */
+/* Marker/readability */
+.message-container.ai .ai-content-block ::marker,
 .message-container.ai .prose ::marker,
 .prose ::marker {
   font-variant-numeric: tabular-nums !important;
@@ -865,12 +1048,24 @@
 }
 
 /* Dark theme marker color */
+body.dark-theme .message-container.ai .ai-content-block ::marker,
 body.dark-theme .message-container.ai .prose ::marker,
 body.dark-theme .prose ::marker {
   color: rgba(255,255,255,0.55) !important;
 }
 
-/* Inline code and pre blocks (match ChatGPT visuals) */
+/* Blockquote */
+.message-container.ai .ai-content-block blockquote,
+.message-container.ai .prose blockquote,
+.prose blockquote {
+  padding: 0.1em 0 0.1em 1rem !important;
+  border-left: 2px solid var(--border-color, rgba(0,0,0,0.08)) !important;
+  color: rgba(0,0,0,0.75) !important;
+  margin: 1em 0 !important;
+}
+
+/* Inline code and pre blocks */
+.message-container.ai .ai-content-block code:not(pre > code),
 .message-container.ai .prose code:not(pre > code),
 .prose code:not(pre > code) {
   font-size: 0.875em !important;
@@ -882,6 +1077,7 @@ body.dark-theme .prose ::marker {
 }
 
 /* Pre blocks */
+.message-container.ai .ai-content-block pre,
 .message-container.ai .prose pre,
 .prose pre {
   padding: calc(var(--spacing, .25rem) * 4) !important;
@@ -894,25 +1090,33 @@ body.dark-theme .prose ::marker {
   margin: 0 !important;
 }
 
-/* Safe gutter for large numeric markers (ch-based) */
+/* Tables and images */
+.message-container.ai .ai-content-block table,
+.message-container.ai .prose table,
+.prose table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 1.25em 0 !important;
+}
+.message-container.ai .ai-content-block img,
+.message-container.ai .prose img,
+.prose img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Safe gutter for large numeric markers */
 :root { --marker-min-ch: 3; }
+.message-container.ai .ai-content-block ol,
 .message-container.ai .prose ol,
 .prose ol {
   padding-inline-start: max(1.625em, calc(var(--marker-min-ch) * 1ch + 0.5rem)) !important;
 }
 
-/* Optional robust grid list (use class 'chat-grid' on ol) */
+/* Optional robust grid list (class: chat-grid) */
 ol.chat-grid { list-style: none !important; counter-reset: chat-counter !important; padding: 0 !important; margin: 0 !important; }
 ol.chat-grid li { counter-increment: chat-counter !important; display: grid !important; grid-template-columns: var(--marker-width, 3ch) 1fr !important; gap: 0.5ch !important; margin: .5em 0 !important; }
 ol.chat-grid li::before { content: counter(chat-counter) "." !important; justify-self: end !important; padding-right: 0.5ch !important; font-variant-numeric: tabular-nums !important; -webkit-font-feature-settings: "tnum" 1 !important; white-space: nowrap !important; font-weight: 600 !important; color: rgba(0,0,0,0.65) !important; }
-
-/* Images & tables spacing inside prose */
-.message-container.ai .prose img,
-.prose img { max-width: 100% !important; height: auto !important; }
-.message-container.ai .prose table,
-.prose table { width: 100% !important; border-collapse: collapse !important; margin: 1.25em 0 !important; }
-
-/* End authoritative overrides */
 </style></head>
 <body class="initial-state">
 <div id="app-container">

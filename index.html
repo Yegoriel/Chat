@@ -1,20 +1,14 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
-<title>AI Chat - Final Live Renderer</title>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" id="hljs-theme-light" rel="stylesheet"/>
-<link disabled="" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" id="hljs-theme-dark" rel="stylesheet"/>
-<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVEMVIhbGKLCePo2reqvC1S+kQufej0+ll4acVLG8xL93cVyo5U" rel="stylesheet"/>
-<!-- MODIFIED: Using compatible versions of all libraries -->
-<script crossorigin="anonymous" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<!-- DEFINITIVE FIX: Upgraded marked-katex-extension to compatible version 2.0.2 -->
-<script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@2.0.2/lib/index.umd.js"></script>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AI Chat</title>
+   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
         :root {
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             --spacing: .25rem;
@@ -1206,18 +1200,7 @@ ol.chat-grid li::before { content: counter(chat-counter) "." !important; justify
                 editorDownloadBtn = document.getElementById('editor-download-btn');
 
             // --- MARKED CONFIG WITH KATEX ---
-            try {
-                if (window.markedKatex) {
-                    const katexExtension = window.markedKatex({
-                        throwOnError: false
-                    });
-                    marked.use(katexExtension);
-                } else {
-                     console.error("markedKatex extension not loaded. Math formulas will not render.");
-                }
-            } catch (e) {
-                 console.error("Error initializing markedKatex:", e);
-            }
+            
             
             // --- PROFESSIONAL RENDERER ---
             class ProfessionalRenderer {

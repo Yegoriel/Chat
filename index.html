@@ -553,60 +553,242 @@
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
 
         /* --- START: CHATGPT-STYLE TYPOGRAPHY --- */
-        .message-container.ai * { box-sizing: border-box; word-wrap: break-word; }
-        .message-container.ai .ai-content-block {
-            font-size: var(--font-size-body);
-            line-height: var(--line-height-body);
-            color: var(--text-color);
-        }
-        /* ADDED: CSS Safeguard for KaTeX formulas */
-        .katex-display, .katex {
-            max-width: 100%;
-            overflow-x: auto;
-            overflow-y: hidden;
-            text-align: left;
-        }
-        .message-container.ai .ai-content-block > *:first-child { margin-top: calc(var(--spacing) * 0); }
-        .message-container.ai .ai-content-block > *:last-child { margin-bottom: 0 !important; }
+       /* ===== CHATGPT-LIKE TYPography & Headings — authoritative overrides =====
+   High specificity and !important to ensure these styles apply visually identical
+   for AI output areas (.message-container.ai .ai-content-block and .prose).
+   This only changes presentation (CSS). JS and functionality are untouched.
+*/
 
-        .message-container.ai p { margin: 1em 0; }
-        .message-container.ai blockquote, .message-container.ai .code-block-wrapper,
-        .message-container.ai .table-wrapper, .message-container.ai hr { margin: 1.5em 0; }
+/* Use system UI font stack similar to ChatGPT */
+.message-container.ai .ai-content-block,
+.message-container.ai .prose,
+.prose {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", "Microsoft YaHei",
+               "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+  color: var(--text-color, #0f172a) !important;
+  font-size: 1rem !important;
+  line-height: 1.75 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
 
-        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 { font-weight: 600 !important; }
-        .message-container.ai h1 { --tw-tracking: var(--tracking-normal); font-size: var(--text-2xl); letter-spacing: var(--tracking-normal); line-height: var(--tw-leading, var(--text-2xl--line-height)); margin-bottom: calc(var(--spacing) * 2); }
-        .message-container.ai h2 { font-size: var(--text-xl); line-height: var(--tw-leading, var(--text-xl--line-height)); margin-top: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 1);
-        }
-        .message-container.ai h3 { font-size: var(--text-lg); line-height: var(--tw-leading, var(--text-lg--line-height)); margin-top: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 1); }
-        .message-container.ai h4 { font-size: var(--font-size-h4); margin-top: var(--space-lg); margin-bottom: var(--space-sm); }
-        .message-container.ai h5 { font-size: 1.05rem; }
-        .message-container.ai h6 { font-size: 1rem; opacity: 0.8; }
-        .message-container.ai strong { font-weight: 600; }
+/* Paragraphs */
+.message-container.ai .ai-content-block p,
+.message-container.ai .prose p,
+.prose p {
+  margin-block-start: 1.25em !important;
+  margin-block-end: 1.25em !important;
+  font-weight: 400 !important;
+  color: inherit !important;
+}
 
-        .message-container.ai ul, .message-container.ai ol { margin: 1.25em 0; padding-inline-start: 2em; }
-        .message-container.ai li { margin: 0.5em 0; padding-left: 0em; }
-        .message-container.ai li p { margin: 0; }
-        .message-container.ai li > *:first-child { margin-top: 0; }
-        .message-container.ai li > *:last-child { margin-bottom: 0; }
-        .message-container.ai li > ul, .message-container.ai li > ol { margin: 1em 0; padding-inline-start: 1em; }
+/* First/last child trimming to avoid double gaps */
+.message-container.ai .ai-content-block > *:first-child,
+.message-container.ai .prose > *:first-child,
+.prose > *:first-child {
+  margin-top: 0 !important;
+}
+.message-container.ai .ai-content-block > *:last-child,
+.message-container.ai .prose > *:last-child,
+.prose > *:last-child {
+  margin-bottom: 0 !important;
+}
 
-        .message-container.ai ul { list-style-type: disc; }
-        .message-container.ai ol { list-style-type: decimal; }
-        .message-container.ai ::marker { color: rgba(0, 0, 0, 0.5); font-weight: bold; }
-        body.dark-theme .message-container.ai ::marker { color: rgba(255, 255, 255, 0.5); }
+/* Headings scale and spacing — tuned to match ChatGPT visual hierarchy */
+.message-container.ai .ai-content-block h1,
+.message-container.ai .prose h1,
+.prose h1 {
+  font-size: 1.5rem !important; /* 24px */
+  line-height: 1.25 !important;
+  margin-top: 1.25em !important;
+  margin-bottom: 0.75em !important;
+  font-weight: 600 !important;
+}
 
-        .message-container.ai blockquote {
-            padding: 0.1em 0 0.1em 1rem;
-            border-left: 2px solid var(--border-color);
-            color: rgba(0,0,0,0.7);
-        }
-        body.dark-theme .message-container.ai blockquote { color: rgba(255,255,255,0.7); }
+.message-container.ai .ai-content-block h2,
+.message-container.ai .prose h2,
+.prose h2 {
+  font-size: 1.25rem !important; /* 20px */
+  line-height: 1.3 !important;
+  margin-top: 1.25em !important;
+  margin-bottom: 0.6em !important;
+  font-weight: 600 !important;
+}
 
-        .message-container.ai code:not(pre > code) {
-            font-size: 0.875em; padding: 0.2em 0.4em; background-color: var(--code-bg);
-            border-radius: 4px; font-family: 'Fira Code', 'SF Mono', monospace;
-            border: 1px solid var(--border-color);
-        }
+.message-container.ai .ai-content-block h3,
+.message-container.ai .prose h3,
+.prose h3 {
+  font-size: 1.125rem !important; /* 18px */
+  line-height: 1.4 !important;
+  margin-top: 1.1em !important;
+  margin-bottom: 0.5em !important;
+  font-weight: 600 !important;
+}
+
+.message-container.ai .ai-content-block h4,
+.message-container.ai .prose h4,
+.prose h4 {
+  font-size: 1rem !important; /* 16px */
+  line-height: 1.5 !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
+  font-weight: 600 !important;
+}
+
+.message-container.ai .ai-content-block h5,
+.message-container.ai .prose h5,
+.prose h5 {
+  font-size: 0.95rem !important; /* ~15px */
+  line-height: 1.5 !important;
+  margin-top: 0.9em !important;
+  margin-bottom: 0.4em !important;
+  font-weight: 600 !important;
+}
+
+.message-container.ai .ai-content-block h6,
+.message-container.ai .prose h6,
+.prose h6 {
+  font-size: 0.875rem !important; /* 14px */
+  line-height: 1.5 !important;
+  margin-top: 0.8em !important;
+  margin-bottom: 0.4em !important;
+  font-weight: 600 !important;
+}
+
+/* Lists: root lists */
+.message-container.ai .ai-content-block :is(ul,ol),
+.message-container.ai .prose :is(ul,ol),
+.prose :is(ul,ol) {
+  margin-block-start: 1.25em !important;
+  margin-block-end: 1.25em !important;
+  padding-inline-start: 1.625em !important; /* inspector parity */
+  list-style-position: outside !important;
+}
+
+/* List types */
+.message-container.ai .ai-content-block ul,
+.message-container.ai .prose ul,
+.prose ul { list-style-type: disc !important; }
+.message-container.ai .ai-content-block ol,
+.message-container.ai .prose ol,
+.prose ol { list-style-type: decimal !important; }
+
+/* List items spacing and paragraphs inside */
+.message-container.ai .ai-content-block li,
+.message-container.ai .prose li,
+.prose li {
+  margin-block-start: 0.5em !important;
+  margin-block-end: 0.5em !important;
+  overflow: visible !important;
+}
+
+.message-container.ai .ai-content-block li > p,
+.message-container.ai .prose li > p,
+.prose li > p {
+  margin-block-start: 0.75em !important;
+  margin-block-end: 0.75em !important;
+}
+
+/* Special: when li contains paragraph as first/last child, match ChatGPT spacing */
+.message-container.ai .ai-content-block :is(ul,ol) > li > p:first-child,
+.message-container.ai .prose :is(ul,ol) > li > p:first-child,
+.prose :is(ul,ol) > li > p:first-child { margin-top: 1.25em !important; }
+
+.message-container.ai .ai-content-block :is(ul,ol) > li > p:last-child,
+.message-container.ai .prose :is(ul,ol) > li > p:last-child,
+.prose :is(ul,ol) > li > p:last-child { margin-bottom: 1.25em !important; }
+
+/* Nested lists slightly tighter */
+.message-container.ai .ai-content-block li > :is(ul,ol),
+.message-container.ai .prose li > :is(ul,ol),
+.prose li > :is(ul,ol) {
+  margin-block-start: 1em !important;
+  margin-block-end: 1em !important;
+  padding-inline-start: 1em !important;
+}
+
+/* Marker/readability */
+.message-container.ai .ai-content-block ::marker,
+.message-container.ai .prose ::marker,
+.prose ::marker {
+  font-variant-numeric: tabular-nums !important;
+  -webkit-font-feature-settings: "tnum" 1 !important;
+  font-weight: 600 !important;
+  color: rgba(0,0,0,0.55) !important;
+  white-space: nowrap !important;
+}
+
+/* Dark theme marker color */
+body.dark-theme .message-container.ai .ai-content-block ::marker,
+body.dark-theme .message-container.ai .prose ::marker,
+body.dark-theme .prose ::marker {
+  color: rgba(255,255,255,0.55) !important;
+}
+
+/* Blockquote */
+.message-container.ai .ai-content-block blockquote,
+.message-container.ai .prose blockquote,
+.prose blockquote {
+  padding: 0.1em 0 0.1em 1rem !important;
+  border-left: 2px solid var(--border-color, rgba(0,0,0,0.08)) !important;
+  color: rgba(0,0,0,0.75) !important;
+  margin: 1em 0 !important;
+}
+
+/* Inline code and pre blocks */
+.message-container.ai .ai-content-block code:not(pre > code),
+.message-container.ai .prose code:not(pre > code),
+.prose code:not(pre > code) {
+  font-size: 0.875em !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 4px !important;
+  border: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
+  background: var(--code-bg, rgba(0,0,0,0.04)) !important;
+  font-family: 'Fira Code', 'SF Mono', monospace !important;
+}
+
+/* Pre blocks */
+.message-container.ai .ai-content-block pre,
+.message-container.ai .prose pre,
+.prose pre {
+  padding: calc(var(--spacing, .25rem) * 4) !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
+  overflow-x: auto !important;
+  font-family: 'SF Mono', 'Fira Code', monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+}
+
+/* Tables and images */
+.message-container.ai .ai-content-block table,
+.message-container.ai .prose table,
+.prose table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 1.25em 0 !important;
+}
+.message-container.ai .ai-content-block img,
+.message-container.ai .prose img,
+.prose img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Safe gutter for large numeric markers */
+:root { --marker-min-ch: 3; }
+.message-container.ai .ai-content-block ol,
+.message-container.ai .prose ol,
+.prose ol {
+  padding-inline-start: max(1.625em, calc(var(--marker-min-ch) * 1ch + 0.5rem)) !important;
+}
+
+/* Optional robust grid list (class: chat-grid) */
+ol.chat-grid { list-style: none !important; counter-reset: chat-counter !important; padding: 0 !important; margin: 0 !important; }
+ol.chat-grid li { counter-increment: chat-counter !important; display: grid !important; grid-template-columns: var(--marker-width, 3ch) 1fr !important; gap: 0.5ch !important; margin: .5em 0 !important; }
+ol.chat-grid li::before { content: counter(chat-counter) "." !important; justify-self: end !important; padding-right: 0.5ch !important; font-variant-numeric: tabular-nums !important; -webkit-font-feature-settings: "tnum" 1 !important; white-space: nowrap !important; font-weight: 600 !important; color: rgba(0,0,0,0.65) !important; }
         .message-container.ai hr { border: 0; height: 1px; background-color: var(--border-color); }
         .code-block-wrapper, .table-wrapper {
             max-width: 100%; overflow-x: auto; position: relative;
@@ -881,242 +1063,7 @@
         }
     </style>
 <style>
-/* ===== CHATGPT-LIKE TYPography & Headings — authoritative overrides =====
-   High specificity and !important to ensure these styles apply visually identical
-   for AI output areas (.message-container.ai .ai-content-block and .prose).
-   This only changes presentation (CSS). JS and functionality are untouched.
-*/
 
-/* Use system UI font stack similar to ChatGPT */
-.message-container.ai .ai-content-block,
-.message-container.ai .prose,
-.prose {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-               "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", "Microsoft YaHei",
-               "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
-  color: var(--text-color, #0f172a) !important;
-  font-size: 1rem !important;
-  line-height: 1.75 !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-}
-
-/* Paragraphs */
-.message-container.ai .ai-content-block p,
-.message-container.ai .prose p,
-.prose p {
-  margin-block-start: 1.25em !important;
-  margin-block-end: 1.25em !important;
-  font-weight: 400 !important;
-  color: inherit !important;
-}
-
-/* First/last child trimming to avoid double gaps */
-.message-container.ai .ai-content-block > *:first-child,
-.message-container.ai .prose > *:first-child,
-.prose > *:first-child {
-  margin-top: 0 !important;
-}
-.message-container.ai .ai-content-block > *:last-child,
-.message-container.ai .prose > *:last-child,
-.prose > *:last-child {
-  margin-bottom: 0 !important;
-}
-
-/* Headings scale and spacing — tuned to match ChatGPT visual hierarchy */
-.message-container.ai .ai-content-block h1,
-.message-container.ai .prose h1,
-.prose h1 {
-  font-size: 1.5rem !important; /* 24px */
-  line-height: 1.25 !important;
-  margin-top: 1.25em !important;
-  margin-bottom: 0.75em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h2,
-.message-container.ai .prose h2,
-.prose h2 {
-  font-size: 1.25rem !important; /* 20px */
-  line-height: 1.3 !important;
-  margin-top: 1.25em !important;
-  margin-bottom: 0.6em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h3,
-.message-container.ai .prose h3,
-.prose h3 {
-  font-size: 1.125rem !important; /* 18px */
-  line-height: 1.4 !important;
-  margin-top: 1.1em !important;
-  margin-bottom: 0.5em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h4,
-.message-container.ai .prose h4,
-.prose h4 {
-  font-size: 1rem !important; /* 16px */
-  line-height: 1.5 !important;
-  margin-top: 1em !important;
-  margin-bottom: 0.5em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h5,
-.message-container.ai .prose h5,
-.prose h5 {
-  font-size: 0.95rem !important; /* ~15px */
-  line-height: 1.5 !important;
-  margin-top: 0.9em !important;
-  margin-bottom: 0.4em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h6,
-.message-container.ai .prose h6,
-.prose h6 {
-  font-size: 0.875rem !important; /* 14px */
-  line-height: 1.5 !important;
-  margin-top: 0.8em !important;
-  margin-bottom: 0.4em !important;
-  font-weight: 600 !important;
-}
-
-/* Lists: root lists */
-.message-container.ai .ai-content-block :is(ul,ol),
-.message-container.ai .prose :is(ul,ol),
-.prose :is(ul,ol) {
-  margin-block-start: 1.25em !important;
-  margin-block-end: 1.25em !important;
-  padding-inline-start: 1.625em !important; /* inspector parity */
-  list-style-position: outside !important;
-}
-
-/* List types */
-.message-container.ai .ai-content-block ul,
-.message-container.ai .prose ul,
-.prose ul { list-style-type: disc !important; }
-.message-container.ai .ai-content-block ol,
-.message-container.ai .prose ol,
-.prose ol { list-style-type: decimal !important; }
-
-/* List items spacing and paragraphs inside */
-.message-container.ai .ai-content-block li,
-.message-container.ai .prose li,
-.prose li {
-  margin-block-start: 0.5em !important;
-  margin-block-end: 0.5em !important;
-  overflow: visible !important;
-}
-
-.message-container.ai .ai-content-block li > p,
-.message-container.ai .prose li > p,
-.prose li > p {
-  margin-block-start: 0.75em !important;
-  margin-block-end: 0.75em !important;
-}
-
-/* Special: when li contains paragraph as first/last child, match ChatGPT spacing */
-.message-container.ai .ai-content-block :is(ul,ol) > li > p:first-child,
-.message-container.ai .prose :is(ul,ol) > li > p:first-child,
-.prose :is(ul,ol) > li > p:first-child { margin-top: 1.25em !important; }
-
-.message-container.ai .ai-content-block :is(ul,ol) > li > p:last-child,
-.message-container.ai .prose :is(ul,ol) > li > p:last-child,
-.prose :is(ul,ol) > li > p:last-child { margin-bottom: 1.25em !important; }
-
-/* Nested lists slightly tighter */
-.message-container.ai .ai-content-block li > :is(ul,ol),
-.message-container.ai .prose li > :is(ul,ol),
-.prose li > :is(ul,ol) {
-  margin-block-start: 1em !important;
-  margin-block-end: 1em !important;
-  padding-inline-start: 1em !important;
-}
-
-/* Marker/readability */
-.message-container.ai .ai-content-block ::marker,
-.message-container.ai .prose ::marker,
-.prose ::marker {
-  font-variant-numeric: tabular-nums !important;
-  -webkit-font-feature-settings: "tnum" 1 !important;
-  font-weight: 600 !important;
-  color: rgba(0,0,0,0.55) !important;
-  white-space: nowrap !important;
-}
-
-/* Dark theme marker color */
-body.dark-theme .message-container.ai .ai-content-block ::marker,
-body.dark-theme .message-container.ai .prose ::marker,
-body.dark-theme .prose ::marker {
-  color: rgba(255,255,255,0.55) !important;
-}
-
-/* Blockquote */
-.message-container.ai .ai-content-block blockquote,
-.message-container.ai .prose blockquote,
-.prose blockquote {
-  padding: 0.1em 0 0.1em 1rem !important;
-  border-left: 2px solid var(--border-color, rgba(0,0,0,0.08)) !important;
-  color: rgba(0,0,0,0.75) !important;
-  margin: 1em 0 !important;
-}
-
-/* Inline code and pre blocks */
-.message-container.ai .ai-content-block code:not(pre > code),
-.message-container.ai .prose code:not(pre > code),
-.prose code:not(pre > code) {
-  font-size: 0.875em !important;
-  padding: 0.2em 0.4em !important;
-  border-radius: 4px !important;
-  border: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
-  background: var(--code-bg, rgba(0,0,0,0.04)) !important;
-  font-family: 'Fira Code', 'SF Mono', monospace !important;
-}
-
-/* Pre blocks */
-.message-container.ai .ai-content-block pre,
-.message-container.ai .prose pre,
-.prose pre {
-  padding: calc(var(--spacing, .25rem) * 4) !important;
-  border-radius: 8px !important;
-  border: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
-  overflow-x: auto !important;
-  font-family: 'SF Mono', 'Fira Code', monospace !important;
-  font-size: 0.875rem !important;
-  line-height: 1.6 !important;
-  margin: 0 !important;
-}
-
-/* Tables and images */
-.message-container.ai .ai-content-block table,
-.message-container.ai .prose table,
-.prose table {
-  width: 100% !important;
-  border-collapse: collapse !important;
-  margin: 1.25em 0 !important;
-}
-.message-container.ai .ai-content-block img,
-.message-container.ai .prose img,
-.prose img {
-  max-width: 100% !important;
-  height: auto !important;
-}
-
-/* Safe gutter for large numeric markers */
-:root { --marker-min-ch: 3; }
-.message-container.ai .ai-content-block ol,
-.message-container.ai .prose ol,
-.prose ol {
-  padding-inline-start: max(1.625em, calc(var(--marker-min-ch) * 1ch + 0.5rem)) !important;
-}
-
-/* Optional robust grid list (class: chat-grid) */
-ol.chat-grid { list-style: none !important; counter-reset: chat-counter !important; padding: 0 !important; margin: 0 !important; }
-ol.chat-grid li { counter-increment: chat-counter !important; display: grid !important; grid-template-columns: var(--marker-width, 3ch) 1fr !important; gap: 0.5ch !important; margin: .5em 0 !important; }
-ol.chat-grid li::before { content: counter(chat-counter) "." !important; justify-self: end !important; padding-right: 0.5ch !important; font-variant-numeric: tabular-nums !important; -webkit-font-feature-settings: "tnum" 1 !important; white-space: nowrap !important; font-weight: 600 !important; color: rgba(0,0,0,0.65) !important; }
 </style></head>
 <body class="initial-state">
 <div id="app-container">

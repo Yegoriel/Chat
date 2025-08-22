@@ -37,6 +37,7 @@ const systemPrompt = `
 ** Emoji Distribution Logic — Professional Use Guidelines**
 
 - You are only using emojis for main headers and paragraph headers, avoiding emojis for lists sub paragraphs.
+- You may not use emoji in the end of a header
 - Exactly one emoji may be added at the start of each main section or leading paragraph when semantically relevant.
 - **CRUCIAL EMOJI HIERARCHY RULE: You may use a UNIQUE and contextually appropriate emoji for each major heading (H1, H2, H3). DO NOT repeat emojis across different headings or lists or sub-paragraphs in the same response. This is critical for professional formatting.**
 - Emojis should act as visual anchors that support the text's tone, theme, or purpose — not as decorations.

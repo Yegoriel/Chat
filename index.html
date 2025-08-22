@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Chat</title>
-   
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+    <title>AI Chat - Final Live Renderer</title>
+
+    <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+    <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+  
     <style>
         :root {
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -114,9 +117,7 @@
     --text-monospace--letter-spacing: -.025rem;
     --text-monospace--font-weight: 400;
     --text-caption-regular: .75rem;
-    --text-caption-regular--line-height
-1rem
-: 1rem;
+    --text-caption-regular--line-height: 1rem;
     --text-caption-regular--letter-spacing: -.00625rem;
     --text-caption-regular--font-weight: 400;
 
@@ -125,6 +126,7 @@
             --thread-width: var(--chat-content-narrow-width);
             --background-color: #ffffff;
             --text-color: #0d0d0d;
+            --text-secondary: #5d5d5d;
             --primary-accent: #1a1a1a;
             --sidebar-bg: #f9f9fa;
             --sidebar-hover-bg: #ececf1;
@@ -146,6 +148,7 @@
         body.dark-theme {
             --background-color: #212121;
             --text-color: #e5e5e5;
+            --text-secondary: #a0a0a0;
             --primary-accent: #f5f5f5;
             --sidebar-bg: #2a2a2e;
             --sidebar-hover-bg: #38383c;
@@ -420,8 +423,6 @@
             padding-right: 0;
         }
 
-        .ai-content-block { padding-top: 0; padding-bottom: 0; min-height: 2.5rem; }
-
         .welcome-message { align-self: center; text-align: center; margin-top: 2rem; border: none !important; padding-top: 0 !important; padding-bottom: 0 !important; animation: fadeInAndRise 0.4s ease forwards; }
 
         #login-btn {
@@ -449,7 +450,7 @@
         }
         #chat-input {
             flex-grow: 1; border: none; background-color: transparent; border-radius: 0;
-            padding: 0.8rem 1rem; font-size: var(--font-size-body); font-family: var(--system-font);
+            padding: 0.8rem 1rem; font-size: var(--text-base); font-family: var(--system-font);
             resize: none; max-height: 150px; overflow-y: auto;
             line-height: 1.5; color: var(--text-color);
         }
@@ -547,283 +548,214 @@
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
 
         /* --- START: CHATGPT-STYLE TYPOGRAPHY --- */
-       /* ===== CHATGPT-LIKE TYPography & Headings — authoritative overrides =====
-   High specificity and !important to ensure these styles apply visually identical
-   for AI output areas (.message-container.ai .ai-content-block and .prose).
-   This only changes presentation (CSS). JS and functionality are untouched.
-*/
-
-/* Use system UI font stack similar to ChatGPT */
-.message-container.ai .ai-content-block,
-.message-container.ai .prose,
-.prose {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-               "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", "Microsoft YaHei",
-               "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
-  color: var(--text-color, #0f172a) !important;
-  font-size: 1rem !important;
-  line-height: 1.75 !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-}
-
-/* Paragraphs */
-.message-container.ai .ai-content-block p,
-.message-container.ai .prose p,
-.prose p {
-  margin-block-start: 1.25em !important;
-  margin-block-end: 1.25em !important;
-  font-weight: 400 !important;
-  color: inherit !important;
-}
-
-/* First/last child trimming to avoid double gaps */
-.message-container.ai .ai-content-block > *:first-child,
-.message-container.ai .prose > *:first-child,
-.prose > *:first-child {
-  margin-top: 0 !important;
-}
-.message-container.ai .ai-content-block > *:last-child,
-.message-container.ai .prose > *:last-child,
-.prose > *:last-child {
-  margin-bottom: 0 !important;
-}
-
-/* Headings scale and spacing — tuned to match ChatGPT visual hierarchy */
-.message-container.ai .ai-content-block h1,
-.message-container.ai .prose h1,
-.prose h1 {
-  font-size: 1.5rem !important; /* 24px */
-  line-height: 1.25 !important;
-  margin-top: 1.25em !important;
-  margin-bottom: 0.75em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h2,
-.message-container.ai .prose h2,
-.prose h2 {
-  font-size: 1.25rem !important; /* 20px */
-  line-height: 1.3 !important;
-  margin-top: 1.25em !important;
-  margin-bottom: 0.6em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h3,
-.message-container.ai .prose h3,
-.prose h3 {
-  font-size: 1.125rem !important; /* 18px */
-  line-height: 1.4 !important;
-  margin-top: 1.1em !important;
-  margin-bottom: 0.5em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h4,
-.message-container.ai .prose h4,
-.prose h4 {
-  font-size: 1rem !important; /* 16px */
-  line-height: 1.5 !important;
-  margin-top: 1em !important;
-  margin-bottom: 0.5em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h5,
-.message-container.ai .prose h5,
-.prose h5 {
-  font-size: 0.95rem !important; /* ~15px */
-  line-height: 1.5 !important;
-  margin-top: 0.9em !important;
-  margin-bottom: 0.4em !important;
-  font-weight: 600 !important;
-}
-
-.message-container.ai .ai-content-block h6,
-.message-container.ai .prose h6,
-.prose h6 {
-  font-size: 0.875rem !important; /* 14px */
-  line-height: 1.5 !important;
-  margin-top: 0.8em !important;
-  margin-bottom: 0.4em !important;
-  font-weight: 600 !important;
-}
-.message-container.ai strong { font-weight: 600; }
-
-/* Lists: root lists */
-.message-container.ai .ai-content-block :is(ul,ol),
-.message-container.ai .prose :is(ul,ol),
-.prose :is(ul,ol) {
-  margin-block-start: 1.25em !important;
-  margin-block-end: 1.25em !important;
-  padding-inline-start: 1.625em !important; /* inspector parity */
-  list-style-position: outside !important;
-}
-
-/* List types */
-.message-container.ai .ai-content-block ul,
-.message-container.ai .prose ul,
-.prose ul { list-style-type: disc !important; }
-.message-container.ai .ai-content-block ol,
-.message-container.ai .prose ol,
-.prose ol { list-style-type: decimal !important; }
-
-/* List items spacing and paragraphs inside */
-.message-container.ai .ai-content-block li,
-.message-container.ai .prose li,
-.prose li {
-  margin-block-start: 0.5em !important;
-  margin-block-end: 0.5em !important;
-  overflow: visible !important;
-}
-
-.message-container.ai .ai-content-block li > p,
-.message-container.ai .prose li > p,
-.prose li > p {
-  margin-block-start: 0.75em !important;
-  margin-block-end: 0.75em !important;
-}
-
-/* Special: when li contains paragraph as first/last child, match ChatGPT spacing */
-.message-container.ai .ai-content-block :is(ul,ol) > li > p:first-child,
-.message-container.ai .prose :is(ul,ol) > li > p:first-child,
-.prose :is(ul,ol) > li > p:first-child { margin-top: 1.25em !important; }
-
-.message-container.ai .ai-content-block :is(ul,ol) > li > p:last-child,
-.message-container.ai .prose :is(ul,ol) > li > p:last-child,
-.prose :is(ul,ol) > li > p:last-child { margin-bottom: 1.25em !important; }
-
-/* Nested lists slightly tighter */
-.message-container.ai .ai-content-block li > :is(ul,ol),
-.message-container.ai .prose li > :is(ul,ol),
-.prose li > :is(ul,ol) {
-  margin-block-start: 1em !important;
-  margin-block-end: 1em !important;
-  padding-inline-start: 1em !important;
-}
-
-/* Marker/readability */
-.message-container.ai .ai-content-block ::marker,
-.message-container.ai .prose ::marker,
-.prose ::marker {
-  font-variant-numeric: tabular-nums !important;
-  -webkit-font-feature-settings: "tnum" 1 !important;
-  font-weight: 600 !important;
-  color: rgba(0,0,0,0.55) !important;
-  white-space: nowrap !important;
-}
-
-/* Dark theme marker color */
-body.dark-theme .message-container.ai .ai-content-block ::marker,
-body.dark-theme .message-container.ai .prose ::marker,
-body.dark-theme .prose ::marker {
-  color: rgba(255,255,255,0.55) !important;
-}
-
-/* Blockquote */
-.message-container.ai .ai-content-block blockquote,
-.message-container.ai .prose blockquote,
-.prose blockquote {
-  padding: 0.1em 0 0.1em 1rem !important;
-  border-left: 2px solid var(--border-color, rgba(0,0,0,0.08)) !important;
-  color: rgba(0,0,0,0.75) !important;
-  margin: 1em 0 !important;
-}
-
-/* Inline code and pre blocks */
-.message-container.ai .ai-content-block code:not(pre > code),
-.message-container.ai .prose code:not(pre > code),
-.prose code:not(pre > code) {
-  font-size: 0.875em !important;
-  padding: 0.2em 0.4em !important;
-  border-radius: 4px !important;
-  border: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
-  background: var(--code-bg, rgba(0,0,0,0.04)) !important;
-  font-family: 'Fira Code', 'SF Mono', monospace !important;
-}
-
-/* Pre blocks */
-.message-container.ai .ai-content-block pre,
-.message-container.ai .prose pre,
-.prose pre {
-  padding: calc(var(--spacing, .25rem) * 4) !important;
-  border-radius: 8px !important;
-  border: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
-  overflow-x: auto !important;
-  font-family: 'SF Mono', 'Fira Code', monospace !important;
-  font-size: 0.875rem !important;
-  line-height: 1.6 !important;
-  margin: 0 !important;
-}
-
-/* Tables and images */
-.message-container.ai .ai-content-block table,
-.message-container.ai .prose table,
-.prose table {
-  width: 100% !important;
-  border-collapse: collapse !important;
-  margin: 1.25em 0 !important;
-}
-.message-container.ai .ai-content-block img,
-.message-container.ai .prose img,
-.prose img {
-  max-width: 100% !important;
-  height: auto !important;
-}
-
-/* Safe gutter for large numeric markers */
-:root { --marker-min-ch: 3; }
-.message-container.ai .ai-content-block ol,
-.message-container.ai .prose ol,
-.prose ol {
-  padding-inline-start: max(1.625em, calc(var(--marker-min-ch) * 1ch + 0.5rem)) !important;
-}
-
-/* Optional robust grid list (class: chat-grid) */
-ol.chat-grid { list-style: none !important; counter-reset: chat-counter !important; padding: 0 !important; margin: 0 !important; }
-ol.chat-grid li { counter-increment: chat-counter !important; display: grid !important; grid-template-columns: var(--marker-width, 3ch) 1fr !important; gap: 0.5ch !important; margin: .5em 0 !important; }
-ol.chat-grid li::before { content: counter(chat-counter) "." !important; justify-self: end !important; padding-right: 0.5ch !important; font-variant-numeric: tabular-nums !important; -webkit-font-feature-settings: "tnum" 1 !important; white-space: nowrap !important; font-weight: 600 !important; color: rgba(0,0,0,0.65) !important; }
-        .message-container.ai hr { border: 0; height: 1px; background-color: var(--border-color); }
+        .message-container.ai * {
+            box-sizing: border-box;
+            word-wrap: break-word;
+        }
+        .ai-content-block {
+            padding-left: 0.25rem; /* Общий отступ для создания вертикальной линии */
+        }
+        .message-container.ai .ai-content-block {
+            font-size: var(--text-base);
+            line-height: var(--line-height-body);
+            color: var(--text-color);
+        }
+        .message-container.ai .ai-content-block > *:first-child {
+            margin-top: 0 !important;
+        }
+        .message-container.ai .ai-content-block > *:last-child {
+            margin-bottom: 0 !important;
+        }
+        .message-container.ai p,
+        .message-container.ai ul,
+        .message-container.ai ol,
+        .message-container.ai blockquote,
+        .message-container.ai .code-block-wrapper,
+        .message-container.ai .table-wrapper {
+            margin: 0.5em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+        }
+        .message-container.ai hr {
+            margin: 2em 0;
+            border: 0;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+        .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
+            font-weight: var(--font-weight-semibold);
+            letter-spacing: var(--tracking-normal);
+        }
+        /* Визуальное повышение иерархии и уплотнение ПОСЛЕ заголовков */
+        .message-container.ai h1 {
+            font-size: var(--text-3xl);
+            line-height: var(--text-3xl--line-height);
+            margin: 1.75em 0 0.4em 0;
+        }
+        .message-container.ai h2 {
+            font-size: var(--text-2xl);
+            line-height: var(--text-2xl--line-height);
+            margin: 1.75em 0 0.4em 0;
+        }
+        .message-container.ai h3 {
+            font-size: var(--text-xl);
+            line-height: var(--text-xl--line-height);
+            margin: 1.5em 0 0.3em 0;
+        }
+        .message-container.ai h4 {
+            font-size: var(--text-lg);
+            line-height: var(--text-lg--line-height);
+            margin: 1.5em 0 0.2em 0;
+        }
+        .message-container.ai h5 {
+            font-size: var(--text-base);
+            line-height: var(--text-base--line-height);
+            margin: 1.5em 0 0.1em 0;
+        }
+        .message-container.ai h6 {
+            font-size: var(--text-sm);
+            line-height: var(--text-sm--line-height);
+            margin: 1.5em 0 0.1em 0;
+            opacity: 0.8;
+        }
+        .message-container.ai strong,
+        .message-container.ai b {
+            font-weight: var(--font-weight-semibold);
+        }
+        .message-container.ai ul {
+            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+        }
+        .message-container.ai ol {
+            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+        }
+        .message-container.ai li ul {
+            list-style-type: disc; /* Всегда сплошные круги */
+            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+        }
+        .message-container.ai li {
+            margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
+            padding-left: 0.4em;
+        }
+        .message-container.ai li p {
+            margin: 0;
+        }
+        .message-container.ai li > ul, .message-container.ai li > ol {
+            margin-top: 0.3em;
+            margin-bottom: 0;
+        }
+        .message-container.ai ul li::marker,
+        .message-container.ai ol li::marker {
+            font-weight: 700;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+        .message-container.ai blockquote {
+            padding: 0.25em 0 0.25em 1.25em;
+            border-left: 3px solid var(--border-color);
+            color: var(--text-color);
+            opacity: 0.85;
+        }
+        .message-container.ai code:not(pre > code) {
+            font-size: 0.875em;
+            padding: 0.2em 0.4em;
+            background-color: var(--code-bg);
+            border-radius: 4px;
+            font-family: 'Fira Code', 'SF Mono', monospace;
+            border: 1px solid var(--border-color);
+        }
         .code-block-wrapper, .table-wrapper {
-            max-width: 100%; overflow-x: auto; position: relative;
-            touch-action: auto; -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+            overflow-x: auto;
+            position: relative;
+            touch-action: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .message-container.ai pre {
-        background-color: var(--code-bg); color: var(--code-text-color);
-        padding: calc(var(--spacing) * 4); /* <-- This is the corrected line */
-        border-radius: 8px; border: 1px solid var(--border-color);
-        overflow-x: auto; font-family: 'SF Mono', 'Fira Code', 'monospace';
-        font-size: 0.875rem; line-height: 1.6; margin: 0;
-    }
-        .message-container.ai pre code.hljs { padding: 0; background: transparent; }
-
+            background-color: var(--code-bg);
+            color: var(--code-text-color);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Fira Code', 'monospace';
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .message-container.ai pre code.hljs {
+            padding: 0;
+            background: transparent;
+        }
         .copy-btn {
-            position: absolute; top: 8px; right: 8px; background: rgba(233, 233, 235, 0.8); color: #555;
-            border: 1px solid var(--border-color); padding: 0.3rem 0.6rem; border-radius: 4px;
-            cursor: pointer; font-size: 0.7rem; opacity: 0; transition: opacity 0.2s, background-color 0.2s;
-            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(233, 233, 235, 0.8);
+            color: #555;
+            border: 1px solid var(--border-color);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: opacity 0.2s, background-color 0.2s;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
-        body.dark-theme .copy-btn { background-color: rgba(74, 74, 74, 0.8); color: #ddd; border-color: #555; }
-        .code-block-wrapper:hover .copy-btn { opacity: 1; }
-        .copy-btn:hover { background: #dcdce0; }
-        body.dark-theme .copy-btn:hover { background-color: #5a5a5a; }
-        .copy-btn:active { transform: scale(0.95); }
-
-        .table-wrapper table { width: 100%; border-collapse: collapse; }
+        body.dark-theme .copy-btn {
+            background-color: rgba(74, 74, 74, 0.8);
+            color: #ddd;
+            border-color: #555;
+        }
+        .code-block-wrapper:hover .copy-btn {
+            opacity: 1;
+        }
+        .copy-btn:hover {
+            background: #dcdce0;
+        }
+        body.dark-theme .copy-btn:hover {
+            background-color: #5a5a5a;
+        }
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+        }
         .message-container.ai th, .message-container.ai td {
-            padding: 0.5rem 0.75rem; text-align: left;
-            border-bottom: 1px solid var(--border-color); font-size: 0.9em;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9em;
         }
-        .message-container.ai thead th { font-weight: 600; background-color: transparent; border-bottom-width: 2px; }
-        .message-container.ai tbody tr:last-child td { border-bottom: none; }
-
-        .code-block-wrapper::-webkit-scrollbar, .table-wrapper::-webkit-scrollbar { height: 8px; }
-        .code-block-wrapper::-webkit-scrollbar-track, .table-wrapper::-webkit-scrollbar-track { background: transparent; }
-        .code-block-wrapper::-webkit-scrollbar-thumb, .table-wrapper::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 10px; border: 2px solid var(--code-bg); }
-        body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb { border-color: var(--code-bg); }
-        .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
-        .code-block-wrapper, .table-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb-color) transparent; }
+        .message-container.ai thead th {
+            font-weight: 600;
+            background-color: transparent;
+            border-bottom-width: 2px;
+        }
+        .message-container.ai tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .code-block-wrapper::-webkit-scrollbar, .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+        .code-block-wrapper::-webkit-scrollbar-track, .table-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .code-block-wrapper::-webkit-scrollbar-thumb, .table-wrapper::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb-color);
+            border-radius: 10px;
+            border: 2px solid var(--code-bg);
+        }
+        body.dark-theme .code-block-wrapper::-webkit-scrollbar-thumb, body.dark-theme .table-wrapper::-webkit-scrollbar-thumb {
+            border-color: var(--code-bg);
+        }
+        .code-block-wrapper::-webkit-scrollbar-thumb:hover, .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background-color: var(--scrollbar-thumb-hover-color);
+        }
+        .code-block-wrapper, .table-wrapper {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb-color) transparent;
+        }
         /* --- END: TYPOGRAPHY --- */
         
         /* === START: POLISHED FILE BLOCK STYLES === */
@@ -1057,106 +989,108 @@ ol.chat-grid li::before { content: counter(chat-counter) "." !important; justify
              align-self: center;
         }
     </style>
-<style>
-
-</style></head>
+</head>
 <body class="initial-state">
-<div id="app-container">
-<!-- HTML structure remains identical -->
-<div id="sidebar-overlay"></div>
-<aside id="sidebar">
-<div class="sidebar-header">
-<h2>Chat History</h2>
-<div class="sidebar-header-actions">
-<button class="sidebar-action-btn" id="pin-sidebar-btn" title="Pin Sidebar">
-<span class="pin-icon">
-<svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M16 3H8C6.34315 3 5 4.34315 5 6V14C5 15.6569 6.34315 17 8 17H16C17.6569 17 19 15.6569 19 14V6C19 4.34315 17.6569 3 16 3ZM12 17V21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</span>
-<span class="unpin-icon">
-<svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M16 3H8C6.34315 3 5 4.34315 5 6V14C5 15.6569 6.34315 17 8 17H16C17.6569 17 19 15.6569 19 14V6C19 4.34315 17.6569 3 16 3ZM12 17V21M19 6L21 4M3 4L5 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</span>
-</button>
-<button class="sidebar-action-btn" id="sidebar-close-btn" title="Close Menu">×</button>
-</div>
-</div>
-<div id="chat-history-list">
-<div class="chat-history-item" id="new-chat-item">
-<svg class="item-icon" fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"></path></svg>
-<div class="chat-title-container">New Chat</div>
-</div>
-</div>
-<div class="sidebar-footer">
-<button id="logout-btn">
-<img alt="User Avatar" id="user-avatar" src=""/>
-<span id="logout-text">Logout</span>
-</button>
-<button class="sidebar-action-btn" id="theme-toggle-btn" title="Toggle Theme">
-<span class="theme-icon sun-icon">
-<svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5"></circle><line x1="12" x2="12" y1="1" y2="3"></line><line x1="12" x2="12" y1="21" y2="23"></line><line x1="4.22" x2="5.64" y1="4.22" y2="5.64"></line><line x1="18.36" x2="19.78" y1="18.36" y2="19.78"></line><line x1="1" x2="3" y1="12" y2="12"></line><line x1="21" x2="23" y1="12" y2="12"></line><line x1="4.22" x2="5.64" y1="19.78" y2="18.36"></line><line x1="18.36" x2="19.78" y1="5.64" y2="4.22"></line></svg>
-</span>
-<span class="theme-icon moon-icon">
-<svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-</span>
-</button>
-</div>
-</aside>
-<main id="chat-area">
-<button id="menu-toggle">☰</button>
-<div id="chat-content-wrapper">
-<div id="chat-messages-container">
-<div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
-</div>
-<div id="chat-input-area">
-<div id="chat-form-container">
-<div id="attached-file-info">
-<span id="attached-file-name"></span>
-<button id="remove-file-btn" title="Remove file">×</button>
-</div>
-<form id="chat-form">
-<div class="input-wrapper">
-<label for="file-upload-input" id="file-upload-btn" title="Upload File">
-<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-</label>
-<input accept=".txt,.js,.py,.html,.css,.json,.md" id="file-upload-input" type="file"/>
-<textarea id="chat-input" placeholder="Message AI..."></textarea>
-<button id="send-btn" title="Send Message" type="submit">
-<svg fill="currentColor" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"></path></svg>
-</button>
-<button id="stop-btn" title="Stop Generation" type="button">
-<svg fill="currentColor" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6z"></path></svg>
-</button>
-</div>
-</form>
-</div>
-</div>
-</div>
-</main>
-<div class="scroll-controls">
-<button class="scroll-btn" id="scroll-up-btn" title="Scroll Up (Double-click for Top)">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="18 15 12 9 6 15"></polyline></svg>
-</button>
-<button class="scroll-btn" id="scroll-down-btn" title="Scroll Down (Double-click for Bottom)">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"></polyline></svg>
-</button>
-</div>
-</div>
-<div id="editor-modal-overlay">
-<div id="editor-modal">
-<div class="editor-header">
-<span id="editor-filename"></span>
-</div>
-<textarea class="editor-textarea" id="editor-textarea"></textarea>
-<div class="editor-footer">
-<button class="editor-btn" id="editor-download-btn">Download</button>
-<button class="editor-btn" id="editor-cancel-btn">Cancel</button>
-<button class="editor-btn primary" id="editor-save-btn">Save Changes</button>
-</div>
-</div>
-</div>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-<script>
+    <div id="app-container">
+        <!-- HTML structure remains identical -->
+        <div id="sidebar-overlay"></div>
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h2>Chat History</h2>
+                <div class="sidebar-header-actions">
+                    <button id="pin-sidebar-btn" class="sidebar-action-btn" title="Pin Sidebar">
+                        <span class="pin-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 3H8C6.34315 3 5 4.34315 5 6V14C5 15.6569 6.34315 17 8 17H16C17.6569 17 19 15.6569 19 14V6C19 4.34315 17.6569 3 16 3ZM12 17V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </span>
+                        <span class="unpin-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 3H8C6.34315 3 5 4.34315 5 6V14C5 15.6569 6.34315 17 8 17H16C17.6569 17 19 15.6569 19 14V6C19 4.34315 17.6569 3 16 3ZM12 17V21M19 6L21 4M3 4L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </span>
+                    </button>
+                    <button id="sidebar-close-btn" class="sidebar-action-btn" title="Close Menu">×</button>
+                </div>
+            </div>
+            <div id="chat-history-list">
+                <div id="new-chat-item" class="chat-history-item">
+                    <svg class="item-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <div class="chat-title-container">New Chat</div>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <button id="logout-btn">
+                    <img id="user-avatar" src="" alt="User Avatar">
+                    <span id="logout-text">Logout</span>
+                </button>
+                <button id="theme-toggle-btn" class="sidebar-action-btn" title="Toggle Theme">
+                    <span class="theme-icon sun-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    </span>
+                    <span class="theme-icon moon-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </span>
+                </button>
+            </div>
+        </aside>
+        
+        <main id="chat-area">
+             <button id="menu-toggle">☰</button>
+             <div id="chat-content-wrapper">
+                <div id="chat-messages-container">
+                    <div id="chat-messages"><div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div></div>
+                </div>
+                <div id="chat-input-area">
+                    <div id="chat-form-container">
+                        <div id="attached-file-info">
+                            <span id="attached-file-name"></span>
+                            <button id="remove-file-btn" title="Remove file">&times;</button>
+                        </div>
+                        <form id="chat-form">
+                            <div class="input-wrapper">
+                                <label id="file-upload-btn" for="file-upload-input" title="Upload File">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                </label>
+                                <input type="file" id="file-upload-input" accept=".txt,.js,.py,.html,.css,.json,.md">
+                                <textarea id="chat-input" placeholder="Message AI..."></textarea>
+                                <button type="submit" id="send-btn" title="Send Message">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
+                                </button>
+                                <button type="button" id="stop-btn" title="Stop Generation">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6z"/></svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div class="scroll-controls">
+            <button id="scroll-up-btn" class="scroll-btn" title="Scroll Up (Double-click for Top)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            </button>
+            <button id="scroll-down-btn" class="scroll-btn" title="Scroll Down (Double-click for Bottom)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+        </div>
+    </div>
+    
+    <div id="editor-modal-overlay">
+        <div id="editor-modal">
+            <div class="editor-header">
+                <span id="editor-filename"></span>
+            </div>
+            <textarea id="editor-textarea" class="editor-textarea"></textarea>
+            <div class="editor-footer">
+                <button id="editor-download-btn" class="editor-btn">Download</button>
+                <button id="editor-cancel-btn" class="editor-btn">Cancel</button>
+                <button id="editor-save-btn" class="editor-btn primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const firebaseConfig = {
                 apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
@@ -1200,7 +1134,7 @@ ol.chat-grid li::before { content: counter(chat-counter) "." !important; justify
                 editorDownloadBtn = document.getElementById('editor-download-btn');
 
             // --- MARKED CONFIG WITH KATEX ---
-            
+           
             
             // --- PROFESSIONAL RENDERER ---
             class ProfessionalRenderer {

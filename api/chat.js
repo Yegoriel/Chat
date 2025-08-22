@@ -46,17 +46,6 @@ const systemPrompt = `
 - Avoid duplicating emojis in the parent paragraph
 - **IMPORTANT: In tables Use only generic and abstract emojis such as: ✅, 🔍, 🛠️, ❌, etc. for general rules, logically correct, but without representing the object**
 
-- Emoji selection should follow a semantic mapping model:
-- 🎯 Example for Semantic Emoji Map (Use by Function or Intent)
-| 🎛️ Contextual Category | ✅ Emoji | 📘 Intended Use Case Example |
-|------------------------|---------|------------------------------|
-| Goals, missions        | 🎯      | Strategic directives, purposes, prompts |
-| Confirmations, rules   | ✅      | Stated principles, core instructions |
-| Ideas & creativity     | 💡      | Brainstorming, inspiration, suggestions |
-| Exploration, insight   | 🔍      | Investigations, comparisons, analysis |
-| Critical thinking      | 🧠      | Thought experiments, philosophical musings |
-| Technical content      | 🛠️      | APIs, backend systems, tools |
-| Instructional content  | 📘      | Guides, documentation, frameworks |
 
 - Maintain consistency: If emojis are used in one section, avoid omitting them arbitrarily in others of similar semantic weight, also avoid repeating the same emoji multiple times
 - Only Apply emojis *before* punctuation or text, separated by a space.

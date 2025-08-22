@@ -879,31 +879,140 @@
              margin-bottom: 2rem;
              align-self: center;
         }
-    
-/* === ChatGPT-like Prose Overrides === */
+    </style>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/><style>
+/* ===== Tailwind-like 'prose' applied with ChatGPT-accurate overrides =====
+   This block is high-specificity and uses scoped selectors to override
+   existing styles for AI-rendered markdown only. It does NOT touch JS or engine code.
+===== */
+
+/* Scope to message containers that render AI content + any direct .prose blocks we added */
+.message-container.ai .prose,
+.prose.ai-content,
+.prose.markdown,
+.prose.markdown-body,
 .prose {
-  font-size: 1rem;
-  line-height: 1.75;
+  --tw-prose-body: inherit;
+  font-size: 1rem !important;
+  line-height: 1.75 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.prose p:first-child { margin-top: 0; }
-.prose p { margin-block: 1.25em; }
-.prose ul, .prose ol {
-  margin-top: 1.25em;
-  margin-bottom: 1.25em;
-  padding-inline-start: 1.625em;
+
+/* Paragraph spacing */
+.message-container.ai .prose p,
+.prose p {
+  margin-block-start: 1.25em !important;
+  margin-block-end: 1.25em !important;
 }
-.prose li { margin-top: .5em; margin-bottom: .5em; }
-.prose li > p { margin-top: .75em; margin-bottom: .75em; }
-.prose > ul > li > p:first-child { margin-top: 1.25em; }
-.prose > ul > li > p:last-child { margin-bottom: 1.25em; }
-.prose ::marker { color: rgba(0,0,0,0.5); font-weight: 600; }
-body.dark-theme .prose ::marker { color: rgba(255,255,255,0.5); }
-.prose blockquote { padding: 0.1em 0 0.1em 1rem; border-left: 2px solid var(--border-color); color: rgba(0,0,0,0.7); }
-body.dark-theme .prose blockquote { color: rgba(255,255,255,0.7); }
-.prose code:not(pre > code) { font-size: 0.875em; padding: 0.2em 0.4em; background-color: var(--code-bg); border-radius: 4px; border: 1px solid var(--border-color); }
-.prose pre { background-color: var(--code-bg); color: var(--code-text-color); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875rem; line-height: 1.6; margin: 0; }
-</style>
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/></head>
+.message-container.ai .prose > *:first-child,
+.prose > *:first-child { margin-top: 0 !important; }
+.message-container.ai .prose > *:last-child,
+.prose > *:last-child { margin-bottom: 0 !important; }
+
+/* Lists: root lists */
+.message-container.ai .prose :is(ul,ol),
+.prose :is(ul,ol) {
+  margin-block-start: 1.25em !important;
+  margin-block-end: 1.25em !important;
+  padding-inline-start: 1.625em !important; /* ChatGPT inspector value */
+  list-style-position: outside !important;
+}
+
+/* List types */
+.message-container.ai .prose ul,
+.prose ul { list-style-type: disc !important; }
+.message-container.ai .prose ol,
+.prose ol { list-style-type: decimal !important; }
+
+/* List items and paragraphs inside list items */
+.message-container.ai .prose li,
+.prose li {
+  margin-block-start: 0.5em !important;
+  margin-block-end: 0.5em !important;
+  overflow: visible !important;
+}
+.message-container.ai .prose li > p,
+.prose li > p {
+  margin-block-start: 0.75em !important;
+  margin-block-end: 0.75em !important;
+}
+
+/* When a list item's first/last child is a paragraph, match ChatGPT spacing */
+.message-container.ai .prose :is(ul,ol) > li > p:first-child,
+.prose :is(ul,ol) > li > p:first-child { margin-top: 1.25em !important; }
+.message-container.ai .prose :is(ul,ol) > li > p:last-child,
+.prose :is(ul,ol) > li > p:last-child { margin-bottom: 1.25em !important; }
+
+/* Nested lists slightly tighter */
+.message-container.ai .prose li > :is(ul,ol),
+.prose li > :is(ul,ol) {
+  margin-block-start: 1em !important;
+  margin-block-end: 1em !important;
+  padding-inline-start: 1em !important;
+}
+
+/* Marker stability for multi-digit numbers */
+.message-container.ai .prose ::marker,
+.prose ::marker {
+  font-variant-numeric: tabular-nums !important;
+  -webkit-font-feature-settings: "tnum" 1 !important;
+  font-weight: 600 !important;
+  color: rgba(0,0,0,0.55) !important;
+  white-space: nowrap !important;
+}
+
+/* Dark theme marker color */
+body.dark-theme .message-container.ai .prose ::marker,
+body.dark-theme .prose ::marker {
+  color: rgba(255,255,255,0.55) !important;
+}
+
+/* Inline code and code blocks */
+.message-container.ai .prose code:not(pre > code),
+.prose code:not(pre > code) {
+  font-size: 0.875em !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 4px !important;
+  border: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
+  background: var(--code-bg, rgba(0,0,0,0.04)) !important;
+  font-family: 'Fira Code', 'SF Mono', monospace !important;
+}
+
+/* Pre blocks */
+.message-container.ai .prose pre,
+.prose pre {
+  padding: calc(var(--spacing, .25rem) * 4) !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
+  overflow-x: auto !important;
+  font-family: 'SF Mono', 'Fira Code', monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+}
+
+/* Safe gutter for large numeric markers (uses ch) */
+:root { --marker-min-ch: 3; } /* adjust if you need more digits by default */
+.message-container.ai .prose ol,
+.prose ol {
+  padding-inline-start: max(1.625em, calc(var(--marker-min-ch) * 1ch + 0.5rem)) !important;
+}
+
+/* Optional: robust grid-based numbered lists if you want pixel-perfect markers:
+   To use, add class "chat-grid" to the ol element. */
+ol.chat-grid { list-style: none; counter-reset: chat-counter; padding: 0; margin: 0; }
+ol.chat-grid li { counter-increment: chat-counter; display: grid; grid-template-columns: var(--marker-width, 3ch) 1fr; gap: 0.5ch; margin: .5em 0; }
+ol.chat-grid li::before { content: counter(chat-counter) "."; justify-self: end; padding-right: 0.5ch; font-variant-numeric: tabular-nums; -webkit-font-feature-settings: "tnum" 1; white-space: nowrap; font-weight: 600; color: rgba(0,0,0,0.65); }
+
+/* Make sure images and tables inside prose have expected spacing */
+.message-container.ai .prose img,
+.prose img { max-width: 100% !important; height: auto !important; }
+.message-container.ai .prose table,
+.prose table { width: 100% !important; border-collapse: collapse !important; margin: 1.25em 0 !important; }
+
+/* End of overrides */
+</style></head>
 <body class="initial-state">
 <div id="app-container">
 <!-- HTML structure remains identical -->

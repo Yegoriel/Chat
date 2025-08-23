@@ -121,9 +121,9 @@
     --text-caption-regular--letter-spacing: -.00625rem;
     --text-caption-regular--font-weight: 400;
 
-            --chat-content-narrow-width: 42rem;
-            --chat-content-expanded-width: 50rem;
-            --thread-width: var(--chat-content-narrow-width);
+            /* --- KEY LAYOUT CHANGE --- */
+            --thread-max-width: 48rem; /* Single, constant max-width */
+
             --background-color: #ffffff;
             --text-color: #0d0d0d;
             --text-secondary: #5d5d5d;
@@ -300,8 +300,6 @@
         .is-desktop #sidebar { width: var(--sidebar-width); }
         .is-desktop #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); }
 
-        .is-desktop #chat-area.sidebar-collapsed { --thread-width: var(--chat-content-expanded-width); }
-
         .sidebar-header h2,
         .chat-title-container,
         #logout-text,
@@ -339,10 +337,11 @@
         .is-mobile.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
         .is-mobile.sidebar-open #chat-area { filter: brightness(0.9); }
 
+        /* --- KEY LAYOUT CHANGES START HERE --- */
         #chat-content-wrapper {
             width: 100%;
-            max-width: var(--thread-width);
-            margin: 0 auto;
+            max-width: var(--thread-max-width); /* Use the single max-width */
+            margin: 0 auto; /* Center the container */
             padding: 0 1rem;
             box-sizing: border-box;
             display: flex;
@@ -368,12 +367,14 @@
             flex-direction: column;
             width: 100%;
             box-sizing: border-box;
-            scrollbar-width: none; /* Hides scrollbar for Firefox */
+            scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
-            -ms-overflow-style: none; /* Hides scrollbar for IE and Edge */
+            -ms-overflow-style: none;
             touch-action: pan-y;
             padding: 2rem 0 calc(var(--input-bar-clearance)) 0;
         }
+        /* --- KEY LAYOUT CHANGES END HERE --- */
+
         #chat-messages::-webkit-scrollbar {
             display: none; /* Hides scrollbar for Chrome, Safari, and Opera */
         }
@@ -553,7 +554,7 @@
             word-wrap: break-word;
         }
         .ai-content-block {
-            padding-left: 0.25rem; /* Общий отступ для создания вертикальной линии */
+            padding-left: 0.25rem;
         }
         .message-container.ai .ai-content-block {
             font-size: var(--text-base);
@@ -572,7 +573,7 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.5em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+            margin: 0.6em 0;
         }
         .message-container.ai hr {
             margin: 2em 0;
@@ -584,7 +585,6 @@
             font-weight: var(--font-weight-semibold);
             letter-spacing: var(--tracking-normal);
         }
-        /* Визуальное повышение иерархии и уплотнение ПОСЛЕ заголовков */
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
@@ -622,14 +622,14 @@
         }
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+            padding-inline-start: 1.625em;
         }
         .message-container.ai li ul {
-            list-style-type: disc; /* Всегда сплошные круги */
-            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+            list-style-type: disc;
+            padding-inline-start: 1.5em;
         }
         .message-container.ai li {
-            margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
+            margin-bottom: 0.05em;
             padding-left: 0.4em;
         }
         .message-container.ai li p {
@@ -766,7 +766,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: box-shadow 0.2s;
             width: 100%;
-            max-width: var(--thread-width);
+            max-width: var(--thread-max-width);
         }
         .file-content-block:hover {
             box-shadow: 0 6px 16px rgba(0,0,0,0.08);
@@ -933,22 +933,7 @@
         }
 
         @media (min-width: 769px) {
-            #chat-messages {
-                padding-left: calc((100% - var(--thread-width)) / 2);
-                padding-right: calc((100% - var(--thread-width)) / 2);
-            }
-            .ai-content-block,
-            .welcome-message {
-                max-width: 100%;
-                margin-left: 0;
-                margin-right: 0;
-                padding-left: 0;
-                padding-right: 0;
-            }
-            #chat-form-container {
-                padding-left: 0;
-                padding-right: 0;
-            }
+            /* Removed padding from #chat-messages as it's now handled by #chat-content-wrapper */
         }
 
         body.initial-state #chat-content-wrapper {
@@ -1412,7 +1397,6 @@
                 localChatHistory.push(userMessageData);
                 
                 if (isNewChat) {
-                    // ИЗМЕНЕНО (Оптимизация): Убран await для ускорения ответа ИИ
                     db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
                         title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,

@@ -620,9 +620,7 @@
         .message-container.ai b {
             font-weight: var(--font-weight-semibold);
         }
-        .message-container.ai ul {
-            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
-        }
+        .message-container.ai ul,
         .message-container.ai ol {
             padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
         }
@@ -1414,7 +1412,8 @@
                 localChatHistory.push(userMessageData);
                 
                 if (isNewChat) {
-                    await db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
+                    // ИЗМЕНЕНО (Оптимизация): Убран await для ускорения ответа ИИ
+                    db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
                         title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP

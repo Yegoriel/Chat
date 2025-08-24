@@ -121,7 +121,7 @@
     --text-caption-regular--letter-spacing: -.00625rem;
     --text-caption-regular--font-weight: 400;
 
-            --chat-content-narrow-width: 40rem;
+            --chat-content-narrow-width: 40rem; /* ИЗМЕНЕНО */
             --chat-content-expanded-width: 50rem;
             --thread-width: var(--chat-content-narrow-width);
             --background-color: #ffffff;
@@ -396,8 +396,6 @@
             border-radius: 12px;
             max-width: 90%;
             transition: background-color 0.3s;
-            position: relative; /* Для псевдо-элемента анимации */
-            overflow: hidden; /* Для псевдо-элемента анимации */
         }
         
         .message-container.user-file {
@@ -525,31 +523,11 @@
             color: var(--text-color);
         }
 
-        /* --- START: THINKING INDICATOR --- */
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-
-        .message-container.user.is-thinking::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 12px;
-            background-image: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%);
-            background-size: 200% 100%;
-            animation: shimmer 2s linear infinite;
-        }
-
-        .message-container.user.is-thinking {
-            background-image: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%);
-            background-size: 200% 100%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: shimmer 2s linear infinite;
-        }
-        /* --- END: THINKING INDICATOR --- */
+        .thinking-indicator { display: flex; gap: 4px; align-items: center; height: 1.5rem; padding-left: 0.25rem; }
+        .thinking-indicator span { width: 7px; height: 7px; background-color: var(--primary-accent); border-radius: 50%; animation: sleekWave 1.2s ease-in-out infinite; }
+        .thinking-indicator span:nth-child(2) { animation-delay: 0.1s; }
+        .thinking-indicator span:nth-child(3) { animation-delay: 0.2s; }
+        @keyframes sleekWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
         .is-desktop .scroll-controls { display: flex; }
@@ -944,6 +922,47 @@
             border-color: var(--primary-accent);
         }
         /* === END: FULLSCREEN EDITOR MODAL === */
+
+        /* === START: THINKING INDICATOR === */
+        .message-container.user.is-thinking {
+            position: relative;
+            overflow: hidden;
+        }
+        .message-container.user.is-thinking::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                110deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.4) 50%,
+                transparent 70%
+            );
+            animation: metallic-sheen 2.5s infinite ease-in-out;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+        }
+        body.dark-theme .message-container.user.is-thinking::after {
+            background: linear-gradient(
+                110deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.15) 50%,
+                transparent 70%
+            );
+            mix-blend-mode: plus-lighter;
+        }
+        @keyframes metallic-sheen {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+        /* === END: THINKING INDICATOR === */
 
         @media (max-width: 768px) {
             .ai-content-block, #chat-form-container { max-width: 100%; }
@@ -1346,10 +1365,12 @@
                 chatInput.disabled = isStreaming;
             }
 
-            function cleanUpStream(finalText, renderer, userMessageBubble) {
-                if (userMessageBubble) {
-                    userMessageBubble.classList.remove('is-thinking');
+            function cleanUpStream(finalText, renderer) {
+                const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
+                if (thinkingBubble) {
+                    thinkingBubble.classList.remove('is-thinking');
                 }
+                
                 try {
                     renderer.finish();
                 } catch (e) {
@@ -1391,7 +1412,6 @@
                     </div>
                 `;
                 const container = addMessageToUI('user user-file', fileBlockHTML, true);
-                return container;
             }
 
             async function handleSendMessage(e) {
@@ -1411,10 +1431,10 @@
                 
                 let messageForApi = userMessageText;
                 const userMessageData = { role: 'user', text: userMessageText };
-                let userMessageBubble;
+                let userMessageElement = null;
 
                 if (attachedFile) {
-                    userMessageBubble = addFileBlockToUI(attachedFile.name, attachedFile.content);
+                    addFileBlockToUI(attachedFile.name, attachedFile.content);
                     const fileContext = `\n\n--- Start of File: ${attachedFile.name} ---\n${attachedFile.content}\n--- End of File ---`;
                     messageForApi = userMessageText + fileContext;
                     
@@ -1425,13 +1445,9 @@
                 }
                 
                 if (userMessageText) {
-                    userMessageBubble = addMessageToUI('user', userMessageText);
+                    userMessageElement = addMessageToUI('user', userMessageText);
+                    userMessageElement.classList.add('is-thinking');
                 }
-
-                if (userMessageBubble) {
-                    userMessageBubble.classList.add('is-thinking');
-                }
-                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
 
                 let isNewChat = false;
                 if (!currentChatId) {
@@ -1444,6 +1460,7 @@
                 localChatHistory.push(userMessageData);
                 
                 if (isNewChat) {
+                    // ИЗМЕНЕНО (Оптимизация): Убран await для ускорения ответа ИИ
                     db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
                         title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,
@@ -1458,12 +1475,11 @@
                 const renderer = new ProfessionalRenderer(contentBlock);
                 let accumulatedResponseText = '';
                 let sseBuffer = '';
-                let isFirstChunk = true;
 
                 const processChunk = (textPart) => {
-                    if (isFirstChunk && userMessageBubble) {
-                        userMessageBubble.classList.remove('is-thinking');
-                        isFirstChunk = false;
+                    const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
+                    if (thinkingBubble) {
+                        thinkingBubble.classList.remove('is-thinking');
                     }
                     renderer.update(textPart);
                     accumulatedResponseText += textPart;
@@ -1512,7 +1528,7 @@
                             contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                         }
                     } finally {
-                        cleanUpStream(accumulatedResponseText, renderer, userMessageBubble);
+                        cleanUpStream(accumulatedResponseText, renderer);
                     }
                 };
                 

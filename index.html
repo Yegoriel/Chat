@@ -121,8 +121,8 @@
     --text-caption-regular--letter-spacing: -.00625rem;
     --text-caption-regular--font-weight: 400;
 
-            --chat-content-narrow-width: 40rem;
-            --chat-content-expanded-width: 48rem;
+            --chat-content-narrow-width: 42rem;
+            --chat-content-expanded-width: 50rem;
             --thread-width: var(--chat-content-narrow-width);
             --background-color: #ffffff;
             --text-color: #0d0d0d;
@@ -572,7 +572,7 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.5em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+            margin: 0.6em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
         }
         .message-container.ai hr {
             margin: 2em 0;
@@ -620,15 +620,13 @@
         .message-container.ai b {
             font-weight: var(--font-weight-semibold);
         }
-        .message-container.ai ul {
-            padding-inline-start: 1.8em; /* ИЗМЕНЕНО */
-        }
+        .message-container.ai ul,
         .message-container.ai ol {
             padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li ul {
             list-style-type: disc; /* Всегда сплошные круги */
-            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+            padding-inline-start: 1.5em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li {
             margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
@@ -1414,7 +1412,8 @@
                 localChatHistory.push(userMessageData);
                 
                 if (isNewChat) {
-                        db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
+                    // ИЗМЕНЕНО (Оптимизация): Убран await для ускорения ответа ИИ
+                    db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
                         title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP

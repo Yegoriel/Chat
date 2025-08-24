@@ -390,13 +390,13 @@
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
         .message-container.user {
+            position: relative; /* Для псевдо-элемента анимации */
             padding: 0.65rem 1rem;
             background-color: var(--user-msg-bg);
             align-self: flex-end;
             border-radius: 12px;
             max-width: 90%;
             transition: background-color 0.3s;
-            position: relative; /* Для индикатора */
         }
         
         .message-container.user-file {
@@ -525,16 +525,30 @@
         }
 
         /* --- START: THINKING INDICATOR --- */
-        @keyframes pulsate-glow {
-            0%, 100% {
-                box-shadow: 0 0 8px 4px rgba(2, 133, 255, 0.2);
+        .message-container.user.is-thinking::after {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            border-radius: 16px; /* Чуть больше, чем у самого бабла (12px) */
+            background: conic-gradient(from 180deg at 50% 50%, rgba(88, 86, 214, 0) 0%, #8E44AD 50%, rgba(88, 86, 214, 0) 100%);
+            animation: magical-pulse 2s infinite linear;
+            z-index: -1;
+            opacity: 0;
+        }
+
+        @keyframes magical-pulse {
+            0% {
+                transform: rotate(0deg) scale(1.0);
+                opacity: 0.7;
             }
             50% {
-                box-shadow: 0 0 16px 8px rgba(2, 133, 255, 0.4);
+                transform: rotate(180deg) scale(1.05);
+                opacity: 1;
             }
-        }
-        .message-container.user.is-thinking {
-            animation: pulsate-glow 2s ease-in-out infinite;
+            100% {
+                transform: rotate(360deg) scale(1.0);
+                opacity: 0.7;
+            }
         }
         /* --- END: THINKING INDICATOR --- */
 
@@ -562,7 +576,7 @@
             word-wrap: break-word;
         }
         .ai-content-block {
-            padding-left: 0.25rem; /* Общий отступ для создания вертикальной линии */
+            padding-left: 0.25rem;
         }
         .message-container.ai .ai-content-block {
             font-size: var(--text-base);
@@ -581,7 +595,7 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.6em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+            margin: 1.25em 0;
         }
         .message-container.ai hr {
             margin: 2em 0;
@@ -593,36 +607,35 @@
             font-weight: var(--font-weight-semibold);
             letter-spacing: var(--tracking-normal);
         }
-        /* Визуальное повышение иерархии и уплотнение ПОСЛЕ заголовков */
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
-            margin: 1.75em 0 0.4em 0;
+            margin: 1.75em 0 0.8em 0;
         }
         .message-container.ai h2 {
             font-size: var(--text-2xl);
             line-height: var(--text-2xl--line-height);
-            margin: 1.75em 0 0.4em 0;
+            margin: 1.75em 0 0.8em 0;
         }
         .message-container.ai h3 {
             font-size: var(--text-xl);
             line-height: var(--text-xl--line-height);
-            margin: 1.5em 0 0.3em 0;
+            margin: 1.5em 0 0.7em 0;
         }
         .message-container.ai h4 {
             font-size: var(--text-lg);
             line-height: var(--text-lg--line-height);
-            margin: 1.5em 0 0.2em 0;
+            margin: 1.5em 0 0.6em 0;
         }
         .message-container.ai h5 {
             font-size: var(--text-base);
             line-height: var(--text-base--line-height);
-            margin: 1.5em 0 0.1em 0;
+            margin: 1.5em 0 0.5em 0;
         }
         .message-container.ai h6 {
             font-size: var(--text-sm);
             line-height: var(--text-sm--line-height);
-            margin: 1.5em 0 0.1em 0;
+            margin: 1.5em 0 0.5em 0;
             opacity: 0.8;
         }
         .message-container.ai strong,
@@ -631,14 +644,14 @@
         }
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+            padding-inline-start: 1.625em;
         }
         .message-container.ai li ul {
-            list-style-type: disc; /* Всегда сплошные круги */
-            padding-inline-start: 1.5em; /* ИЗМЕНЕНО */
+            list-style-type: disc;
+            padding-inline-start: 1.5em;
         }
         .message-container.ai li {
-            margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
+            margin-bottom: 0.1em;
             padding-left: 0.4em;
         }
         .message-container.ai li p {
@@ -1117,6 +1130,7 @@
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
             let attachedFile = null;
             let activeFileBlockForEdit = null;
+            let lastUserMessageBubble = null; // Для управления анимацией
 
             // --- DOM ELEMENTS ---
             const chatHistoryList = document.getElementById('chat-history-list'),
@@ -1222,10 +1236,6 @@
 
             auth.onAuthStateChanged(updateUIForAuthState);
 
-            function scrollToBottom() {
-                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-            }
-
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
@@ -1299,7 +1309,6 @@
                 
                 requestAnimationFrame(() => {
                     chatMessages.classList.remove('is-loading-history');
-                    scrollToBottom();
                 });
                 
                 updateActiveChatSelection(chatId);
@@ -1339,11 +1348,10 @@
             }
 
             function cleanUpStream(finalText, renderer) {
-                const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
-                if (thinkingBubble) {
-                    thinkingBubble.classList.remove('is-thinking');
+                if (lastUserMessageBubble) {
+                    lastUserMessageBubble.classList.remove('is-thinking');
+                    lastUserMessageBubble = null;
                 }
-
                 try {
                     renderer.finish();
                 } catch (e) {
@@ -1417,14 +1425,13 @@
                 }
                 
                 if (userMessageText) {
-                    addMessageToUI('user', userMessageText);
-                    const userMessageBubble = document.querySelector('.message-container.user:last-of-type');
-                    if (userMessageBubble) {
-                        userMessageBubble.classList.add('is-thinking');
-                    }
+                    const userMessageBubble = addMessageToUI('user', userMessageText);
+                    userMessageBubble.classList.add('is-thinking');
+                    lastUserMessageBubble = userMessageBubble;
                 }
                 
-                scrollToBottom();
+                // Автоматическая прокрутка вниз
+                chatMessages.scrollTop = chatMessages.scrollHeight;
 
                 let isNewChat = false;
                 if (!currentChatId) {
@@ -1445,22 +1452,17 @@
                 }
 
                 const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
-                scrollToBottom();
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
                 const renderer = new ProfessionalRenderer(contentBlock);
                 let accumulatedResponseText = '';
                 let sseBuffer = '';
-                let isFirstChunk = true;
 
                 const processChunk = (textPart) => {
-                    if (isFirstChunk) {
-                        const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
-                        if (thinkingBubble) {
-                            thinkingBubble.classList.remove('is-thinking');
-                        }
-                        isFirstChunk = false;
+                    if (lastUserMessageBubble) {
+                        lastUserMessageBubble.classList.remove('is-thinking');
+                        lastUserMessageBubble = null;
                     }
                     renderer.update(textPart);
                     accumulatedResponseText += textPart;

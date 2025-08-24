@@ -572,10 +572,10 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.6em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+            margin: 0.5em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
         }
         .message-container.ai hr {
-            margin: 2em 0;
+            margin: 1.5em 0;
             border: 0;
             height: 1px;
             background-color: var(--border-color);
@@ -588,32 +588,32 @@
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
-            margin: 1.75em 0 0.4em 0;
+            margin: 1.5em 0 0.3em 0;
         }
         .message-container.ai h2 {
             font-size: var(--text-2xl);
             line-height: var(--text-2xl--line-height);
-            margin: 1.75em 0 0.4em 0;
+            margin: 1.5em 0 0.3em 0;
         }
         .message-container.ai h3 {
             font-size: var(--text-xl);
             line-height: var(--text-xl--line-height);
-            margin: 1.5em 0 0.3em 0;
+            margin: 1.25em 0 0.2em 0;
         }
         .message-container.ai h4 {
             font-size: var(--text-lg);
             line-height: var(--text-lg--line-height);
-            margin: 1.5em 0 0.2em 0;
+            margin: 1.25em 0 0.2em 0;
         }
         .message-container.ai h5 {
             font-size: var(--text-base);
             line-height: var(--text-base--line-height);
-            margin: 1.5em 0 0.1em 0;
+            margin: 1.25em 0 0.1em 0;
         }
         .message-container.ai h6 {
             font-size: var(--text-sm);
             line-height: var(--text-sm--line-height);
-            margin: 1.5em 0 0.1em 0;
+            margin: 1.25em 0 0.1em 0;
             opacity: 0.8;
         }
         .message-container.ai strong,
@@ -629,14 +629,14 @@
             padding-inline-start: 1.5em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li {
-            margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
+            margin-bottom: 0; /* ИЗМЕНЕНО: Финальное уплотнение списков */
             padding-left: 0.4em;
         }
         .message-container.ai li p {
             margin: 0;
         }
         .message-container.ai li > ul, .message-container.ai li > ol {
-            margin-top: 0.3em;
+            margin-top: 0.2em;
             margin-bottom: 0;
         }
         .message-container.ai ul li::marker,
@@ -937,20 +937,20 @@
             height: 100%;
             background: linear-gradient(
                 110deg,
-                transparent 30%,
-                rgba(255, 255, 255, 0.4) 50%,
-                transparent 70%
+                transparent 25%,
+                rgba(255, 255, 255, 0.6) 50%,
+                transparent 75%
             );
-            animation: metallic-sheen 2.5s infinite ease-in-out;
+            animation: metallic-sheen 2s infinite ease-in-out;
             mix-blend-mode: overlay;
             pointer-events: none;
         }
         body.dark-theme .message-container.user.is-thinking::after {
             background: linear-gradient(
                 110deg,
-                transparent 30%,
-                rgba(255, 255, 255, 0.15) 50%,
-                transparent 70%
+                transparent 25%,
+                rgba(255, 255, 255, 0.2) 50%,
+                transparent 75%
             );
             mix-blend-mode: plus-lighter;
         }
@@ -1172,8 +1172,13 @@
                 editorCancelBtn = document.getElementById('editor-cancel-btn'),
                 editorDownloadBtn = document.getElementById('editor-download-btn');
 
-            // --- MARKED CONFIG WITH KATEX ---
-           
+            // --- UTILITIES ---
+            const scrollToBottom = () => {
+                // A small timeout allows the DOM to update before we scroll
+                setTimeout(() => {
+                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                }, 50);
+            };
             
             // --- PROFESSIONAL RENDERER ---
             class ProfessionalRenderer {
@@ -1215,6 +1220,7 @@
                     if (codeBlocks.length > 0) {
                         codeBlocks.forEach(el => hljs.highlightElement(el));
                     }
+                    scrollToBottom(); // Keep scrolling as new content is rendered
                 }
 
                 stop() {
@@ -1227,6 +1233,7 @@
                     this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     this.render();
                     finalizeMessageFormatting(this.container);
+                    scrollToBottom();
                 }
             }
 
@@ -1263,6 +1270,7 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+                scrollToBottom();
                 return m;
             }
             
@@ -1327,6 +1335,7 @@
                 
                 requestAnimationFrame(() => {
                     chatMessages.classList.remove('is-loading-history');
+                    scrollToBottom();
                 });
                 
                 updateActiveChatSelection(chatId);

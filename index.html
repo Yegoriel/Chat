@@ -397,7 +397,6 @@
             max-width: 90%;
             transition: background-color 0.3s;
             position: relative; /* Для индикатора */
-            overflow: hidden; /* Для индикатора */
         }
         
         .message-container.user-file {
@@ -526,30 +525,33 @@
         }
 
         /* --- START: THINKING INDICATOR --- */
-        @keyframes spin-border {
+        @keyframes draw-border {
             to {
-                transform: rotate(360deg);
+                stroke-dashoffset: 0;
             }
         }
-        .message-container.user.is-thinking::before {
-            content: '';
+        .thinking-svg-border {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: calc(100% + 4px); /* Чуть больше для красоты */
-            height: calc(100% + 4px);
-            transform: translate(-50%, -50%);
-            background: conic-gradient(#00ffff, #ff00ff, #ffff00, #00ffff);
-            animation: spin-border 2s linear infinite;
-            z-index: -2;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
-        .message-container.user.is-thinking::after {
-            content: '';
-            position: absolute;
-            inset: 2px; /* Толщина рамки */
-            background-color: var(--user-msg-bg);
-            border-radius: 10px; /* border-radius родителя - толщина рамки */
-            z-index: -1;
+        .message-container.user.is-thinking .thinking-svg-border {
+            opacity: 1;
+        }
+        .thinking-svg-border rect {
+            fill: none;
+            stroke: #007aff;
+            stroke-width: 2px;
+            stroke-dasharray: 1000; /* Большое значение для покрытия любого размера */
+            stroke-dashoffset: 1000;
+        }
+        .message-container.user.is-thinking .thinking-svg-border rect {
+            animation: draw-border 1.5s linear infinite;
         }
         /* --- END: THINKING INDICATOR --- */
 
@@ -1244,11 +1246,27 @@
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
-                if (isHtml) {
+
+                if (sender === 'user' && !isHtml) {
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = content;
+                    
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.setAttribute('class', 'thinking-svg-border');
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('width', '100%');
+                    rect.setAttribute('height', '100%');
+                    rect.setAttribute('rx', '12');
+                    svg.appendChild(rect);
+
+                    m.appendChild(textSpan);
+                    m.appendChild(svg);
+                } else if (isHtml) {
                     m.innerHTML = content;
                 } else {
                     m.textContent = content;
                 }
+
                 chatMessages.appendChild(m);
                 return m;
             }
@@ -1468,8 +1486,16 @@
                 const renderer = new ProfessionalRenderer(contentBlock);
                 let accumulatedResponseText = '';
                 let sseBuffer = '';
+                let isFirstChunk = true;
 
                 const processChunk = (textPart) => {
+                    if (isFirstChunk) {
+                        const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
+                        if (thinkingBubble) {
+                            thinkingBubble.classList.remove('is-thinking');
+                        }
+                        isFirstChunk = false;
+                    }
                     renderer.update(textPart);
                     accumulatedResponseText += textPart;
                     localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);

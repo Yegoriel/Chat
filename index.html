@@ -525,33 +525,16 @@
         }
 
         /* --- START: THINKING INDICATOR --- */
-        @keyframes draw-border {
-            to {
-                stroke-dashoffset: 0;
+        @keyframes pulsate-glow {
+            0%, 100% {
+                box-shadow: 0 0 8px 4px rgba(2, 133, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 16px 8px rgba(2, 133, 255, 0.4);
             }
         }
-        .thinking-svg-border {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .message-container.user.is-thinking .thinking-svg-border {
-            opacity: 1;
-        }
-        .thinking-svg-border rect {
-            fill: none;
-            stroke: #007aff;
-            stroke-width: 2px;
-            stroke-dasharray: 1000; /* Большое значение для покрытия любого размера */
-            stroke-dashoffset: 1000;
-        }
-        .message-container.user.is-thinking .thinking-svg-border rect {
-            animation: draw-border 1.5s linear infinite;
+        .message-container.user.is-thinking {
+            animation: pulsate-glow 2s ease-in-out infinite;
         }
         /* --- END: THINKING INDICATOR --- */
 
@@ -1246,27 +1229,11 @@
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
-
-                if (sender === 'user' && !isHtml) {
-                    const textSpan = document.createElement('span');
-                    textSpan.textContent = content;
-                    
-                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    svg.setAttribute('class', 'thinking-svg-border');
-                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                    rect.setAttribute('width', '100%');
-                    rect.setAttribute('height', '100%');
-                    rect.setAttribute('rx', '12');
-                    svg.appendChild(rect);
-
-                    m.appendChild(textSpan);
-                    m.appendChild(svg);
-                } else if (isHtml) {
+                if (isHtml) {
                     m.innerHTML = content;
                 } else {
                     m.textContent = content;
                 }
-
                 chatMessages.appendChild(m);
                 return m;
             }
@@ -1470,7 +1437,6 @@
                 localChatHistory.push(userMessageData);
                 
                 if (isNewChat) {
-                    // ИЗМЕНЕНО (Оптимизация): Убран await для ускорения ответа ИИ
                     db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
                         title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,

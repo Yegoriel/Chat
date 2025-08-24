@@ -14,116 +14,114 @@
     <style>
         :root {
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            
-            /* === START: NEW TYPOGRAPHY SYSTEM === */
             --spacing: .25rem;
-            --breakpoint-md: 48rem;
-            --breakpoint-lg: 64rem;
-            --breakpoint-xl: 80rem;
-            --breakpoint-2xl: 96rem;
-            --container-xs: 20rem;
-            --container-sm: 24rem;
-            --container-md: 28rem;
-            --container-lg: 32rem;
-            --container-xl: 36rem;
-            --container-2xl: 42rem;
-            --container-3xl: 48rem;
-            --container-4xl: 56rem;
-            --container-5xl: 64rem;
-            --container-6xl: 72rem;
-            --text-xs: .75rem;
-            --text-xs--line-height: 1.33333;
-            --text-sm: .875rem;
-            --text-sm--line-height: 1.42857;
-            --text-base: 1rem;
-            --text-base--line-height: 1.7;
-            --text-lg: 1.125rem;
-            --text-lg--line-height: 1.55556;
-            --text-xl: 1.25rem;
-            --text-xl--line-height: 1.4;
-            --text-2xl: 1.5rem;
-            --text-2xl--line-height: 1.33333;
-            --text-3xl: 1.875rem;
-            --text-3xl--line-height: 1.2;
-            --text-4xl: 2.25rem;
-            --text-4xl--line-height: 1.11111;
-            --text-5xl: 3rem;
-            --text-5xl--line-height: 1;
-            --text-6xl: 3.75rem;
-            --text-6xl--line-height: 1;
-            --text-7xl: 4.5rem;
-            --text-7xl--line-height: 1;
-            --font-weight-extralight: 200;
-            --font-weight-light: 300;
-            --font-weight-normal: 400;
-            --font-weight-medium: 500;
-            --font-weight-semibold: 600;
-            --font-weight-bold: 700;
-            --font-weight-extrabold: 800;
-            --font-weight-black: 900;
-            --tracking-tighter: -.05em;
-            --tracking-tight: -.025em;
-            --tracking-normal: 0em;
-            --tracking-wide: .025em;
-            --tracking-widest: .1em;
-            --leading-tight: 1.25;
-            --leading-snug: 1.375;
-            --leading-normal: 1.5;
-            --leading-relaxed: 1.625;
-            --radius-xs: .125rem;
-            --radius-sm: .25rem;
-            --radius-md: .375rem;
-            --radius-lg: .5rem;
-            --radius-xl: .75rem;
-            --radius-2xl: 1rem;
-            --radius-3xl: 1.5rem;
-            --radius-4xl: 2rem;
-            --drop-shadow-xs: 0 1px 1px #0000000d;
-            --drop-shadow-sm: 0 1px 2px #00000026;
-            --drop-shadow-md: 0 3px 3px #0000001f;
-            --ease-in: cubic-bezier(.4,0,1,1);
-            --ease-out: cubic-bezier(0,0,.2,1);
-            --ease-in-out: cubic-bezier(.4,0,.2,1);
-            --animate-spin: spin 1s linear infinite;
-            --animate-pulse: pulse 2s cubic-bezier(.4,0,.6,1) infinite;
-            --animate-bounce: bounce 1s infinite;
-            --blur-xs: 4px;
-            --blur-sm: 8px;
-            --blur-md: 12px;
-            --blur-lg: 16px;
-            --blur-xl: 24px;
-            --blur-2xl: 40px;
-            --blur-3xl: 64px;
-            --aspect-video: 16 / 9;
-            --default-transition-duration: .15s;
-            --default-transition-timing-function: cubic-bezier(.4,0,.2,1);
-            --text-heading-2: 1.5rem;
-            --text-heading-2--line-height: 1.75rem;
-            --text-heading-2--letter-spacing: -.015625rem;
-            --text-heading-2--font-weight: 600;
-            --text-heading-3: 1.125rem;
-            --text-heading-3--line-height: 1.625rem;
-            --text-heading-3--letter-spacing: -.028125rem;
-            --text-heading-3--font-weight: 600;
-            --text-body-small-regular: .875rem;
-            --text-body-small-regular--line-height: 1.125rem;
-            --text-body-small-regular--letter-spacing: -.01875rem;
-            --text-body-small-regular--font-weight: 400;
-            --text-body-small-emphasized: .875rem;
-            --text-body-small-emphasized--line-height: 1.125rem;
-            --text-body-small-emphasized--letter-spacing: -.01875rem;
-            --text-body-small-emphasized--font-weight: 600;
-            --text-monospace: .9375rem;
-            --text-monospace--line-height: 1.375rem;
-            --text-monospace--letter-spacing: -.025rem;
-            --text-monospace--font-weight: 400;
-            --text-caption-regular: .75rem;
-            --text-caption-regular--line-height: 1rem;
-            --text-caption-regular--letter-spacing: -.00625rem;
-            --text-caption-regular--font-weight: 400;
-            /* === END: NEW TYPOGRAPHY SYSTEM === */
+    --breakpoint-md: 48rem;
+    --breakpoint-lg: 64rem;
+    --breakpoint-xl: 80rem;
+    --breakpoint-2xl: 96rem;
+    --container-xs: 20rem;
+    --container-sm: 24rem;
+    --container-md: 28rem;
+    --container-lg: 32rem;
+    --container-xl: 36rem;
+    --container-2xl: 42rem;
+    --container-3xl: 48rem;
+    --container-4xl: 56rem;
+    --container-5xl: 64rem;
+    --container-6xl: 72rem;
+    --text-xs: .75rem;
+    --text-xs--line-height: 1.33333;
+    --text-sm: .875rem;
+    --text-sm--line-height: 1.42857;
+    --text-base: 1rem;
+    --text-base--line-height: 1.75;
+    --line-height-body: 1.75;
+    --text-lg: 1.125rem;
+    --text-lg--line-height: 1.55556;
+    --text-xl: 1.25rem;
+    --text-xl--line-height: 1.4;
+    --text-2xl: 1.5rem;
+    --text-2xl--line-height: 1.33333;
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: 1.2;
+    --text-4xl: 2.25rem;
+    --text-4xl--line-height: 1.11111;
+    --text-5xl: 3rem;
+    --text-5xl--line-height: 1;
+    --text-6xl: 3.75rem;
+    --text-6xl--line-height: 1;
+    --text-7xl: 4.5rem;
+    --text-7xl--line-height: 1;
+    --font-weight-extralight: 200;
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
+    --tracking-tighter: -.05em;
+    --tracking-tight: -.025em;
+    --tracking-normal: 0em;
+    --tracking-wide: .025em;
+    --tracking-widest: .1em;
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --radius-xs: .125rem;
+    --radius-sm: .25rem;
+    --radius-md: .375rem;
+    --radius-lg: .5rem;
+    --radius-xl: .75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.5rem;
+    --radius-4xl: 2rem;
+    --drop-shadow-xs: 0 1px 1px #0000000d;
+    --drop-shadow-sm: 0 1px 2px #00000026;
+    --drop-shadow-md: 0 3px 3px #0000001f;
+    --ease-in: cubic-bezier(.4,0,1,1);
+    --ease-out: cubic-bezier(0,0,.2,1);
+    --ease-in-out: cubic-bezier(.4,0,.2,1);
+    --animate-spin: spin 1s linear infinite;
+    --animate-pulse: pulse 2s cubic-bezier(.4,0,.6,1) infinite;
+    --animate-bounce: bounce 1s infinite;
+    --blur-xs: 4px;
+    --blur-sm: 8px;
+    --blur-md: 12px;
+    --blur-lg: 16px;
+    --blur-xl: 24px;
+    --blur-2xl: 40px;
+    --blur-3xl: 64px;
+    --aspect-video: 16 / 9;
+    --default-transition-duration: .15s;
+    --default-transition-timing-function: cubic-bezier(.4,0,.2,1);
+    --text-heading-2: 1.5rem;
+    --text-heading-2--line-height: 1.75rem;
+    --text-heading-2--letter-spacing: -.015625rem;
+    --text-heading-2--font-weight: 600;
+    --text-heading-3: 1.125rem;
+    --text-heading-3--line-height: 1.625rem;
+    --text-heading-3--letter-spacing: -.028125rem;
+    --text-heading-3--font-weight: 600;
+    --text-body-small-regular: .875rem;
+    --text-body-small-regular--line-height: 1.125rem;
+    --text-body-small-regular--letter-spacing: -.01875rem;
+    --text-body-small-regular--font-weight: 400;
+    --text-body-small-emphasized: .875rem;
+    --text-body-small-emphasized--line-height: 1.125rem;
+    --text-body-small-emphasized--letter-spacing: -.01875rem;
+    --text-body-small-emphasized--font-weight: 600;
+    --text-monospace: .9375rem;
+    --text-monospace--line-height: 1.375rem;
+    --text-monospace--letter-spacing: -.025rem;
+    --text-monospace--font-weight: 400;
+    --text-caption-regular: .75rem;
+    --text-caption-regular--line-height: 1rem;
+    --text-caption-regular--letter-spacing: -.00625rem;
+    --text-caption-regular--font-weight: 400;
 
-            --chat-content-narrow-width: 40rem;
+            --chat-content-narrow-width: 40rem; /* ИЗМЕНЕНО */
             --chat-content-expanded-width: 50rem;
             --thread-width: var(--chat-content-narrow-width);
             --background-color: #ffffff;
@@ -177,7 +175,7 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             font-size: 1rem;
-            letter-spacing: normal; /* FIX: Removed extra letter spacing */
+            letter-spacing: 0.01em;
             transition: background-color 0.3s, color 0.3s;
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
@@ -383,21 +381,11 @@
         .message-container {
             margin-bottom: 1.25rem;
             word-wrap: break-word;
-            /* BUG FIX: Removed 'contain' property which was clipping the 'is-thinking' animation */
+            /* contain: layout style;  <- REMOVED to prevent clipping of animations */
         }
-        
-        /* FIX: User message appears instantly, AI message fades in */
-        .message-container.ai { 
-            opacity: 0; 
-            transform: translateY(15px); 
-            animation: fadeInAndRise 0.4s ease forwards; 
-        }
+        .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
 
-        #chat-messages.is-loading-history .message-container { 
-            animation: none; 
-            opacity: 1; 
-            transform: none; 
-        }
+        #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
 
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
@@ -408,7 +396,6 @@
             border-radius: 12px;
             max-width: 90%;
             transition: background-color 0.3s;
-            /* FIX: Removed margin-right as the new animation doesn't require it. */
         }
         
         .message-container.user-file {
@@ -570,7 +557,7 @@
         }
         .message-container.ai .ai-content-block {
             font-size: var(--text-base);
-            line-height: var(--text-base--line-height);
+            line-height: var(--line-height-body);
             color: var(--text-color);
         }
         .message-container.ai .ai-content-block > *:first-child {
@@ -585,7 +572,7 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.4em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+            margin: 0.25em 0; 
         }
         .message-container.ai hr {
             margin: 1.5em 0;
@@ -597,26 +584,25 @@
             font-weight: var(--font-weight-semibold);
             letter-spacing: var(--tracking-normal);
         }
-        /* Визуальное повышение иерархии и уплотнение ПОСЛЕ заголовков */
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
-            margin: 1.2em 0 0.3em 0;
+            margin: 1.25em 0 0.2em 0;
         }
         .message-container.ai h2 {
             font-size: var(--text-2xl);
             line-height: var(--text-2xl--line-height);
-            margin: 1.2em 0 0.3em 0;
+            margin: 1.25em 0 0.2em 0;
         }
         .message-container.ai h3 {
             font-size: var(--text-xl);
             line-height: var(--text-xl--line-height);
-            margin: 1em 0 0.2em 0;
+            margin: 1em 0 0.15em 0;
         }
         .message-container.ai h4 {
             font-size: var(--text-lg);
             line-height: var(--text-lg--line-height);
-            margin: 1em 0 0.2em 0;
+            margin: 1em 0 0.15em 0;
         }
         .message-container.ai h5 {
             font-size: var(--text-base);
@@ -635,14 +621,14 @@
         }
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+            padding-inline-start: 1.625em; 
         }
         .message-container.ai li ul {
-            list-style-type: disc; /* Всегда сплошные круги */
-            padding-inline-start: 1.5em; /* ИЗМЕНЕНО */
+            list-style-type: disc; 
+            padding-inline-start: 1.5em;
         }
         .message-container.ai li {
-            margin-bottom: 0; /* ИЗМЕНЕНО: Финальное уплотнение списков */
+            margin-bottom: 0; 
             padding-left: 0.4em;
         }
         .message-container.ai li p {
@@ -833,7 +819,7 @@
             white-space: pre-wrap;
             color: var(--text-color);
             line-height: 1.6;
-            transition: max-height: 0.4s ease-in-out;
+            transition: max-height 0.4s ease-in-out;
         }
         .file-content-block.is-expanded .file-content-body {
             max-height: 600px;
@@ -936,14 +922,11 @@
         }
         /* === END: FULLSCREEN EDITOR MODAL === */
 
-        /* === START: THINKING INDICATOR === */
+        /* === START: THINKING INDICATOR (REVISED) === */
         .message-container.user.is-thinking {
             position: relative;
-            /* NEW ANIMATION: Pulsating inner border */
-            animation: pulse-inner-border 2.5s infinite ease-in-out;
-        }
-        body.dark-theme .message-container.user.is-thinking {
-            animation-name: pulse-inner-border-dark;
+            overflow: hidden;
+            animation: pulse-inset-border 2.2s infinite ease-in-out;
         }
         .message-container.user.is-thinking::after {
             content: '';
@@ -961,8 +944,13 @@
             animation: metallic-sheen 1.8s infinite ease-in-out;
             mix-blend-mode: overlay;
             pointer-events: none;
-            border-radius: 12px; /* Match parent */
         }
+        
+        @keyframes pulse-inset-border {
+            0%, 100% { box-shadow: inset 0 0 0 0px rgba(100, 100, 150, 0); }
+            50% { box-shadow: inset 0 0 0 2px rgba(120, 120, 180, 0.5); }
+        }
+
         body.dark-theme .message-container.user.is-thinking::after {
             background: linear-gradient(
                 110deg,
@@ -972,20 +960,14 @@
             );
             mix-blend-mode: plus-lighter;
         }
+        
+        body.dark-theme @keyframes pulse-inset-border {
+            50% { box-shadow: inset 0 0 0 2px rgba(173, 162, 255, 0.5); }
+        }
+
         @keyframes metallic-sheen {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
-        }
-        /* NEW KEYFRAMES for the inner border pulse */
-        @keyframes pulse-inner-border {
-            0% { box-shadow: inset 0 0 0 0px rgba(0, 0, 0, 0.05); }
-            50% { box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15); }
-            100% { box-shadow: inset 0 0 0 0px rgba(0, 0, 0, 0.05); }
-        }
-        @keyframes pulse-inner-border-dark {
-            0% { box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.1); }
-            50% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25); }
-            100% { box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.1); }
         }
         /* === END: THINKING INDICATOR === */
 
@@ -1199,11 +1181,10 @@
 
             // --- UTILITIES ---
             const scrollToBottom = () => {
-                // Using a 0ms timeout pushes the execution to the end of the browser's event queue,
-                // ensuring the DOM has fully updated and the new scrollHeight is available before scrolling.
+                // A longer timeout allows the DOM to fully update before we scroll, fixing the "too low" issue.
                 setTimeout(() => {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                }, 0);
+                }, 100);
             };
             
             // --- PROFESSIONAL RENDERER ---
@@ -1246,7 +1227,7 @@
                     if (codeBlocks.length > 0) {
                         codeBlocks.forEach(el => hljs.highlightElement(el));
                     }
-                    // SCROLL FIX: Removed autoscroll during generation
+                    // SCROLL ON GENERATION REMOVED
                 }
 
                 stop() {
@@ -1259,7 +1240,7 @@
                     this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     this.render();
                     finalizeMessageFormatting(this.container);
-                    // SCROLL FIX: Removed autoscroll after generation
+                    // SCROLL ON GENERATION REMOVED
                 }
             }
 
@@ -1296,7 +1277,8 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // SCROLL FIX: Scroll is now handled explicitly in handleSendMessage
+                // Scroll is now only triggered when a new message bubble is added.
+                scrollToBottom();
                 return m;
             }
             
@@ -1446,9 +1428,7 @@
                         </div>
                     </div>
                 `;
-                const container = addMessageToUI('user user-file');
-                container.innerHTML = fileBlockHTML;
-                scrollToBottom();
+                const container = addMessageToUI('user user-file', fileBlockHTML, true);
             }
 
             async function handleSendMessage(e) {
@@ -1484,7 +1464,6 @@
                 if (userMessageText) {
                     userMessageElement = addMessageToUI('user', userMessageText);
                     userMessageElement.classList.add('is-thinking');
-                    scrollToBottom(); // SCROLL FIX: Scroll immediately and precisely after adding the user's message
                 }
 
                 let isNewChat = false;
@@ -1505,8 +1484,7 @@
                     });
                 }
 
-                const aiMsgContainer = addMessageToUI('ai');
-                aiMsgContainer.innerHTML = `<div class="ai-content-block"></div>`;
+                const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();

@@ -175,7 +175,7 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             font-size: 1rem;
-            letter-spacing: 0.01em;
+            letter-spacing: normal; /* FIX: Removed extra letter spacing */
             transition: background-color 0.3s, color 0.3s;
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
@@ -383,9 +383,19 @@
             word-wrap: break-word;
             /* BUG FIX: Removed 'contain' property which was clipping the 'is-thinking' animation */
         }
-        .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
+        
+        /* FIX: User message appears instantly, AI message fades in */
+        .message-container.ai { 
+            opacity: 0; 
+            transform: translateY(15px); 
+            animation: fadeInAndRise 0.4s ease forwards; 
+        }
 
-        #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
+        #chat-messages.is-loading-history .message-container { 
+            animation: none; 
+            opacity: 1; 
+            transform: none; 
+        }
 
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 

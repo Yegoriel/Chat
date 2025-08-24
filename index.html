@@ -145,8 +145,6 @@
             --input-bar-clearance: 130px;
         }
 
-    
-
         body.dark-theme {
             --background-color: #212121;
             --text-color: #e5e5e5;
@@ -177,7 +175,7 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             font-size: 1rem;
-            letter-spacing: normal; /* FIX: Removed extra letter spacing */
+            letter-spacing: 0.01em;
             transition: background-color 0.3s, color 0.3s;
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
@@ -383,21 +381,11 @@
         .message-container {
             margin-bottom: 1.25rem;
             word-wrap: break-word;
-            /* BUG FIX: Removed 'contain' property which was clipping the 'is-thinking' animation */
+            contain: layout style;
         }
-        
-        /* FIX: User message appears instantly, AI message fades in */
-        .message-container.ai { 
-            opacity: 0; 
-            transform: translateY(15px); 
-            animation: fadeInAndRise 0.4s ease forwards; 
-        }
+        .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
 
-        #chat-messages.is-loading-history .message-container { 
-            animation: none; 
-            opacity: 1; 
-            transform: none; 
-        }
+        #chat-messages.is-loading-history .message-container { animation: none; opacity: 1; transform: none; }
 
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
@@ -408,7 +396,6 @@
             border-radius: 12px;
             max-width: 90%;
             transition: background-color 0.3s;
-            /* FIX: Removed margin-right as the new animation doesn't require it. */
         }
         
         .message-container.user-file {
@@ -570,7 +557,7 @@
         }
         .message-container.ai .ai-content-block {
             font-size: var(--text-base);
-            line-height: var(--text-base--line-height);
+            line-height: var(--line-height-body);
             color: var(--text-color);
         }
         .message-container.ai .ai-content-block > *:first-child {
@@ -585,10 +572,10 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.4em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+            margin: 0.5em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
         }
         .message-container.ai hr {
-            margin: 1.5em 0;
+            margin: 2em 0;
             border: 0;
             height: 1px;
             background-color: var(--border-color);
@@ -601,55 +588,57 @@
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
-            margin: 1.2em 0 0.3em 0;
+            margin: 1.75em 0 0.4em 0;
         }
         .message-container.ai h2 {
             font-size: var(--text-2xl);
             line-height: var(--text-2xl--line-height);
-            margin: 1.2em 0 0.3em 0;
+            margin: 1.75em 0 0.4em 0;
         }
         .message-container.ai h3 {
             font-size: var(--text-xl);
             line-height: var(--text-xl--line-height);
-            margin: 1em 0 0.2em 0;
+            margin: 1.5em 0 0.3em 0;
         }
         .message-container.ai h4 {
             font-size: var(--text-lg);
             line-height: var(--text-lg--line-height);
-            margin: 1em 0 0.2em 0;
+            margin: 1.5em 0 0.2em 0;
         }
         .message-container.ai h5 {
             font-size: var(--text-base);
             line-height: var(--text-base--line-height);
-            margin: 1em 0 0.1em 0;
+            margin: 1.5em 0 0.1em 0;
         }
         .message-container.ai h6 {
             font-size: var(--text-sm);
             line-height: var(--text-sm--line-height);
-            margin: 1em 0 0.1em 0;
+            margin: 1.5em 0 0.1em 0;
             opacity: 0.8;
         }
         .message-container.ai strong,
         .message-container.ai b {
             font-weight: var(--font-weight-semibold);
         }
-        .message-container.ai ul,
+        .message-container.ai ul {
+            padding-inline-start: 1.8em; /* ИЗМЕНЕНО */
+        }
         .message-container.ai ol {
             padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li ul {
             list-style-type: disc; /* Всегда сплошные круги */
-            padding-inline-start: 1.5em; /* ИЗМЕНЕНО */
+            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li {
-            margin-bottom: 0; /* ИЗМЕНЕНО: Финальное уплотнение списков */
+            margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
             padding-left: 0.4em;
         }
         .message-container.ai li p {
             margin: 0;
         }
         .message-container.ai li > ul, .message-container.ai li > ol {
-            margin-top: 0.2em;
+            margin-top: 0.3em;
             margin-bottom: 0;
         }
         .message-container.ai ul li::marker,
@@ -833,7 +822,7 @@
             white-space: pre-wrap;
             color: var(--text-color);
             line-height: 1.6;
-            transition: max-height: 0.4s ease-in-out;
+            transition: max-height 0.4s ease-in-out;
         }
         .file-content-block.is-expanded .file-content-body {
             max-height: 600px;
@@ -935,59 +924,6 @@
             border-color: var(--primary-accent);
         }
         /* === END: FULLSCREEN EDITOR MODAL === */
-
-        /* === START: THINKING INDICATOR === */
-        .message-container.user.is-thinking {
-            position: relative;
-            /* NEW ANIMATION: Pulsating inner border */
-            animation: pulse-inner-border 2.5s infinite ease-in-out;
-        }
-        body.dark-theme .message-container.user.is-thinking {
-            animation-name: pulse-inner-border-dark;
-        }
-        .message-container.user.is-thinking::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(
-                110deg,
-                transparent 25%,
-                rgba(255, 255, 255, 0.6) 50%,
-                transparent 75%
-            );
-            animation: metallic-sheen 1.8s infinite ease-in-out;
-            mix-blend-mode: overlay;
-            pointer-events: none;
-            border-radius: 12px; /* Match parent */
-        }
-        body.dark-theme .message-container.user.is-thinking::after {
-            background: linear-gradient(
-                110deg,
-                transparent 25%,
-                rgba(255, 255, 255, 0.2) 50%,
-                transparent 75%
-            );
-            mix-blend-mode: plus-lighter;
-        }
-        @keyframes metallic-sheen {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        /* NEW KEYFRAMES for the inner border pulse */
-        @keyframes pulse-inner-border {
-            0% { box-shadow: inset 0 0 0 0px rgba(0, 0, 0, 0.05); }
-            50% { box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15); }
-            100% { box-shadow: inset 0 0 0 0px rgba(0, 0, 0, 0.05); }
-        }
-        @keyframes pulse-inner-border-dark {
-            0% { box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.1); }
-            50% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25); }
-            100% { box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.1); }
-        }
-        /* === END: THINKING INDICATOR === */
 
         @media (max-width: 768px) {
             .ai-content-block, #chat-form-container { max-width: 100%; }
@@ -1199,11 +1135,10 @@
 
             // --- UTILITIES ---
             const scrollToBottom = () => {
-                // Using a 0ms timeout pushes the execution to the end of the browser's event queue,
-                // ensuring the DOM has fully updated and the new scrollHeight is available before scrolling.
-                setTimeout(() => {
+                // Using requestAnimationFrame ensures the scroll happens after the DOM has been painted.
+                requestAnimationFrame(() => {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                }, 0);
+                });
             };
             
             // --- PROFESSIONAL RENDERER ---

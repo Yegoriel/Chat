@@ -141,7 +141,7 @@
             --scrollbar-thumb-color: #ccc;
             --scrollbar-thumb-hover-color: #aaa;
             --sidebar-width: 256px;
-            --sidebar-collapsed-width: 64px;
+    --sidebar-collapsed-width: 64px;
             --input-bar-clearance: 130px;
         }
 
@@ -381,7 +381,7 @@
         .message-container {
             margin-bottom: 1.25rem;
             word-wrap: break-word;
-            contain: layout style;
+            /* BUG FIX: Removed 'contain' property which was clipping the 'is-thinking' animation */
         }
         .message-container.ai, .message-container.user { opacity: 0; transform: translateY(15px); animation: fadeInAndRise 0.4s ease forwards; }
 
@@ -572,7 +572,7 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.5em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+            margin: 0.4em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
         }
         .message-container.ai hr {
             margin: 1.5em 0;
@@ -588,32 +588,32 @@
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
-            margin: 1.5em 0 0.3em 0;
+            margin: 1.2em 0 0.3em 0;
         }
         .message-container.ai h2 {
             font-size: var(--text-2xl);
             line-height: var(--text-2xl--line-height);
-            margin: 1.5em 0 0.3em 0;
+            margin: 1.2em 0 0.3em 0;
         }
         .message-container.ai h3 {
             font-size: var(--text-xl);
             line-height: var(--text-xl--line-height);
-            margin: 1.25em 0 0.2em 0;
+            margin: 1em 0 0.2em 0;
         }
         .message-container.ai h4 {
             font-size: var(--text-lg);
             line-height: var(--text-lg--line-height);
-            margin: 1.25em 0 0.2em 0;
+            margin: 1em 0 0.2em 0;
         }
         .message-container.ai h5 {
             font-size: var(--text-base);
             line-height: var(--text-base--line-height);
-            margin: 1.25em 0 0.1em 0;
+            margin: 1em 0 0.1em 0;
         }
         .message-container.ai h6 {
             font-size: var(--text-sm);
             line-height: var(--text-sm--line-height);
-            margin: 1.25em 0 0.1em 0;
+            margin: 1em 0 0.1em 0;
             opacity: 0.8;
         }
         .message-container.ai strong,
@@ -926,7 +926,8 @@
         /* === START: THINKING INDICATOR === */
         .message-container.user.is-thinking {
             position: relative;
-            overflow: hidden;
+            overflow: visible; /* Allow glow to be visible */
+            animation: pulse-glow 2.5s infinite ease-in-out;
         }
         .message-container.user.is-thinking::after {
             content: '';
@@ -941,9 +942,10 @@
                 rgba(255, 255, 255, 0.6) 50%,
                 transparent 75%
             );
-            animation: metallic-sheen 2s infinite ease-in-out;
+            animation: metallic-sheen 1.8s infinite ease-in-out;
             mix-blend-mode: overlay;
             pointer-events: none;
+            border-radius: 12px; /* Match parent */
         }
         body.dark-theme .message-container.user.is-thinking::after {
             background: linear-gradient(
@@ -955,12 +957,21 @@
             mix-blend-mode: plus-lighter;
         }
         @keyframes metallic-sheen {
-            0% {
-                transform: translateX(-100%);
-            }
-            100% {
-                transform: translateX(100%);
-            }
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 4px 0px rgba(0, 0, 0, 0.1); }
+            50% { box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.15); }
+            100% { box-shadow: 0 0 4px 0px rgba(0, 0, 0, 0.1); }
+        }
+        body.dark-theme .message-container.user.is-thinking {
+            animation-name: pulse-glow-dark;
+        }
+        @keyframes pulse-glow-dark {
+            0% { box-shadow: 0 0 5px 0px rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: 0 0 14px 4px rgba(255, 255, 255, 0.18); }
+            100% { box-shadow: 0 0 5px 0px rgba(255, 255, 255, 0.1); }
         }
         /* === END: THINKING INDICATOR === */
 
@@ -1174,10 +1185,10 @@
 
             // --- UTILITIES ---
             const scrollToBottom = () => {
-                // A small timeout allows the DOM to update before we scroll
-                setTimeout(() => {
+                // Using requestAnimationFrame ensures the scroll happens after the DOM has been painted.
+                requestAnimationFrame(() => {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                }, 50);
+                });
             };
             
             // --- PROFESSIONAL RENDERER ---

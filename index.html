@@ -390,13 +390,14 @@
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
         .message-container.user {
-            position: relative; /* Для псевдо-элемента анимации */
             padding: 0.65rem 1rem;
             background-color: var(--user-msg-bg);
             align-self: flex-end;
             border-radius: 12px;
             max-width: 90%;
             transition: background-color 0.3s;
+            position: relative; /* Для псевдо-элемента анимации */
+            overflow: hidden; /* Для псевдо-элемента анимации */
         }
         
         .message-container.user-file {
@@ -525,20 +526,28 @@
         }
 
         /* --- START: THINKING INDICATOR --- */
-        .message-container.user.is-thinking {
-            animation: heartbeat-pulse 1.5s ease-in-out infinite;
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
 
-        @keyframes heartbeat-pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.03);
-            }
-            100% {
-                transform: scale(1);
-            }
+        .message-container.user.is-thinking::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            background-image: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+        }
+
+        .message-container.user.is-thinking {
+            background-image: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 2s linear infinite;
         }
         /* --- END: THINKING INDICATOR --- */
 
@@ -566,7 +575,7 @@
             word-wrap: break-word;
         }
         .ai-content-block {
-            padding-left: 0.25rem;
+            padding-left: 0.25rem; /* Общий отступ для создания вертикальной линии */
         }
         .message-container.ai .ai-content-block {
             font-size: var(--text-base);
@@ -585,7 +594,7 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.6em 0;
+            margin: 0.6em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
         }
         .message-container.ai hr {
             margin: 2em 0;
@@ -597,6 +606,7 @@
             font-weight: var(--font-weight-semibold);
             letter-spacing: var(--tracking-normal);
         }
+        /* Визуальное повышение иерархии и уплотнение ПОСЛЕ заголовков */
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
@@ -634,14 +644,14 @@
         }
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-inline-start: 1.625em;
+            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li ul {
-            list-style-type: disc;
-            padding-inline-start: 1.5em;
+            list-style-type: disc; /* Всегда сплошные круги */
+            padding-inline-start: 1.5em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li {
-            margin-bottom: 0.05em;
+            margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
             padding-left: 0.4em;
         }
         .message-container.ai li p {
@@ -1120,7 +1130,6 @@
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
             let attachedFile = null;
             let activeFileBlockForEdit = null;
-            let lastUserMessageBubble = null; // Для управления анимацией
 
             // --- DOM ELEMENTS ---
             const chatHistoryList = document.getElementById('chat-history-list'),
@@ -1337,10 +1346,9 @@
                 chatInput.disabled = isStreaming;
             }
 
-            function cleanUpStream(finalText, renderer) {
-                if (lastUserMessageBubble) {
-                    lastUserMessageBubble.classList.remove('is-thinking');
-                    lastUserMessageBubble = null;
+            function cleanUpStream(finalText, renderer, userMessageBubble) {
+                if (userMessageBubble) {
+                    userMessageBubble.classList.remove('is-thinking');
                 }
                 try {
                     renderer.finish();
@@ -1383,6 +1391,7 @@
                     </div>
                 `;
                 const container = addMessageToUI('user user-file', fileBlockHTML, true);
+                return container;
             }
 
             async function handleSendMessage(e) {
@@ -1402,9 +1411,10 @@
                 
                 let messageForApi = userMessageText;
                 const userMessageData = { role: 'user', text: userMessageText };
+                let userMessageBubble;
 
                 if (attachedFile) {
-                    addFileBlockToUI(attachedFile.name, attachedFile.content);
+                    userMessageBubble = addFileBlockToUI(attachedFile.name, attachedFile.content);
                     const fileContext = `\n\n--- Start of File: ${attachedFile.name} ---\n${attachedFile.content}\n--- End of File ---`;
                     messageForApi = userMessageText + fileContext;
                     
@@ -1415,13 +1425,13 @@
                 }
                 
                 if (userMessageText) {
-                    const userMessageBubble = addMessageToUI('user', userMessageText);
-                    userMessageBubble.classList.add('is-thinking');
-                    lastUserMessageBubble = userMessageBubble;
+                    userMessageBubble = addMessageToUI('user', userMessageText);
                 }
-                
-                // Автоматическая прокрутка вниз
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                if (userMessageBubble) {
+                    userMessageBubble.classList.add('is-thinking');
+                }
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
 
                 let isNewChat = false;
                 if (!currentChatId) {
@@ -1448,11 +1458,12 @@
                 const renderer = new ProfessionalRenderer(contentBlock);
                 let accumulatedResponseText = '';
                 let sseBuffer = '';
+                let isFirstChunk = true;
 
                 const processChunk = (textPart) => {
-                    if (lastUserMessageBubble) {
-                        lastUserMessageBubble.classList.remove('is-thinking');
-                        lastUserMessageBubble = null;
+                    if (isFirstChunk && userMessageBubble) {
+                        userMessageBubble.classList.remove('is-thinking');
+                        isFirstChunk = false;
                     }
                     renderer.update(textPart);
                     accumulatedResponseText += textPart;
@@ -1501,7 +1512,7 @@
                             contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
                         }
                     } finally {
-                        cleanUpStream(accumulatedResponseText, renderer);
+                        cleanUpStream(accumulatedResponseText, renderer, userMessageBubble);
                     }
                 };
                 

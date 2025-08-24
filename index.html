@@ -580,7 +580,7 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 1.25em 0; /* Возвращаем "воздух" */
+            margin: 0.6em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
         }
         .message-container.ai hr {
             margin: 2em 0;
@@ -596,32 +596,32 @@
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
-            margin: 1.75em 0 0.6em 0;
+            margin: 1.75em 0 0.4em 0;
         }
         .message-container.ai h2 {
             font-size: var(--text-2xl);
             line-height: var(--text-2xl--line-height);
-            margin: 1.75em 0 0.6em 0;
+            margin: 1.75em 0 0.4em 0;
         }
         .message-container.ai h3 {
             font-size: var(--text-xl);
             line-height: var(--text-xl--line-height);
-            margin: 1.5em 0 0.5em 0;
+            margin: 1.5em 0 0.3em 0;
         }
         .message-container.ai h4 {
             font-size: var(--text-lg);
             line-height: var(--text-lg--line-height);
-            margin: 1.5em 0 0.4em 0;
+            margin: 1.5em 0 0.2em 0;
         }
         .message-container.ai h5 {
             font-size: var(--text-base);
             line-height: var(--text-base--line-height);
-            margin: 1.5em 0 0.3em 0;
+            margin: 1.5em 0 0.1em 0;
         }
         .message-container.ai h6 {
             font-size: var(--text-sm);
             line-height: var(--text-sm--line-height);
-            margin: 1.5em 0 0.3em 0;
+            margin: 1.5em 0 0.1em 0;
             opacity: 0.8;
         }
         .message-container.ai strong,
@@ -630,14 +630,14 @@
         }
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-inline-start: 1.625em;
+            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li ul {
             list-style-type: disc; /* Всегда сплошные круги */
-            padding-inline-start: 1.5em;
+            padding-inline-start: 1.5em; /* ИЗМЕНЕНО */
         }
         .message-container.ai li {
-            margin-bottom: 0.2em;
+            margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
             padding-left: 0.4em;
         }
         .message-container.ai li p {
@@ -1221,6 +1221,10 @@
 
             auth.onAuthStateChanged(updateUIForAuthState);
 
+            function scrollToBottom() {
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+            }
+
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');
                 m.className = `message-container ${sender}`;
@@ -1230,6 +1234,7 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
+                scrollToBottom();
                 return m;
             }
             
@@ -1294,6 +1299,7 @@
                 
                 requestAnimationFrame(() => {
                     chatMessages.classList.remove('is-loading-history');
+                    scrollToBottom();
                 });
                 
                 updateActiveChatSelection(chatId);

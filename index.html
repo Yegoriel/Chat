@@ -408,6 +408,7 @@
             border-radius: 12px;
             max-width: 90%;
             transition: background-color 0.3s;
+            /* FIX: Removed margin-right as the new animation doesn't require it. */
         }
         
         .message-container.user-file {
@@ -832,7 +833,7 @@
             white-space: pre-wrap;
             color: var(--text-color);
             line-height: 1.6;
-            transition: max-height 0.4s ease-in-out;
+            transition: max-height: 0.4s ease-in-out;
         }
         .file-content-block.is-expanded .file-content-body {
             max-height: 600px;
@@ -938,8 +939,11 @@
         /* === START: THINKING INDICATOR === */
         .message-container.user.is-thinking {
             position: relative;
-            overflow: visible; /* Allow glow to be visible */
-            animation: pulse-glow 2.5s infinite ease-in-out;
+            /* NEW ANIMATION: Pulsating inner border */
+            animation: pulse-inner-border 2.5s infinite ease-in-out;
+        }
+        body.dark-theme .message-container.user.is-thinking {
+            animation-name: pulse-inner-border-dark;
         }
         .message-container.user.is-thinking::after {
             content: '';
@@ -972,18 +976,16 @@
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
         }
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 4px 0px rgba(0, 0, 0, 0.1); }
-            50% { box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.15); }
-            100% { box-shadow: 0 0 4px 0px rgba(0, 0, 0, 0.1); }
+        /* NEW KEYFRAMES for the inner border pulse */
+        @keyframes pulse-inner-border {
+            0% { box-shadow: inset 0 0 0 0px rgba(0, 0, 0, 0.05); }
+            50% { box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15); }
+            100% { box-shadow: inset 0 0 0 0px rgba(0, 0, 0, 0.05); }
         }
-        body.dark-theme .message-container.user.is-thinking {
-            animation-name: pulse-glow-dark;
-        }
-        @keyframes pulse-glow-dark {
-            0% { box-shadow: 0 0 5px 0px rgba(255, 255, 255, 0.1); }
-            50% { box-shadow: 0 0 14px 4px rgba(255, 255, 255, 0.18); }
-            100% { box-shadow: 0 0 5px 0px rgba(255, 255, 255, 0.1); }
+        @keyframes pulse-inner-border-dark {
+            0% { box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25); }
+            100% { box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.1); }
         }
         /* === END: THINKING INDICATOR === */
 
@@ -1197,10 +1199,11 @@
 
             // --- UTILITIES ---
             const scrollToBottom = () => {
-                // Using requestAnimationFrame ensures the scroll happens after the DOM has been painted.
-                requestAnimationFrame(() => {
+                // Using a 0ms timeout pushes the execution to the end of the browser's event queue,
+                // ensuring the DOM has fully updated and the new scrollHeight is available before scrolling.
+                setTimeout(() => {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
-                });
+                }, 0);
             };
             
             // --- PROFESSIONAL RENDERER ---
@@ -1243,7 +1246,7 @@
                     if (codeBlocks.length > 0) {
                         codeBlocks.forEach(el => hljs.highlightElement(el));
                     }
-                    scrollToBottom(); // Keep scrolling as new content is rendered
+                    // SCROLL FIX: Removed autoscroll during generation
                 }
 
                 stop() {
@@ -1256,7 +1259,7 @@
                     this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     this.render();
                     finalizeMessageFormatting(this.container);
-                    scrollToBottom();
+                    // SCROLL FIX: Removed autoscroll after generation
                 }
             }
 
@@ -1293,7 +1296,7 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                scrollToBottom();
+                // SCROLL FIX: Scroll is now handled explicitly in handleSendMessage
                 return m;
             }
             
@@ -1443,7 +1446,9 @@
                         </div>
                     </div>
                 `;
-                const container = addMessageToUI('user user-file', fileBlockHTML, true);
+                const container = addMessageToUI('user user-file');
+                container.innerHTML = fileBlockHTML;
+                scrollToBottom();
             }
 
             async function handleSendMessage(e) {
@@ -1479,6 +1484,7 @@
                 if (userMessageText) {
                     userMessageElement = addMessageToUI('user', userMessageText);
                     userMessageElement.classList.add('is-thinking');
+                    scrollToBottom(); // SCROLL FIX: Scroll immediately and precisely after adding the user's message
                 }
 
                 let isNewChat = false;
@@ -1492,7 +1498,6 @@
                 localChatHistory.push(userMessageData);
                 
                 if (isNewChat) {
-                    // ИЗМЕНЕНО (Оптимизация): Убран await для ускорения ответа ИИ
                     db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
                         title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,
@@ -1500,7 +1505,8 @@
                     });
                 }
 
-                const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
+                const aiMsgContainer = addMessageToUI('ai');
+                aiMsgContainer.innerHTML = `<div class="ai-content-block"></div>`;
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
@@ -1571,7 +1577,6 @@
             
             document.addEventListener("visibilitychange", () => { /* ... */ });
             
-            // DEFINITIVE FIX: Implemented the logic to abort the fetch request when the stop button is clicked.
             stopBtn.addEventListener('click', () => {
                 if (currentStreamController) {
                     currentStreamController.abort();

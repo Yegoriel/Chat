@@ -547,17 +547,17 @@
         #chat-history-list::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 10px; }
         #chat-history-list::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover-color); }
 
-        /* --- START: REFINED TYPOGRAPHY SYSTEM --- */
+        /* --- START: CHATGPT-STYLE TYPOGRAPHY --- */
         .message-container.ai * {
             box-sizing: border-box;
             word-wrap: break-word;
         }
         .ai-content-block {
-            padding-left: 0.25rem; 
+            padding-left: 0.25rem; /* Общий отступ для создания вертикальной линии */
         }
         .message-container.ai .ai-content-block {
             font-size: var(--text-base);
-            line-height: var(--text-base--line-height);
+            line-height: var(--line-height-body);
             color: var(--text-color);
         }
         .message-container.ai .ai-content-block > *:first-child {
@@ -572,10 +572,10 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.85em 0; /* Creates the "breathing room" */
+            margin: 0.25em 0; 
         }
         .message-container.ai hr {
-            margin: 1.75em 0;
+            margin: 1.5em 0;
             border: 0;
             height: 1px;
             background-color: var(--border-color);
@@ -584,36 +584,35 @@
             font-weight: var(--font-weight-semibold);
             letter-spacing: var(--tracking-normal);
         }
-        /* Hierarchy: More space above, less space below */
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
-            margin: 1.6em 0 0.5em 0;
+            margin: 1.25em 0 0.2em 0;
         }
         .message-container.ai h2 {
             font-size: var(--text-2xl);
             line-height: var(--text-2xl--line-height);
-            margin: 1.5em 0 0.5em 0;
+            margin: 1.25em 0 0.2em 0;
         }
         .message-container.ai h3 {
             font-size: var(--text-xl);
             line-height: var(--text-xl--line-height);
-            margin: 1.4em 0 0.4em 0;
+            margin: 1em 0 0.15em 0;
         }
         .message-container.ai h4 {
             font-size: var(--text-lg);
             line-height: var(--text-lg--line-height);
-            margin: 1.4em 0 0.4em 0;
+            margin: 1em 0 0.15em 0;
         }
         .message-container.ai h5 {
             font-size: var(--text-base);
             line-height: var(--text-base--line-height);
-            margin: 1.4em 0 0.4em 0;
+            margin: 1em 0 0.1em 0;
         }
         .message-container.ai h6 {
             font-size: var(--text-sm);
             line-height: var(--text-sm--line-height);
-            margin: 1.4em 0 0.4em 0;
+            margin: 1em 0 0.1em 0;
             opacity: 0.8;
         }
         .message-container.ai strong,
@@ -622,21 +621,21 @@
         }
         .message-container.ai ul,
         .message-container.ai ol {
-            padding-inline-start: 1.75em; 
+            padding-inline-start: 1.625em; 
         }
         .message-container.ai li ul {
             list-style-type: disc; 
-            padding-inline-start: 1.75em;
+            padding-inline-start: 1.5em;
         }
         .message-container.ai li {
-            margin-bottom: 0.25em; /* Tighter spacing for list items */
+            margin-bottom: 0; 
             padding-left: 0.4em;
         }
         .message-container.ai li p {
             margin: 0;
         }
         .message-container.ai li > ul, .message-container.ai li > ol {
-            margin-top: 0.25em;
+            margin-top: 0.2em;
             margin-bottom: 0;
         }
         .message-container.ai ul li::marker,
@@ -754,7 +753,7 @@
             scrollbar-width: thin;
             scrollbar-color: var(--scrollbar-thumb-color) transparent;
         }
-        /* --- END: REFINED TYPOGRAPHY SYSTEM --- */
+        /* --- END: TYPOGRAPHY --- */
         
         /* === START: POLISHED FILE BLOCK STYLES === */
         .file-content-block {

@@ -390,13 +390,14 @@
         @keyframes fadeInAndRise { to { opacity: 1; transform: translateY(0); } }
 
         .message-container.user {
-            position: relative; /* Для позиционирования псевдо-элемента */
             padding: 0.65rem 1rem;
             background-color: var(--user-msg-bg);
             align-self: flex-end;
             border-radius: 12px;
             max-width: 90%;
             transition: background-color 0.3s;
+            position: relative; /* Для индикатора */
+            overflow: hidden; /* Для индикатора */
         }
         
         .message-container.user-file {
@@ -524,31 +525,46 @@
             color: var(--text-color);
         }
 
-        /* === START: THINKING INDICATOR === */
-        @keyframes magic-sweep {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        /* --- START: THINKING INDICATOR --- */
+        @keyframes spin-border {
+            to {
+                transform: rotate(360deg);
+            }
         }
-        .message-container.user::before {
+        .message-container.user.is-thinking::before {
             content: '';
             position: absolute;
+            top: 50%;
+            left: 50%;
+            width: calc(100% + 4px); /* Чуть больше для красоты */
+            height: calc(100% + 4px);
+            transform: translate(-50%, -50%);
+            background: conic-gradient(#00ffff, #ff00ff, #ffff00, #00ffff);
+            animation: spin-border 2s linear infinite;
+            z-index: -2;
+        }
+        .message-container.user.is-thinking::after {
+            content: '';
+            position: absolute;
+            inset: 2px; /* Толщина рамки */
+            background-color: var(--user-msg-bg);
+            border-radius: 10px; /* border-radius родителя - толщина рамки */
             z-index: -1;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            border-radius: 14px; /* Чуть больше, чем у родителя */
-            background: conic-gradient(
-                from 0deg, 
-                transparent 0%, 
-                transparent 70%, 
-                #8A2BE2, #00BFFF, #32CD32, #FFD700, #FF4500, #8A2BE2
-            );
-            opacity: 0;
-            transition: opacity 0.3s;
         }
-        body.is-streaming .message-container.user:last-of-type::before {
-            opacity: 1;
-            animation: magic-sweep 2s linear infinite;
+        /* --- END: THINKING INDICATOR --- */
+
+        .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
+        .is-desktop .scroll-controls { display: flex; }
+
+        .scroll-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color);
+            background: var(--scroll-btn-bg); color: var(--scroll-btn-color); cursor: pointer; user-select: none;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-        /* === END: THINKING INDICATOR === */
+        .scroll-btn:hover { background-color: var(--scroll-btn-hover-bg); border-color: #ddd; transform: translateY(-1px); }
+        body.dark-theme .scroll-btn:hover { border-color: #444; }
+        .scroll-btn svg { width: 20px; height: 20px; }
 
         #chat-history-list::-webkit-scrollbar { width: 5px; }
         #chat-history-list::-webkit-scrollbar-track { background: transparent; }
@@ -1234,7 +1250,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                scrollToBottom();
                 return m;
             }
             
@@ -1339,6 +1354,11 @@
             }
 
             function cleanUpStream(finalText, renderer) {
+                const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
+                if (thinkingBubble) {
+                    thinkingBubble.classList.remove('is-thinking');
+                }
+
                 try {
                     renderer.finish();
                 } catch (e) {
@@ -1413,7 +1433,13 @@
                 
                 if (userMessageText) {
                     addMessageToUI('user', userMessageText);
+                    const userMessageBubble = document.querySelector('.message-container.user:last-of-type');
+                    if (userMessageBubble) {
+                        userMessageBubble.classList.add('is-thinking');
+                    }
                 }
+                
+                scrollToBottom();
 
                 let isNewChat = false;
                 if (!currentChatId) {
@@ -1435,6 +1461,7 @@
                 }
 
                 const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
+                scrollToBottom();
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();

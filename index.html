@@ -1226,8 +1226,7 @@
 
                 start() {
                     this.isRendering = true;
-                    // Slower interval for a smoother feel
-                    this.renderInterval = setInterval(() => this.processQueue(), 25); 
+                    this.renderInterval = setInterval(() => this.processQueue(), 20);
                 }
 
                 processQueue() {
@@ -1235,8 +1234,7 @@
                         this.stop();
                         return;
                     }
-                    // Process a smaller, more consistent chunk of characters
-                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 8)); 
+                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 5));
                     const chunk = this.queue.splice(0, charsToProcess).join('');
                     this.textBuffer += chunk;
                     this.render();
@@ -1258,12 +1256,10 @@
 
                 finish() {
                     this.stop();
-                    // Process any remaining characters in the queue to ensure the animation completes smoothly.
-                    if (this.queue.length > 0) {
-                        this.textBuffer += this.queue.splice(0, this.queue.length).join('');
-                        this.render();
-                    }
+                    this.textBuffer += this.queue.splice(0, this.queue.length).join('');
+                    this.render();
                     finalizeMessageFormatting(this.container);
+                    // SCROLL FIX: Removed autoscroll after generation
                 }
             }
 

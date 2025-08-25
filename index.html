@@ -1226,7 +1226,8 @@
 
                 start() {
                     this.isRendering = true;
-                    this.renderInterval = setInterval(() => this.processQueue(), 20);
+                    // Slower interval for a smoother feel
+                    this.renderInterval = setInterval(() => this.processQueue(), 25); 
                 }
 
                 processQueue() {
@@ -1234,7 +1235,8 @@
                         this.stop();
                         return;
                     }
-                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 5));
+                    // Process a smaller, more consistent chunk of characters
+                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 8)); 
                     const chunk = this.queue.splice(0, charsToProcess).join('');
                     this.textBuffer += chunk;
                     this.render();
@@ -1256,10 +1258,12 @@
 
                 finish() {
                     this.stop();
-                    this.textBuffer += this.queue.splice(0, this.queue.length).join('');
-                    this.render();
+                    // Process any remaining characters in the queue to ensure the animation completes smoothly.
+                    if (this.queue.length > 0) {
+                        this.textBuffer += this.queue.splice(0, this.queue.length).join('');
+                        this.render();
+                    }
                     finalizeMessageFormatting(this.container);
-                    // SCROLL FIX: Removed autoscroll after generation
                 }
             }
 
@@ -1468,7 +1472,6 @@
                 
                 let messageForApi = userMessageText;
                 const userMessageData = { role: 'user', text: userMessageText };
-                let userMessageElement = null;
 
                 if (attachedFile) {
                     addFileBlockToUI(attachedFile.name, attachedFile.content);
@@ -1482,7 +1485,7 @@
                 }
                 
                 if (userMessageText) {
-                    userMessageElement = addMessageToUI('user', userMessageText);
+                    const userMessageElement = addMessageToUI('user', userMessageText);
                     userMessageElement.classList.add('is-thinking');
                     scrollToBottom(); // SCROLL FIX: Scroll immediately and precisely after adding the user's message
                 }
@@ -1511,6 +1514,13 @@
                 
                 currentStreamController = new AbortController();
                 const renderer = new ProfessionalRenderer(contentBlock);
+                
+                // SPEED FIX: Call the async function that does the fetching.
+                // All required variables are now defined and will be captured by the closure.
+                fetchAndProcessStream(messageForApi, localChatHistory, renderer);
+            }
+            
+            async function fetchAndProcessStream(message, history, renderer) {
                 let accumulatedResponseText = '';
                 let sseBuffer = '';
 
@@ -1522,57 +1532,53 @@
                     renderer.update(textPart);
                     accumulatedResponseText += textPart;
                     localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
-                }
+                };
 
-                const fetchAndProcessStream = async () => {
-                    try {
-                        const response = await fetch('/api/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: messageForApi, history: localChatHistory.slice(0, -1).slice(-10) }),
-                            signal: currentStreamController.signal
-                        });
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message, history: history.slice(0, -1).slice(-10) }),
+                        signal: currentStreamController.signal
+                    });
 
-                        if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
+                    if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
+                    
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    
+                    while (true) {
+                        if (currentStreamController.signal.aborted) break;
+                        const { value, done } = await reader.read();
+                        if (done) break;
                         
-                        const reader = response.body.getReader();
-                        const decoder = new TextDecoder();
-                        
-                        while (true) {
-                            if (currentStreamController.signal.aborted) break;
-                            const { value, done } = await reader.read();
-                            if (done) break;
-                            
-                            sseBuffer += decoder.decode(value, { stream: true });
-                            const lines = sseBuffer.split('\n');
-                            sseBuffer = lines.pop() || '';
+                        sseBuffer += decoder.decode(value, { stream: true });
+                        const lines = sseBuffer.split('\n');
+                        sseBuffer = lines.pop() || '';
 
-                            for (const line of lines) {
-                                if (line.trim().startsWith('data:')) {
-                                    try {
-                                        const jsonStr = line.substring(5).trim();
-                                        const parsed = JSON.parse(jsonStr);
-                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                        if (textPart) {
-                                            processChunk(textPart);
-                                        }
-                                    } catch (parseError) { /* Ignore incomplete JSON */ }
-                                }
+                        for (const line of lines) {
+                            if (line.trim().startsWith('data:')) {
+                                try {
+                                    const jsonStr = line.substring(5).trim();
+                                    const parsed = JSON.parse(jsonStr);
+                                    const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    if (textPart) {
+                                        processChunk(textPart);
+                                    }
+                                } catch (parseError) { /* Ignore incomplete JSON */ }
                             }
                         }
-                    } catch (error) {
-                        if (error.name !== 'AbortError') {
-                            console.error("AI Streaming Error:", error);
-                            contentBlock.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
-                        }
-                    } finally {
-                        cleanUpStream(accumulatedResponseText, renderer);
                     }
-                };
-                
-                fetchAndProcessStream();
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error("AI Streaming Error:", error);
+                        renderer.container.innerHTML = "<p>Sorry, an error occurred while getting a response.</p>";
+                    }
+                } finally {
+                    cleanUpStream(accumulatedResponseText, renderer);
+                }
             }
-            
+
             // --- EVENT LISTENERS ---
             
             document.addEventListener("visibilitychange", () => { /* ... */ });

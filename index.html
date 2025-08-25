@@ -384,10 +384,8 @@
         .message-container {
             margin-bottom: 1.25rem;
             word-wrap: break-word;
-            /* BUG FIX: Removed 'contain' property which was clipping the 'is-thinking' animation */
         }
         
-        /* FIX: User message appears instantly, AI message fades in */
         .message-container.ai { 
             opacity: 0; 
             transform: translateY(15px); 
@@ -449,7 +447,7 @@
             bottom: 0;
             padding-bottom: 1.5rem;
             margin-top: auto;
-            background: transparent; /* MODIFIED: Made transparent so the ::after pseudo-element on #chat-area is visible */
+            background: transparent;
             z-index: 10;
         }
         #chat-form-container {
@@ -536,12 +534,6 @@
             color: var(--text-color);
         }
 
-        .thinking-indicator { display: flex; gap: 4px; align-items: center; height: 1.5rem; padding-left: 0.25rem; }
-        .thinking-indicator span { width: 7px; height: 7px; background-color: var(--primary-accent); border-radius: 50%; animation: sleekWave 1.2s ease-in-out infinite; }
-        .thinking-indicator span:nth-child(2) { animation-delay: 0.1s; }
-        .thinking-indicator span:nth-child(3) { animation-delay: 0.2s; }
-        @keyframes sleekWave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
         .is-desktop .scroll-controls { display: flex; }
 
@@ -566,7 +558,7 @@
             word-wrap: break-word;
         }
         .ai-content-block {
-            padding-left: 0.25rem; /* Общий отступ для создания вертикальной линии */
+            padding-left: 0.25rem;
         }
         .message-container.ai .ai-content-block {
             font-size: var(--text-base);
@@ -585,7 +577,7 @@
         .message-container.ai blockquote,
         .message-container.ai .code-block-wrapper,
         .message-container.ai .table-wrapper {
-            margin: 0.5em 0; /* ИЗМЕНЕНО: Максимальное уплотнение */
+            margin: 0.5em 0;
         }
         .message-container.ai hr {
             margin: 2em 0;
@@ -597,7 +589,6 @@
             font-weight: var(--font-weight-semibold);
             letter-spacing: var(--tracking-normal);
         }
-        /* Визуальное повышение иерархии и уплотнение ПОСЛЕ заголовков */
         .message-container.ai h1 {
             font-size: var(--text-3xl);
             line-height: var(--text-3xl--line-height);
@@ -634,17 +625,17 @@
             font-weight: var(--font-weight-semibold);
         }
         .message-container.ai ul {
-            padding-inline-start: 1.8em; /* ИЗМЕНЕНО */
+            padding-inline-start: 1.8em;
         }
         .message-container.ai ol {
-            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+            padding-inline-start: 1.625em;
         }
         .message-container.ai li ul {
-            list-style-type: disc; /* Всегда сплошные круги */
-            padding-inline-start: 1.625em; /* ИЗМЕНЕНО */
+            list-style-type: disc;
+            padding-inline-start: 1.625em;
         }
         .message-container.ai li {
-            margin-bottom: 0.05em; /* ИЗМЕНЕНО: Финальное уплотнение списков */
+            margin-bottom: 0.05em;
             padding-left: 0.4em;
         }
         .message-container.ai li p {
@@ -1199,22 +1190,26 @@
 
             // --- UTILITIES ---
             const scrollToBottom = () => {
-                // Using a 0ms timeout pushes the execution to the end of the browser's event queue,
-                // ensuring the DOM has fully updated and the new scrollHeight is available before scrolling.
                 setTimeout(() => {
                     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 }, 0);
             };
             
-            // --- PROFESSIONAL RENDERER ---
-            class ProfessionalRenderer {
+            // --- FINAL RENDERER (STABLE, DYNAMIC, CONTEXT-AWARE) ---
+            class FinalRenderer {
                 constructor(container) {
                     this.container = container;
                     this.textBuffer = '';
                     this.queue = [];
                     this.isRendering = false;
-                    this.renderInterval = null;
+                    this.animationFrameId = null;
+                    this.isInsideCodeBlock = false;
+                    
+                    this.lastRenderTime = 0;
+                    this.RENDER_THROTTLE_MS = 40; // Approx 25fps for DOM updates
+                    
                     this.container.innerHTML = '';
+                    this.animationLoop = this.animationLoop.bind(this);
                 }
 
                 update(chunk) {
@@ -1225,43 +1220,78 @@
                 }
 
                 start() {
+                    if (this.isRendering) return;
                     this.isRendering = true;
-                    this.renderInterval = setInterval(() => this.processQueue(), 20);
+                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
 
-                processQueue() {
+                stop() {
+                    if (!this.isRendering) return;
+                    this.isRendering = false;
+                    if (this.animationFrameId) {
+                        cancelAnimationFrame(this.animationFrameId);
+                    }
+                }
+
+                animationLoop() {
+                    if (!this.isRendering) return;
+
                     if (this.queue.length === 0) {
                         this.stop();
+                        this.render();
                         return;
                     }
-                    const charsToProcess = Math.max(1, Math.floor(this.queue.length / 5));
-                    const chunk = this.queue.splice(0, charsToProcess).join('');
-                    this.textBuffer += chunk;
-                    this.render();
+                    
+                    const codeBlockToggle = '```';
+                    const queueString = this.queue.join('');
+                    const codeBlockToggleIndex = queueString.indexOf(codeBlockToggle);
+                    
+                    let chunkToProcess = '';
+
+                    if (codeBlockToggleIndex === 0) {
+                        chunkToProcess = this.queue.splice(0, codeBlockToggle.length).join('');
+                        this.isInsideCodeBlock = !this.isInsideCodeBlock;
+                    } else if (codeBlockToggleIndex > 0) {
+                        chunkToProcess = this.queue.splice(0, codeBlockToggleIndex).join('');
+                    } else {
+                        let charsToProcess;
+                        if (this.isInsideCodeBlock || this.queue.length > 100) {
+                            charsToProcess = Math.max(10, Math.floor(this.queue.length / 4));
+                        } else {
+                            const lastChar = this.textBuffer.slice(-1);
+                            if (['.', '!', '?', '\n', ':'].includes(lastChar) && Math.random() > 0.8) {
+                                charsToProcess = 0; // Pause
+                            } else {
+                                charsToProcess = 1 + Math.floor(Math.random() * 5); // Bursts
+                            }
+                        }
+                        chunkToProcess = this.queue.splice(0, charsToProcess).join('');
+                    }
+                    
+                    this.textBuffer += chunkToProcess;
+                    
+                    const now = performance.now();
+                    if (now - this.lastRenderTime >= this.RENDER_THROTTLE_MS) {
+                        this.render();
+                        this.lastRenderTime = now;
+                    }
+                    
+                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
 
                 render() {
                     this.container.innerHTML = marked.parse(this.textBuffer);
-                    const codeBlocks = this.container.querySelectorAll('pre code');
-                    if (codeBlocks.length > 0) {
-                        codeBlocks.forEach(el => hljs.highlightElement(el));
-                    }
-                    // SCROLL FIX: Removed autoscroll during generation
-                }
-
-                stop() {
-                    this.isRendering = false;
-                    clearInterval(this.renderInterval);
+                    this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
+                    finalizeMessageFormatting(this.container);
                 }
 
                 finish() {
                     this.stop();
                     this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     this.render();
-                    finalizeMessageFormatting(this.container);
-                    // SCROLL FIX: Removed autoscroll after generation
                 }
             }
+
 
             // --- AUTH & UI ---
             const updateUIForAuthState = (user) => {
@@ -1296,7 +1326,6 @@
                     m.textContent = content;
                 }
                 chatMessages.appendChild(m);
-                // SCROLL FIX: Scroll is now handled explicitly in handleSendMessage
                 return m;
             }
             
@@ -1304,6 +1333,7 @@
                  container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
                     const wrapper = document.createElement('div'); wrapper.className = 'code-block-wrapper';
                     pre.parentNode.insertBefore(wrapper, pre); wrapper.appendChild(pre);
+                    if (wrapper.querySelector('.copy-btn')) return;
                     const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.innerHTML = `<span>Copy</span>`;
                     btn.onclick = () => { navigator.clipboard.writeText(pre.querySelector('code').textContent).then(() => { const span = btn.querySelector('span'); if (span) { span.textContent = 'Copied!'; setTimeout(() => { span.textContent = 'Copy'; }, 2000); } }); };
                     wrapper.appendChild(btn);
@@ -1483,7 +1513,7 @@
                 if (userMessageText) {
                     const userMessageElement = addMessageToUI('user', userMessageText);
                     userMessageElement.classList.add('is-thinking');
-                    scrollToBottom(); // SCROLL FIX: Scroll immediately and precisely after adding the user's message
+                    scrollToBottom(); // SCROLL 1: After user message appears
                 }
 
                 let isNewChat = false;
@@ -1506,13 +1536,12 @@
 
                 const aiMsgContainer = addMessageToUI('ai');
                 aiMsgContainer.innerHTML = `<div class="ai-content-block"></div>`;
+                scrollToBottom(); // SCROLL 2: After empty AI container appears
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new ProfessionalRenderer(contentBlock);
+                const renderer = new FinalRenderer(contentBlock);
                 
-                // SPEED FIX: Call the async function that does the fetching.
-                // All required variables are now defined and will be captured by the closure.
                 fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
             
@@ -1521,13 +1550,15 @@
                 let sseBuffer = '';
 
                 const processChunk = (textPart) => {
-                    const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
-                    if (thinkingBubble) {
-                        thinkingBubble.classList.remove('is-thinking');
+                    if (textPart && typeof textPart === 'string' && textPart.length > 0) {
+                        const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
+                        if (thinkingBubble) {
+                            thinkingBubble.classList.remove('is-thinking');
+                        }
+                        renderer.update(textPart);
+                        accumulatedResponseText += textPart;
+                        localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                     }
-                    renderer.update(textPart);
-                    accumulatedResponseText += textPart;
-                    localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                 };
 
                 try {
@@ -1558,9 +1589,7 @@
                                     const jsonStr = line.substring(5).trim();
                                     const parsed = JSON.parse(jsonStr);
                                     const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                    if (textPart) {
-                                        processChunk(textPart);
-                                    }
+                                    processChunk(textPart);
                                 } catch (parseError) { /* Ignore incomplete JSON */ }
                             }
                         }
@@ -1576,9 +1605,6 @@
             }
 
             // --- EVENT LISTENERS ---
-            
-            document.addEventListener("visibilitychange", () => { /* ... */ });
-            
             stopBtn.addEventListener('click', () => {
                 if (currentStreamController) {
                     currentStreamController.abort();
@@ -1706,7 +1732,7 @@
                 }
             });
 
-            // --- The rest of your existing JS functions ---
+            // --- The rest of your existing JS functions (unchanged) ---
 
             function attachChatHistoryListener() {
                 if (chatHistoryListener) chatHistoryListener.off();

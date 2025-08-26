@@ -826,7 +826,7 @@
             white-space: pre-wrap;
             color: var(--text-color);
             line-height: 1.6;
-            transition: max-height 0.4s ease-in-out;
+            transition: max-height: 0.4s ease-in-out;
         }
         .file-content-block.is-expanded .file-content-body {
             max-height: 600px;
@@ -1195,8 +1195,8 @@
                 }, 0);
             };
             
-            // --- FLAWLESS RENDERER (FINAL, STABLE, DYNAMIC) ---
-            class FlawlessRenderer {
+            // --- OPTIMIZED SMOOTH RENDERER (FINAL & STABLE) ---
+            class OptimizedSmoothRenderer {
                 constructor(container) {
                     this.container = container;
                     this.textBuffer = '';
@@ -1204,9 +1204,12 @@
                     this.isRendering = false;
                     this.animationFrameId = null;
                     this.isInsideCodeBlock = false;
-                    
+
                     this.lastRenderTime = 0;
-                    this.RENDER_THROTTLE_MS = 33; // ~30fps for DOM updates, very smooth
+                    this.RENDER_INTERVAL_MS = 40; // ~25 кадров в секунду для обновления DOM
+                    
+                    this.charsToAdd = 0;
+                    this.lastTimestamp = 0;
 
                     this.container.innerHTML = '';
                     this.animationLoop = this.animationLoop.bind(this);
@@ -1222,6 +1225,7 @@
                 start() {
                     if (this.isRendering) return;
                     this.isRendering = true;
+                    this.lastTimestamp = performance.now();
                     this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
 
@@ -1233,45 +1237,44 @@
                     }
                 }
 
-                animationLoop() {
+                animationLoop(timestamp) {
                     if (!this.isRendering) {
-                        this.render(); // Final render
+                        this.render(); // Выполняем финальный рендер
                         return;
                     }
 
+                    // Если очередь пуста, останавливаемся
                     if (this.queue.length === 0) {
-                        this.stop();
-                        this.render();
+                        this.finish();
                         return;
                     }
                     
-                    const codeBlockToggle = '```';
-                    if (this.queue.slice(0, 3).join('') === codeBlockToggle) {
-                        this.textBuffer += this.queue.splice(0, 3).join('');
-                        this.isInsideCodeBlock = !this.isInsideCodeBlock;
-                    } else {
-                        let charsToProcess;
-                        if (this.isInsideCodeBlock || this.queue.length > 150) {
-                            // Turbo Mode: for code blocks or catching up
-                            charsToProcess = Math.max(20, Math.floor(this.queue.length / 4));
-                        } else {
-                            // Dynamic, smooth flow
-                            const lastChar = this.textBuffer.slice(-1);
-                            if (['.', '!', '?', '\n', ':'].includes(lastChar) && Math.random() > 0.8) {
-                                charsToProcess = 0; // Natural pause
-                            } else if (Math.random() > 0.9) { 
-                                charsToProcess = 5 + Math.floor(Math.random() * 10); // Bursts (5-15 chars)
-                            } else {
-                                charsToProcess = 1 + Math.floor(Math.random() * 3); // Smooth flow (1-3 chars)
-                            }
-                        }
-                        this.textBuffer += this.queue.splice(0, charsToProcess).join('');
+                    const deltaTime = timestamp - this.lastTimestamp;
+                    this.lastTimestamp = timestamp;
+
+                    // Адаптивная скорость: очень быстро для кода, плавно для текста
+                    const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 
+                        ? 3000 // Турбо-режим для кода или если сильно отстаем
+                        : 100;   // Плавная скорость печати для обычного текста
+
+                    // Рассчитываем, сколько символов нужно добавить за прошедшее время
+                    this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
+                    const charsToProcess = Math.floor(this.charsToAdd);
+                    
+                    if (charsToProcess > 0) {
+                        const chunk = this.queue.splice(0, charsToProcess).join('');
+                        this.textBuffer += chunk;
+                        this.charsToAdd -= charsToProcess;
+
+                        // Проверяем, не изменился ли контекст (код/текст)
+                        const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
+                        this.isInsideCodeBlock = codeBlockCount % 2 === 1;
                     }
                     
-                    const now = performance.now();
-                    if (now - this.lastRenderTime >= this.RENDER_THROTTLE_MS) {
+                    // **КЛЮЧЕВОЕ ИЗМЕНЕНИЕ**: Обновляем DOM только если прошло достаточно времени
+                    if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
                         this.render();
-                        this.lastRenderTime = now;
+                        this.lastRenderTime = timestamp;
                     }
                     
                     this.animationFrameId = requestAnimationFrame(this.animationLoop);
@@ -1285,11 +1288,14 @@
 
                 finish() {
                     this.stop();
-                    this.textBuffer += this.queue.splice(0, this.queue.length).join('');
+                    // Добавляем все оставшиеся символы из очереди
+                    if (this.queue.length > 0) {
+                        this.textBuffer += this.queue.splice(0, this.queue.length).join('');
+                    }
+                    // Выполняем финальный рендер, чтобы гарантировать полное отображение
                     this.render();
                 }
             }
-
 
             // --- AUTH & UI ---
             const updateUIForAuthState = (user) => {
@@ -1538,7 +1544,7 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new FlawlessRenderer(contentBlock);
+                const renderer = new OptimizedSmoothRenderer(contentBlock);
                 
                 fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
@@ -1624,7 +1630,7 @@
             });
 
             fileUploadInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
+                const file = e.target.files;
                 if (!file) return;
 
                 if (file.size > 500 * 1024) {
@@ -1888,7 +1894,7 @@
                 if (!document.body.classList.contains('is-mobile')) return;
                 if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list, pre, .file-content-body')) return;
 
-                const t = e.type === 'touchstart' ? e.touches[0] : e;
+                const t = e.type === 'touchstart' ? e.touches : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
                 if (!isOpen && t.clientX > 60) return;
@@ -1905,7 +1911,7 @@
             const dragMove = (e) => {
                 if (!isDragging) return;
 
-                const t = e.type === 'touchmove' ? e.touches[0] : e;
+                const t = e.type === 'touchmove' ? e.touches : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;
 

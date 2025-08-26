@@ -1195,8 +1195,8 @@
                 }, 0);
             };
             
-            // --- POLISHED RENDERER (FINAL, STABLE, DYNAMIC) ---
-            class PolishedRenderer {
+            // --- FINAL RENDERER (STABLE, DYNAMIC, CONTEXT-AWARE) ---
+            class FinalRenderer {
                 constructor(container) {
                     this.container = container;
                     this.textBuffer = '';
@@ -1206,8 +1206,8 @@
                     this.isInsideCodeBlock = false;
                     
                     this.lastRenderTime = 0;
-                    this.RENDER_THROTTLE_MS = 33; // ~30fps for DOM updates, very smooth
-
+                    this.RENDER_THROTTLE_MS = 40; // Approx 25fps for DOM updates
+                    
                     this.container.innerHTML = '';
                     this.animationLoop = this.animationLoop.bind(this);
                 }
@@ -1234,10 +1234,7 @@
                 }
 
                 animationLoop() {
-                    if (!this.isRendering) {
-                        this.render(); // Final render
-                        return;
-                    }
+                    if (!this.isRendering) return;
 
                     if (this.queue.length === 0) {
                         this.stop();
@@ -1246,27 +1243,32 @@
                     }
                     
                     const codeBlockToggle = '```';
-                    if (this.queue.slice(0, 3).join('') === codeBlockToggle) {
-                        this.textBuffer += this.queue.splice(0, 3).join('');
+                    const queueString = this.queue.join('');
+                    const codeBlockToggleIndex = queueString.indexOf(codeBlockToggle);
+                    
+                    let chunkToProcess = '';
+
+                    if (codeBlockToggleIndex === 0) {
+                        chunkToProcess = this.queue.splice(0, codeBlockToggle.length).join('');
                         this.isInsideCodeBlock = !this.isInsideCodeBlock;
+                    } else if (codeBlockToggleIndex > 0) {
+                        chunkToProcess = this.queue.splice(0, codeBlockToggleIndex).join('');
                     } else {
                         let charsToProcess;
-                        if (this.isInsideCodeBlock || this.queue.length > 150) {
-                            // Turbo Mode: for code blocks or catching up
-                            charsToProcess = Math.max(20, Math.floor(this.queue.length / 4));
+                        if (this.isInsideCodeBlock || this.queue.length > 100) {
+                            charsToProcess = Math.max(10, Math.floor(this.queue.length / 4));
                         } else {
-                            // Dynamic, smooth flow
                             const lastChar = this.textBuffer.slice(-1);
                             if (['.', '!', '?', '\n', ':'].includes(lastChar) && Math.random() > 0.8) {
-                                charsToProcess = 0; // Natural pause
-                            } else if (Math.random() > 0.9) { 
-                                charsToProcess = 5 + Math.floor(Math.random() * 10); // Bursts (5-15 chars)
+                                charsToProcess = 0; // Pause
                             } else {
-                                charsToProcess = 1 + Math.floor(Math.random() * 3); // Smooth flow (1-3 chars)
+                                charsToProcess = 1 + Math.floor(Math.random() * 5); // Bursts
                             }
                         }
-                        this.textBuffer += this.queue.splice(0, charsToProcess).join('');
+                        chunkToProcess = this.queue.splice(0, charsToProcess).join('');
                     }
+                    
+                    this.textBuffer += chunkToProcess;
                     
                     const now = performance.now();
                     if (now - this.lastRenderTime >= this.RENDER_THROTTLE_MS) {
@@ -1538,7 +1540,7 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new PolishedRenderer(contentBlock);
+                const renderer = new FinalRenderer(contentBlock);
                 
                 fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
@@ -1548,7 +1550,6 @@
                 let sseBuffer = '';
 
                 const processChunk = (textPart) => {
-                    // CRITICAL BUG FIX: Ensure only valid, non-empty text is processed
                     if (textPart && typeof textPart === 'string' && textPart.length > 0) {
                         const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
                         if (thinkingBubble) {

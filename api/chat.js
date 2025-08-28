@@ -1,4 +1,4 @@
-// File: api/chat.js - FINAL, CORRECT VERSION (THE PROBLEM IS THE RATE LIMIT)
+// File: api/chat.js - FINAL VERSION WITH DUPLICATION FIX
 
 export const config = {
   runtime: 'edge',
@@ -23,18 +23,21 @@ export default async function handler(req) {
   }
 
   try {
-    const { message, history } = await req.json();
+    // Мы по-прежнему получаем оба поля, но будем использовать только `history`.
+    const { history } = await req.json();
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
     if (!geminiApiKey) { return new Response('API key not configured', { status: 500 }); }
-    if (!message) { return new Response('Message is required', { status: 400 }); }
+    // Проверяем, что история вообще существует.
+    if (!history || history.length === 0) { return new Response('History is required', { status: 400 }); }
 
-    // ReadableStream для предотвращения тайм-аутов Vercel
     const stream = new ReadableStream({
       async start(controller) {
         
-        // Правильное восстановление истории, включая файлы
-        const reconstructedHistory = (history || []).map(item => {
+        // --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: ИСПОЛЬЗУЕМ ТОЛЬКО HISTORY ---
+        // `history`, приходящая с фронтенда, уже содержит последнее сообщение пользователя.
+        // Мы просто реконструируем ее, правильно обрабатывая файлы.
+        const reconstructedContents = (history || []).map(item => {
           let fullText = item.text || '';
           if (item.role === 'user' && item.fileName && item.fileContent) {
             const fileContext = `\n\n--- Start of File: ${item.fileName} ---\n${item.fileContent}\n--- End of File ---`;
@@ -46,7 +49,6 @@ export default async function handler(req) {
           };
         }).filter(item => item.parts[0].text && item.parts[0].text.trim() !== '');
 
-        // Указываем модель gemini-2.5-pro
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
         try {
@@ -57,10 +59,8 @@ export default async function handler(req) {
               systemInstruction: {
                 parts: [{ text: systemPrompt }]
               },
-              contents: [
-                ...reconstructedHistory,
-                { role: 'user', parts: [{ text: message }] }
-              ],
+              // Мы больше не добавляем отдельную переменную `message`, предотвращая дублирование.
+              contents: reconstructedContents, 
               safetySettings,
             }),
           });

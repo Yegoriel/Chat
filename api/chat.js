@@ -1,4 +1,4 @@
-// File: api/chat.js - FINAL VERSION TO PREVENT VERCEL TIMEOUTS
+// File: api/chat.js - FINAL VERSION WITH HISTORY SANITIZATION
 
 export const config = {
   runtime: 'edge',
@@ -26,21 +26,22 @@ export default async function handler(req) {
     const { message, history } = await req.json();
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
-    if (!geminiApiKey) {
-      return new Response('API key not configured', { status: 500 });
-    }
-    if (!message) {
-      return new Response('Message is required', { status: 400 });
-    }
+    if (!geminiApiKey) { return new Response('API key not configured', { status: 500 }); }
+    if (!message) { return new Response('Message is required', { status: 400 }); }
 
-    // Создаем управляемый поток (stream).
+    // Создаем управляемый поток для предотвращения тайм-аутов Vercel.
     const stream = new ReadableStream({
       async start(controller) {
-        // Этот код выполняется в фоновом режиме ПОСЛЕ того, как Vercel уже получил ответ.
-        const formattedHistory = (history || []).map(item => ({
-          role: item.role,
-          parts: [{ text: item.text }],
-        }));
+        
+        // --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: ОЧИСТКА ИСТОРИИ ---
+        // Мы фильтруем историю, чтобы удалить любые сообщения без текста.
+        // Это предотвращает отправку "пустых" сообщений, которые вызывают сбой gemini-2.5-pro.
+        const sanitizedHistory = (history || [])
+          .filter(item => item.text && item.text.trim() !== '')
+          .map(item => ({
+            role: item.role,
+            parts: [{ text: item.text }],
+          }));
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
@@ -49,61 +50,45 @@ export default async function handler(req) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              // Используем правильную структуру запроса для 2.5 Pro
               systemInstruction: {
                 parts: [{ text: systemPrompt }]
               },
               contents: [
-                ...formattedHistory,
+                ...sanitizedHistory, // Используем очищенную историю
                 { role: 'user', parts: [{ text: message }] }
               ],
               safetySettings,
             }),
           });
 
-          // Если сам API Gemini вернет ошибку, мы безопасно обработаем ее.
           if (!apiResponse.ok || !apiResponse.body) {
             const errorBody = await apiResponse.text();
             throw new Error(`Gemini API Error: ${apiResponse.status} ${errorBody}`);
           }
 
-          // Начинаем читать поток от Gemini и пересылать его клиенту.
           const reader = apiResponse.body.getReader();
-          const decoder = new TextDecoder();
-
           while (true) {
             const { value, done } = await reader.read();
-            if (done) {
-              break; // Поток от Gemini завершен.
-            }
-            // Пересылаем полученный кусок данных (chunk) напрямую в браузер.
+            if (done) break;
             controller.enqueue(value);
           }
 
         } catch (error) {
-          console.error('Stream Error:', error);
-          // Отправляем сообщение об ошибке в браузер в формате, который он сможет отобразить.
           const errorMessage = `A backend error occurred: ${error.message}`;
           const errorSse = `data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text: errorMessage }] } }] })}\n\n`;
           controller.enqueue(new TextEncoder().encode(errorSse));
         } finally {
-          // Важно: всегда закрываем наш поток, когда все закончено.
           controller.close();
         }
       },
     });
 
-    // САМОЕ ГЛАВНОЕ: Возвращаем поток Vercel НЕМЕДЛЕННО.
-    // Это удовлетворяет требование Vercel по тайм-ауту и предотвращает ошибку 500.
+    // Немедленно возвращаем поток, чтобы избежать тайм-аута.
     return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-      },
+      headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
     });
 
   } catch (error) {
-    console.error('Outer Handler Error:', error);
     return new Response(JSON.stringify({ error: 'An internal error occurred' }), { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-// File: api/chat.js - FINAL VERSION WITH HISTORY SANITIZATION
+// File: api/chat.js - FINAL VERSION WITH FULL CONTEXT RECONSTRUCTION
 
 export const config = {
   runtime: 'edge',
@@ -29,19 +29,25 @@ export default async function handler(req) {
     if (!geminiApiKey) { return new Response('API key not configured', { status: 500 }); }
     if (!message) { return new Response('Message is required', { status: 400 }); }
 
-    // Создаем управляемый поток для предотвращения тайм-аутов Vercel.
+    // Используем ReadableStream для предотвращения тайм-аутов Vercel.
     const stream = new ReadableStream({
       async start(controller) {
         
-        // --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: ОЧИСТКА ИСТОРИИ ---
-        // Мы фильтруем историю, чтобы удалить любые сообщения без текста.
-        // Это предотвращает отправку "пустых" сообщений, которые вызывают сбой gemini-2.5-pro.
-        const sanitizedHistory = (history || [])
-          .filter(item => item.text && item.text.trim() !== '')
-          .map(item => ({
+        // --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: ПРАВИЛЬНОЕ ВОССТАНОВЛЕНИЕ ИСТОРИИ ---
+        const reconstructedHistory = (history || []).map(item => {
+          let fullText = item.text || '';
+          // Если в сообщении пользователя был файл, мы ВОССОЗДАЕМ полный контекст,
+          // точно так же, как это делает фронтенд.
+          if (item.role === 'user' && item.fileName && item.fileContent) {
+            const fileContext = `\n\n--- Start of File: ${item.fileName} ---\n${item.fileContent}\n--- End of File ---`;
+            fullText += fileContext;
+          }
+          return {
             role: item.role,
-            parts: [{ text: item.text }],
-          }));
+            parts: [{ text: fullText }],
+          };
+        // Мы также отфильтровываем сообщения, которые после сборки остались пустыми.
+        }).filter(item => item.parts[0].text && item.parts[0].text.trim() !== '');
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
@@ -54,7 +60,7 @@ export default async function handler(req) {
                 parts: [{ text: systemPrompt }]
               },
               contents: [
-                ...sanitizedHistory, // Используем очищенную историю
+                ...reconstructedHistory, // Используем восстановленную историю
                 { role: 'user', parts: [{ text: message }] }
               ],
               safetySettings,
@@ -83,9 +89,8 @@ export default async function handler(req) {
       },
     });
 
-    // Немедленно возвращаем поток, чтобы избежать тайм-аута.
     return new Response(stream, {
-      headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
+      headers: { 'Content-Type': 'text-stream', 'Cache-Control': 'no-cache' },
     });
 
   } catch (error) {

@@ -309,15 +309,21 @@
         .chat-title-container,
         #logout-text,
         .chat-actions-btn {
-            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform-origin: left center;
+            white-space: nowrap;
+            opacity: 1;
+            transition-property: opacity;
+            transition-duration: 0.15s;
+            transition-timing-function: ease-in-out;
+            transition-delay: 0.1s;
         }
 
         .is-desktop #sidebar.is-collapsed .sidebar-header h2,
         .is-desktop #sidebar.is-collapsed .chat-title-container,
         .is-desktop #sidebar.is-collapsed #logout-text,
         .is-desktop #sidebar.is-collapsed .chat-actions-btn {
-            opacity: 0; transform: scaleX(0); pointer-events: none;
+            opacity: 0;
+            pointer-events: none;
+            transition-delay: 0s;
         }
 
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
@@ -1306,6 +1312,8 @@
             // --- AUTH & UI ---
             const updateUIForAuthState = (user) => {
                 if (user) {
+                    // FIX: Proactively clear the chat area to prevent login button flash
+                    chatMessages.innerHTML = '';
                     currentUser = user;
                     document.body.classList.add('logged-in');
                     userAvatar.src = currentUser.photoURL || '';
@@ -1315,11 +1323,15 @@
                     const lastChatId = localStorage.getItem('lastChatId');
                     loadChat(lastChatId || null);
                 } else {
+                    if (chatHistoryListener && currentUser) {
+                        db.ref(`chats/${currentUser.uid}`).off('value', chatHistoryListener);
+                        chatHistoryListener = null;
+                    }
                     currentUser = null;
-                    if (chatHistoryListener) chatHistoryListener.off();
                     document.body.classList.remove('logged-in');
                     document.body.classList.add('initial-state');
                     chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
+                    // This is the definitive "logged out" state
                     chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
                     document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
@@ -1788,36 +1800,34 @@
                     const chatsData = [];
                     snapshot.forEach(child => { chatsData.push({ id: child.key, ...child.val() }); });
                     chatsData.reverse();
-                    const existingItemsMap = new Map();
-                    chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => existingItemsMap.set(el.dataset.chatId, el));
-                    chatsData.forEach((chat, index) => {
+
+                    const fragment = document.createDocumentFragment();
+
+                    chatsData.forEach(chat => {
                         const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
                         const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.[0]?.fileName}` || 'New Chat';
-                        let itemEl = existingItemsMap.get(chat.id);
-                        if (itemEl) {
-                            itemEl.querySelector('.chat-title-container').textContent = titleText;
-                        } else {
-                            itemEl = document.createElement('div');
-                            itemEl.className = 'chat-history-item';
-                            itemEl.dataset.chatId = chat.id;
-                            itemEl.innerHTML = `
-                                <div class="chat-title-container">${titleText}</div>
-                                <button class="chat-actions-btn" data-chat-id="${chat.id}">
-                                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                                </button>
-                                <div class="actions-dropdown">
-                                    <button class="rename-action">✏️ Rename</button>
-                                    <button class="delete-action">🗑️ Delete</button>
-                                </div>
-                            `;
-                            itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
-                            itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
-                        }
-                        const elementAfter = chatHistoryList.children[index + 1];
-                        chatHistoryList.insertBefore(itemEl, elementAfter);
-                        existingItemsMap.delete(chat.id);
+                        
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'chat-history-item';
+                        itemEl.dataset.chatId = chat.id;
+                        itemEl.innerHTML = `
+                            <div class="chat-title-container">${titleText}</div>
+                            <button class="chat-actions-btn" data-chat-id="${chat.id}">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                            </button>
+                            <div class="actions-dropdown">
+                                <button class="rename-action">✏️ Rename</button>
+                                <button class="delete-action">🗑️ Delete</button>
+                            </div>
+                        `;
+                        itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
+                        itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
+                        fragment.appendChild(itemEl);
                     });
-                    existingItemsMap.forEach(el => el.remove());
+                    
+                    chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
+                    chatHistoryList.appendChild(fragment);
+                    
                     updateActiveChatSelection(currentChatId);
                 });
             }
@@ -1865,7 +1875,18 @@
             function startNewChat() { 
                 if (currentStreamController) currentStreamController.abort();
                 if(document.body.classList.contains('is-mobile') && document.body.classList.contains('sidebar-open')) closeSidebar();
-                localChatHistory = []; currentChatId = null; chatMessages.innerHTML = ''; chatInput.value = ''; chatInput.style.height = 'auto'; chatInput.focus(); updateActiveChatSelection(null); 
+                localChatHistory = []; 
+                currentChatId = null;
+                // FIX: Show a proper welcome message for logged-in users
+                if (currentUser) {
+                    chatMessages.innerHTML = '<div class="message-container welcome-message"><p>How can I help you today?</p></div>';
+                } else {
+                    chatMessages.innerHTML = '';
+                }
+                chatInput.value = ''; 
+                chatInput.style.height = 'auto'; 
+                chatInput.focus(); 
+                updateActiveChatSelection(null); 
                 document.body.classList.add('initial-state');
                 resetAttachedFile();
             }
@@ -1934,11 +1955,10 @@
                 if (!document.body.classList.contains('is-mobile')) return;
                 if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list, pre, .file-content-body')) return;
 
-                const t = e.type === 'touchstart' ? e.touches : e;
+                const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
-                if (!isOpen && t.clientX > 60) return;
-                if (isOpen && t.clientX > sidebar.offsetWidth) return;
+                if (!isOpen && t.clientX > (window.innerWidth / 3)) return;
 
                 isDragging = true;
                 startX = t.clientX;
@@ -1951,7 +1971,7 @@
             const dragMove = (e) => {
                 if (!isDragging) return;
 
-                const t = e.type === 'touchmove' ? e.touches : e;
+                const t = e.type === 'touchmove' ? e.touches[0] : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;
 

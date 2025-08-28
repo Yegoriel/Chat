@@ -1,13 +1,13 @@
-// File: api/chat.js - FINAL AND CORRECTED FOR GEMINI 2.5 PRO
+// File: api/chat.js - FINAL VERSION TO PREVENT VERCEL TIMEOUTS
 
 export const config = {
   runtime: 'edge',
 };
 
-// --- Your existing system prompt remains unchanged ---
+// Ваш рабочий системный промпт
 const systemPrompt = `
 Adhere to the following directives:
-... (your full system prompt) ...
+... (весь ваш системный промпт здесь) ...
 `;
 
 const safetySettings = [
@@ -27,51 +27,83 @@ export default async function handler(req) {
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
     if (!geminiApiKey) {
-      console.error('GEMINI_API_KEY not configured');
-      return new Response(JSON.stringify({ error: 'API key not configured' }), { status: 500 });
+      return new Response('API key not configured', { status: 500 });
     }
     if (!message) {
-      return new Response(JSON.stringify({ error: 'Message is required' }), { status: 400 });
+      return new Response('Message is required', { status: 400 });
     }
-    
-    const formattedHistory = (history || []).map(item => ({
-      role: item.role,
-      parts: [{ text: item.text }],
-    }));
 
-    // --- FIX #1: The model is changed to gemini-2.5-pro ---
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+    // Создаем управляемый поток (stream).
+    const stream = new ReadableStream({
+      async start(controller) {
+        // Этот код выполняется в фоновом режиме ПОСЛЕ того, как Vercel уже получил ответ.
+        const formattedHistory = (history || []).map(item => ({
+          role: item.role,
+          parts: [{ text: item.text }],
+        }));
 
-    const apiResponse = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        // --- FIX #2: The invalid "role: 'system'" property is removed ---
-        // This is the critical change that makes the request valid for the Pro model.
-        systemInstruction: {
-          parts: [{ text: systemPrompt }]
-        },
-        contents: [
-          ...formattedHistory,
-          { role: 'user', parts: [{ text: message }] }
-        ],
-        safetySettings,
-      }),
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+
+        try {
+          const apiResponse = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              // Используем правильную структуру запроса для 2.5 Pro
+              systemInstruction: {
+                parts: [{ text: systemPrompt }]
+              },
+              contents: [
+                ...formattedHistory,
+                { role: 'user', parts: [{ text: message }] }
+              ],
+              safetySettings,
+            }),
+          });
+
+          // Если сам API Gemini вернет ошибку, мы безопасно обработаем ее.
+          if (!apiResponse.ok || !apiResponse.body) {
+            const errorBody = await apiResponse.text();
+            throw new Error(`Gemini API Error: ${apiResponse.status} ${errorBody}`);
+          }
+
+          // Начинаем читать поток от Gemini и пересылать его клиенту.
+          const reader = apiResponse.body.getReader();
+          const decoder = new TextDecoder();
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              break; // Поток от Gemini завершен.
+            }
+            // Пересылаем полученный кусок данных (chunk) напрямую в браузер.
+            controller.enqueue(value);
+          }
+
+        } catch (error) {
+          console.error('Stream Error:', error);
+          // Отправляем сообщение об ошибке в браузер в формате, который он сможет отобразить.
+          const errorMessage = `A backend error occurred: ${error.message}`;
+          const errorSse = `data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text: errorMessage }] } }] })}\n\n`;
+          controller.enqueue(new TextEncoder().encode(errorSse));
+        } finally {
+          // Важно: всегда закрываем наш поток, когда все закончено.
+          controller.close();
+        }
+      },
     });
 
-    if (!apiResponse.ok) {
-        const errorBody = await apiResponse.text();
-        console.error('Gemini API Error:', apiResponse.status, errorBody);
-        return new Response(errorBody, { status: apiResponse.status, statusText: apiResponse.statusText });
-    }
-
-    // Directly stream the response, which is the most stable method.
-    return new Response(apiResponse.body, {
-      headers: { 'Content-Type': 'text/event-stream' },
+    // САМОЕ ГЛАВНОЕ: Возвращаем поток Vercel НЕМЕДЛЕННО.
+    // Это удовлетворяет требование Vercel по тайм-ауту и предотвращает ошибку 500.
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+      },
     });
 
   } catch (error) {
-    console.error('Handler Error:', error);
+    console.error('Outer Handler Error:', error);
     return new Response(JSON.stringify({ error: 'An internal error occurred' }), { status: 500 });
   }
 }

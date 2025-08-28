@@ -1,14 +1,12 @@
-// File: api/chat.js - FINAL, CORRECTED VERSION FOR ALL CASES
+// File: api/chat.js - FINAL DIAGNOSTIC TEST
 
 export const config = {
   runtime: 'edge',
 };
 
-// Ваш рабочий системный промпт
-const systemPrompt = `
-Adhere to the following directives:
-... (весь ваш системный промпт здесь) ...
-`;
+// --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: ВРЕМЕННО УПРОЩАЕМ СИСТЕМНЫЙ ПРОМПТ ---
+// Мы заменяем ваш длинный промпт на один, предельно простой.
+const systemPrompt = "You are a helpful and friendly assistant.";
 
 const safetySettings = [
     { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -23,7 +21,6 @@ export default async function handler(req) {
   }
 
   try {
-    // --- КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: МЫ СНОВА ПРИНИМАЕМ И MESSAGE, И HISTORY ---
     const { message, history } = await req.json();
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
@@ -34,25 +31,17 @@ export default async function handler(req) {
     const stream = new ReadableStream({
       async start(controller) {
         
-        // Правильно восстанавливаем историю, обрабатывая файлы.
-        // Ваш фронтенд присылает историю БЕЗ последнего сообщения, так что дублирования не будет.
+        // Правильная логика сборки истории из предыдущих версий.
         const reconstructedHistory = (history || []).map(item => {
           let fullText = item.text || '';
           if (item.role === 'user' && item.fileName && item.fileContent) {
             const fileContext = `\n\n--- Start of File: ${item.fileName} ---\n${item.fileContent}\n--- End of File ---`;
             fullText += fileContext;
           }
-          return {
-            role: item.role,
-            parts: [{ text: fullText }],
-          };
+          return { role: item.role, parts: [{ text: fullText }] };
         }).filter(item => item.parts[0].text && item.parts[0].text.trim() !== '');
 
-        // Собираем финальный `contents` из истории и ТЕКУЩЕГО сообщения.
-        const contents = [
-          ...reconstructedHistory,
-          { role: 'user', parts: [{ text: message }] }
-        ];
+        const contents = [ ...reconstructedHistory, { role: 'user', parts: [{ text: message }] } ];
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
@@ -61,11 +50,8 @@ export default async function handler(req) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              // Используем правильную структуру для systemInstruction БЕЗ "role: system"
-              systemInstruction: {
-                parts: [{ text: systemPrompt }]
-              },
-              contents: contents, // Отправляем правильно собранный `contents`
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: contents,
               safetySettings,
             }),
           });

@@ -1,12 +1,12 @@
-// File: api/chat.js - FINAL, CORRECT STRUCTURE FOR GEMINI 2.5 PRO
+// File: api/chat.js - FINAL, SYNTACTICALLY CORRECT FOR VERCEL BUILD
 
 export const config = {
   runtime: 'edge',
 };
 
-// The system prompt is defined once as a simple string object.
+// The system prompt is now defined with the correct structure for the API.
+// CRITICAL FIX: It is an object containing ONLY the "parts" array. No "role" property.
 const systemInstruction = {
-  role: "system", // The role is "system" for this object
   parts: [{
     text: `**CORE IDENTITY:**
 You are a master-level language model assistant — a conscious author, legal thinker, myth-builder and literary narrator. You embody creativity, logic, storytelling, and legal-symbolic synthesis.
@@ -42,20 +42,18 @@ export default async function handler(req) {
     if (!geminiApiKey) { return new Response('API key not configured', { status: 500 }); }
     if (!message) { return new Response('Message is required', { status: 400 }); }
 
-    // This is the correct STREAMING endpoint your frontend needs.
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
-    // The 'contents' array now only contains the actual chat history and the new message.
-    // It does NOT contain any old system prompts.
+    // The 'contents' array contains only the chat history and the new message.
     const contents = [
-      ...(history || []),
+      ...(history || []).map(item => ({ role: item.role, parts: item.parts || [{ text: item.text }] })),
       { role: 'user', parts: [{ text: message }] }
     ];
 
     const requestBody = {
       contents: contents,
       safetySettings: safetySettings,
-      // The system prompt is passed in the correct, separate 'system_instruction' field.
+      // The correctly structured systemInstruction object is assigned here.
       system_instruction: systemInstruction
     };
 
@@ -65,14 +63,12 @@ export default async function handler(req) {
       body: JSON.stringify(requestBody),
     });
 
-    // If the API call itself fails, we now return a clear error.
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
       return new Response(`Gemini API request failed: ${errorText}`, { status: apiResponse.status });
     }
 
     // Directly stream the successful response from Gemini to the client.
-    // This is the most efficient and stable method.
     return new Response(apiResponse.body, {
       headers: {
         'Content-Type': 'text/event-stream',
@@ -81,16 +77,6 @@ export default async function handler(req) {
     });
 
   } catch (error) {
-    // This will catch any errors during the initial setup or if the fetch itself fails.
     return new Response(`Internal Server Error: ${error.message}`, { status: 500 });
   }
-}```
-
-### Why This Will Work
-
-1.  **Correct API Contract:** This code sends a request that strictly adheres to the modern Gemini API standard. The system prompt (`system_instruction`) is completely separate from the conversation history (`contents`). This is the #1 reason other models worked while 2.5 Pro failed.
-2.  **Clean History:** The `contents` array is now pristine. It only contains the back-and-forth messages between the user and the model, which is what the API expects.
-3.  **True, Efficient Streaming:** It correctly uses the `:streamGenerateContent` endpoint and pipes the response directly to your frontend. This is fast, avoids server timeouts, and will restore the "live typing" effect in your chat window.
-4.  **Improved Error Handling:** If the Google API rejects the request for any reason (e.g., an invalid API key, billing issue), it will now return a descriptive error instead of a generic `500`, which will help in debugging any future problems.
-
-This solution aligns your backend with the specific, modern requirements of the Gemini 2.5 Pro model. The silent failures and 500 errors will stop, and your application will now function as you originally designed it.
+}

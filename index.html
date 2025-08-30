@@ -124,8 +124,8 @@
             --text-caption-regular--font-weight: 400;
             /* === END: NEW TYPOGRAPHY SYSTEM === */
 
-            --chat-content-narrow-width: 42rem;
-            --chat-content-expanded-width: 50rem;
+            --chat-content-narrow-width: 43rem;
+            --chat-content-expanded-width: 51rem;
             --thread-width: var(--chat-content-narrow-width);
             --background-color: #ffffff;
             --text-color: #0d0d0d;
@@ -285,19 +285,7 @@
         }
 
         /* DEFINITIVE FIX: Creates a single, clean gradient layer behind the input bar to fade scrolling content. */
-        #chat-area::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 180px; /* A taller gradient for a smoother fade effect */
-            background: linear-gradient(to top, var(--background-color) 30%, transparent 100%);
-            pointer-events: none; /* Allows clicks to pass through to elements behind it */
-            z-index: 5; /* Positioned below the input bar but above the chat messages */
-            transition: background-color 0.3s;
-        }
-
+        
         #chat-header, #menu-toggle, #sidebar-close-btn, #pin-sidebar-btn { display: none; }
 
         .is-desktop #sidebar { width: var(--sidebar-width); }
@@ -631,7 +619,7 @@
             font-weight: var(--font-weight-semibold);
         }
         .message-container.ai ul {
-            padding-inline-start: 1.8em;
+            padding-inline-start: 2em;
         }
         .message-container.ai ol {
             padding-inline-start: 1.625em;
@@ -990,9 +978,9 @@
             .ai-content-block, #chat-form-container { max-width: 100%; }
             .message-container.ai .ai-content-block, .message-container.user { font-size: 1.05rem; }
             .message-container.ai h1 { font-size: 1.6rem; }
-            .message-container.ai h2 { font-size: 1.3rem; }
-            .message-container.ai h3 { font-size: 1.15rem; }
-            .message-container.ai h4 { font-size: 1.05rem; }
+            .message-container.ai h2 { font-size: 1.35rem; }
+            .message-container.ai h3 { font-size: 1.25rem; }
+            .message-container.ai h4 { font-size: 1.1rem; }
         }
 
         @media (min-width: 769px) {

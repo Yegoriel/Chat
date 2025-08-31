@@ -1637,7 +1637,7 @@
                                 try {
                                     const jsonStr = line.substring(5).trim();
                                     const parsed = JSON.parse(jsonStr);
-                                    const textPart = parsed.candidates?.?.content?.parts?.?.text;
+                                    const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                     processChunk(textPart);
                                 } catch (parseError) { /* Ignore incomplete JSON */ }
                             }
@@ -1675,7 +1675,7 @@
 
             fileUploadInput.addEventListener('change', async (e) => {
                 if (!e.target.files || e.target.files.length === 0) return;
-                const file = e.target.files;
+                const file = e.target.files[0];
                 e.target.value = null;
 
                 if (file.size > 300 * 1024) {

@@ -142,9 +142,8 @@ export default async function handler(req) {
           { role: 'user', parts: [{ text: message }] }
         ],
         safetySettings,
-        // BUG FIX: Add generationConfig to prevent the stream from being cut off prematurely.
         generationConfig: {
-          maxOutputTokens: 65,536
+          maxOutputTokens: 65536
         },
       }),
     });

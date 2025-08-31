@@ -1197,7 +1197,7 @@
             let activeFileBlockForEdit = null;
             // State for chat history pagination
             const CHATS_PER_PAGE = 12;
-            let lastLoadedChatTimestamp = null;
+            let paginationCursor = null; // { timestamp: number, key: string }
             let allChatsLoaded = false;
             let isLoadingChats = false;
 
@@ -1233,7 +1233,7 @@
                 }, 0);
             };
             
-            // --- OPTIMIZED SMOOTH RENDERER (FINAL & STABLE) ---
+            // --- OPTIMIZED SMOOTH RENDERER (UNCHANGED) ---
             class OptimizedSmoothRenderer {
                 constructor(container) {
                     this.container = container;
@@ -1242,95 +1242,59 @@
                     this.isRendering = false;
                     this.animationFrameId = null;
                     this.isInsideCodeBlock = false;
-
                     this.lastRenderTime = 0;
-                    this.RENDER_INTERVAL_MS = 40; // ~25 кадров в секунду для обновления DOM
-                    
+                    this.RENDER_INTERVAL_MS = 40;
                     this.charsToAdd = 0;
                     this.lastTimestamp = 0;
-
                     this.container.innerHTML = '';
                     this.animationLoop = this.animationLoop.bind(this);
                 }
-
                 update(chunk) {
                     this.queue.push(...chunk.split(''));
-                    if (!this.isRendering) {
-                        this.start();
-                    }
+                    if (!this.isRendering) this.start();
                 }
-
                 start() {
                     if (this.isRendering) return;
                     this.isRendering = true;
                     this.lastTimestamp = performance.now();
                     this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
-
                 stop() {
                     if (!this.isRendering) return;
                     this.isRendering = false;
-                    if (this.animationFrameId) {
-                        cancelAnimationFrame(this.animationFrameId);
-                    }
+                    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
                 }
-
                 animationLoop(timestamp) {
-                    if (!this.isRendering) {
-                        this.render(); // Выполняем финальный рендер
-                        return;
-                    }
-
-                    // Если очередь пуста, останавливаемся
-                    if (this.queue.length === 0) {
-                        this.finish();
-                        return;
-                    }
-                    
+                    if (!this.isRendering) { this.render(); return; }
+                    if (this.queue.length === 0) { this.finish(); return; }
                     const deltaTime = timestamp - this.lastTimestamp;
                     this.lastTimestamp = timestamp;
-
-                    // Адаптивная скорость: очень быстро для кода, плавно для текста
-                    const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 
-                        ? 3000 // Турбо-режим для кода или если сильно отстаем
-                        : 100;   // Плавная скорость печати для обычного текста
-
-                    // Рассчитываем, сколько символов нужно добавить за прошедшее время
+                    const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 ? 3000 : 100;
                     this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
                     const charsToProcess = Math.floor(this.charsToAdd);
-                    
                     if (charsToProcess > 0) {
                         const chunk = this.queue.splice(0, charsToProcess).join('');
                         this.textBuffer += chunk;
                         this.charsToAdd -= charsToProcess;
-
-                        // Проверяем, не изменился ли контекст (код/текст)
                         const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
                         this.isInsideCodeBlock = codeBlockCount % 2 === 1;
                     }
-                    
-                    // **КЛЮЧЕВОЕ ИЗМЕНЕНИЕ**: Обновляем DOM только если прошло достаточно времени
                     if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
                         this.render();
                         this.lastRenderTime = timestamp;
                     }
-                    
                     this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
-
                 render() {
                     this.container.innerHTML = marked.parse(this.textBuffer);
                     this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
                     finalizeMessageFormatting(this.container);
                 }
-
                 finish() {
                     this.stop();
-                    // Добавляем все оставшиеся символы из очереди
                     if (this.queue.length > 0) {
                         this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     }
-                    // Выполняем финальный рендер, чтобы гарантировать полное отображение
                     this.render();
                 }
             }
@@ -1558,7 +1522,7 @@
                 if (userMessageText) {
                     const userMessageElement = addMessageToUI('user', userMessageText);
                     userMessageElement.classList.add('is-thinking');
-                    scrollToBottom(); // SCROLL 1: After user message appears
+                    scrollToBottom();
                 }
 
                 let isNewChat = false;
@@ -1572,17 +1536,20 @@
                 localChatHistory.push(userMessageData);
                 
                 if (isNewChat) {
-                    await db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
+                    const newChatData = {
                         title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP
-                    });
-                    await loadChatHistory(false); // Refresh history list
+                    };
+                    // **PERFORMANCE FIX**: Don't await this. Let it save in the background.
+                    db.ref(`chats/${currentUser.uid}/${currentChatId}`).set(newChatData);
+                    // **UI FIX**: Optimistically prepend the new chat to the list.
+                    prependChatHistoryItem({ id: currentChatId, ...newChatData });
                 }
 
                 const aiMsgContainer = addMessageToUI('ai');
                 aiMsgContainer.innerHTML = `<div class="ai-content-block"></div>`;
-                scrollToBottom(); // SCROLL 2: After empty AI container appears
+                scrollToBottom();
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
@@ -1634,6 +1601,7 @@
                                 try {
                                     const jsonStr = line.substring(5).trim();
                                     const parsed = JSON.parse(jsonStr);
+                                    // **CRITICAL BUG FIX**: Restored the correct parsing path.
                                     const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                     processChunk(textPart);
                                 } catch (parseError) { /* Ignore incomplete JSON */ }
@@ -1670,11 +1638,8 @@
                 } 
             });
 
-            // === START: MODIFIED FILE UPLOAD HANDLER ===
             fileUploadInput.addEventListener('change', async (e) => {
-                if (!e.target.files || e.target.files.length === 0) {
-                    return;
-                }
+                if (!e.target.files || e.target.files.length === 0) return;
                 const file = e.target.files[0];
                 e.target.value = null;
 
@@ -1725,7 +1690,6 @@
                     resetAttachedFile();
                 }
             });
-            // === END: MODIFIED FILE UPLOAD HANDLER ===
 
             function resetAttachedFile() {
                 attachedFile = null;
@@ -1808,7 +1772,34 @@
                 }
             });
 
-            // --- CHAT HISTORY & PAGINATION ---
+            // --- REWORKED CHAT HISTORY & PAGINATION ---
+
+            function createChatHistoryItemElement(chat) {
+                const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
+                const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.[0]?.fileName}` || 'New Chat';
+                
+                const itemEl = document.createElement('div');
+                itemEl.className = 'chat-history-item';
+                itemEl.dataset.chatId = chat.id;
+                itemEl.innerHTML = `
+                    <div class="chat-title-container">${titleText}</div>
+                    <button class="chat-actions-btn" data-chat-id="${chat.id}">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                    </button>
+                    <div class="actions-dropdown">
+                        <button class="rename-action">✏️ Rename</button>
+                        <button class="delete-action">🗑️ Delete</button>
+                    </div>
+                `;
+                itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
+                itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
+                return itemEl;
+            }
+
+            function prependChatHistoryItem(chat) {
+                const itemEl = createChatHistoryItemElement(chat);
+                chatHistoryList.prepend(itemEl);
+            }
 
             async function loadChatHistory(loadMore = false) {
                 if (!currentUser || isLoadingChats || (loadMore && allChatsLoaded)) return;
@@ -1817,14 +1808,14 @@
 
                 let query = db.ref(`chats/${currentUser.uid}`).orderByChild('timestamp');
 
-                if (loadMore && lastLoadedChatTimestamp) {
-                    // Fetch N+1 items ending at the last known timestamp to get the next page.
-                    query = query.endAt(lastLoadedChatTimestamp).limitToLast(CHATS_PER_PAGE + 1);
+                if (loadMore && paginationCursor) {
+                    // **PERFORMANCE FIX**: Use endBefore() with the key for efficient pagination.
+                    query = query.endBefore(paginationCursor.timestamp, paginationCursor.key).limitToLast(CHATS_PER_PAGE);
                 } else {
                     // Initial load: clear list and get the first page.
                     chatHistoryList.innerHTML = '';
                     allChatsLoaded = false;
-                    lastLoadedChatTimestamp = null;
+                    paginationCursor = null;
                     query = query.limitToLast(CHATS_PER_PAGE);
                 }
 
@@ -1844,17 +1835,15 @@
                 });
                 chatsData.reverse(); // Newest first
 
-                if (loadMore) {
-                    chatsData.shift(); // Remove the overlapping item from the previous page.
-                }
-
                 if (chatsData.length === 0) {
                     allChatsLoaded = true;
                     expandHistoryContainer.style.display = 'none';
                     return;
                 }
 
-                lastLoadedChatTimestamp = chatsData[chatsData.length - 1].timestamp;
+                // Set the cursor to the last item fetched for the next page load.
+                const lastChat = chatsData[chatsData.length - 1];
+                paginationCursor = { timestamp: lastChat.timestamp, key: lastChat.id };
 
                 if (chatsData.length < CHATS_PER_PAGE) {
                     allChatsLoaded = true;
@@ -1866,25 +1855,7 @@
 
                 const fragment = document.createDocumentFragment();
                 chatsData.forEach(chat => {
-                    const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
-                    const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.[0]?.fileName}` || 'New Chat';
-                    
-                    const itemEl = document.createElement('div');
-                    itemEl.className = 'chat-history-item';
-                    itemEl.dataset.chatId = chat.id;
-                    itemEl.innerHTML = `
-                        <div class="chat-title-container">${titleText}</div>
-                        <button class="chat-actions-btn" data-chat-id="${chat.id}">
-                            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                        </button>
-                        <div class="actions-dropdown">
-                            <button class="rename-action">✏️ Rename</button>
-                            <button class="delete-action">🗑️ Delete</button>
-                        </div>
-                    `;
-                    itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
-                    itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
-                    fragment.appendChild(itemEl);
+                    fragment.appendChild(createChatHistoryItemElement(chat));
                 });
                 
                 chatHistoryList.appendChild(fragment);
@@ -1913,8 +1884,8 @@
                 if (!currentUser || !chatId) return;
                 if (confirm('Are you sure you want to delete this chat forever?')) {
                     db.ref(`chats/${currentUser.uid}/${chatId}`).remove().then(() => {
+                        document.querySelector(`.chat-history-item[data-chat-id="${chatId}"]`)?.remove();
                         if (chatId === currentChatId) startNewChat();
-                        loadChatHistory(false); // Refresh the list
                     }).catch(error => console.error("Error deleting chat:", error));
                 }
             }

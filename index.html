@@ -1355,7 +1355,13 @@
                 }
             };
 
-            auth.onAuthStateChanged(updateUIForAuthState);
+            auth.onAuthStateChanged(user => {
+                updateUIForAuthState(user);
+                // --- THIS IS THE FIX ---
+                // No matter if the user is logged in or out, the check is complete.
+                // Remove the class to reveal the UI in its correct state.
+                document.body.classList.remove('is-authenticating');
+            });
 
             function addMessageToUI(sender, content = '', isHtml = false) {
                 const m = document.createElement('div');

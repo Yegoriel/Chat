@@ -144,7 +144,7 @@ export default async function handler(req) {
         safetySettings,
         generationConfig: {
           maxOutputTokens: 65536
-        },
+        } // <-- VERCEL BUILD FIX: Removed trailing comma here
       }),
     });
 

@@ -1537,13 +1537,11 @@
                 
                 if (isNewChat) {
                     const newChatData = {
-                        title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
+                        title: userMessageText.substring(0, 35) || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     };
-                    // **PERFORMANCE FIX**: Don't await this. Let it save in the background.
                     db.ref(`chats/${currentUser.uid}/${currentChatId}`).set(newChatData);
-                    // **UI FIX**: Optimistically prepend the new chat to the list.
                     prependChatHistoryItem({ id: currentChatId, ...newChatData });
                 }
 
@@ -1601,8 +1599,8 @@
                                 try {
                                     const jsonStr = line.substring(5).trim();
                                     const parsed = JSON.parse(jsonStr);
-                                    // **CRITICAL BUG FIX**: Restored the correct parsing path.
-                                    const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    // **DEFINITIVE BUG FIX**: The one and only correct parsing path.
+                                   const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                     processChunk(textPart);
                                 } catch (parseError) { /* Ignore incomplete JSON */ }
                             }
@@ -1772,7 +1770,7 @@
                 }
             });
 
-            // --- REWORKED CHAT HISTORY & PAGINATION ---
+            // --- RE-ARCHITECTED CHAT HISTORY & PAGINATION ---
 
             function createChatHistoryItemElement(chat) {
                 const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
@@ -1791,8 +1789,6 @@
                         <button class="delete-action">🗑️ Delete</button>
                     </div>
                 `;
-                itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
-                itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
                 return itemEl;
             }
 
@@ -1809,75 +1805,83 @@
                 let query = db.ref(`chats/${currentUser.uid}`).orderByChild('timestamp');
 
                 if (loadMore && paginationCursor) {
-                    // **PERFORMANCE FIX**: Use endBefore() with the key for efficient pagination.
                     query = query.endBefore(paginationCursor.timestamp, paginationCursor.key).limitToLast(CHATS_PER_PAGE);
                 } else {
-                    // Initial load: clear list and get the first page.
                     chatHistoryList.innerHTML = '';
                     allChatsLoaded = false;
                     paginationCursor = null;
                     query = query.limitToLast(CHATS_PER_PAGE);
                 }
 
-                const snapshot = await query.once('value');
-                isLoadingChats = false;
-                expandHistoryBtn.textContent = 'Expand History';
+                try {
+                    const snapshot = await query.once('value');
+                    if (!snapshot.exists()) {
+                        allChatsLoaded = true;
+                        expandHistoryContainer.style.display = 'none';
+                        return;
+                    }
 
-                if (!snapshot.exists()) {
-                    allChatsLoaded = true;
-                    expandHistoryContainer.style.display = 'none';
-                    return;
+                    const chatsData = [];
+                    snapshot.forEach(child => {
+                        chatsData.push({ id: child.key, ...child.val() });
+                    });
+                    chatsData.reverse();
+
+                    if (chatsData.length > 0) {
+                        const lastChat = chatsData[chatsData.length - 1];
+                        paginationCursor = { timestamp: lastChat.timestamp, key: lastChat.id };
+                    }
+
+                    allChatsLoaded = chatsData.length < CHATS_PER_PAGE;
+                    expandHistoryContainer.style.display = allChatsLoaded ? 'none' : 'block';
+
+                    const fragment = document.createDocumentFragment();
+                    chatsData.forEach(chat => {
+                        fragment.appendChild(createChatHistoryItemElement(chat));
+                    });
+                    
+                    chatHistoryList.appendChild(fragment);
+                    updateActiveChatSelection(currentChatId);
+                } catch (error) {
+                    console.error("Error loading chat history:", error);
+                } finally {
+                    isLoadingChats = false;
+                    expandHistoryBtn.textContent = 'Expand History';
                 }
-
-                const chatsData = [];
-                snapshot.forEach(child => {
-                    chatsData.push({ id: child.key, ...child.val() });
-                });
-                chatsData.reverse(); // Newest first
-
-                if (chatsData.length === 0) {
-                    allChatsLoaded = true;
-                    expandHistoryContainer.style.display = 'none';
-                    return;
-                }
-
-                // Set the cursor to the last item fetched for the next page load.
-                const lastChat = chatsData[chatsData.length - 1];
-                paginationCursor = { timestamp: lastChat.timestamp, key: lastChat.id };
-
-                if (chatsData.length < CHATS_PER_PAGE) {
-                    allChatsLoaded = true;
-                    expandHistoryContainer.style.display = 'none';
-                } else {
-                    allChatsLoaded = false;
-                    expandHistoryContainer.style.display = 'block';
-                }
-
-                const fragment = document.createDocumentFragment();
-                chatsData.forEach(chat => {
-                    fragment.appendChild(createChatHistoryItemElement(chat));
-                });
-                
-                chatHistoryList.appendChild(fragment);
-                updateActiveChatSelection(currentChatId);
             }
             
             expandHistoryBtn.addEventListener('click', () => loadChatHistory(true));
 
+            // **ROBUST EVENT HANDLING**: Use event delegation.
             chatHistoryList.addEventListener('click', (e) => {
+                if (isLoadingChats || isRenaming) return;
+
                 const item = e.target.closest('.chat-history-item');
                 if (!item) return;
+
                 const actionsBtn = e.target.closest('.chat-actions-btn');
+                const renameAction = e.target.closest('.rename-action');
+                const deleteAction = e.target.closest('.delete-action');
+
                 if (actionsBtn) {
                     e.stopPropagation();
                     const dropdown = item.querySelector('.actions-dropdown');
                     if (activeDropdown && activeDropdown !== dropdown) activeDropdown.style.display = 'none';
                     dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
                     activeDropdown = dropdown.style.display === 'block' ? dropdown : null;
-                    return;
+                } else if (renameAction) {
+                    e.stopPropagation();
+                    if (activeDropdown) activeDropdown.style.display = 'none';
+                    activeDropdown = null;
+                    handleRenameChat(item.dataset.chatId, item.querySelector('.chat-title-container'));
+                } else if (deleteAction) {
+                    e.stopPropagation();
+                    if (activeDropdown) activeDropdown.style.display = 'none';
+                    activeDropdown = null;
+                    handleDeleteChat(item.dataset.chatId);
+                } else {
+                    loadChat(item.dataset.chatId);
                 }
-                if (isRenaming) return;
-                loadChat(item.dataset.chatId);
             });
 
             function handleDeleteChat(chatId) {

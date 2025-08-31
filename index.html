@@ -1,35 +1,3 @@
-You are absolutely correct. Your analysis is spot on, and I sincerely apologize for this critical oversight. This is a classic and severe race condition bug, and it is completely unacceptable.
-
-The behavior you described is exactly what is happening:
-
-1.  You select a file. The UI **instantly** shows the filename.
-2.  However, the actual process of reading the file's content (especially for large files, PDFs, or DOCX) is **asynchronous** and takes time.
-3.  The application gives you no clear signal that it's still busy reading the content. The "Send" button is active.
-4.  You type a message and hit "Send" *before* the file reading is complete.
-5.  The `handleSendMessage` function runs, sees that the `attachedFile` variable is still `null`, and sends your message to the AI **without any file context**.
-6.  The AI receives only your text message, gets confused, and gives a non-response, while the `is-thinking` animation plays out because a request was indeed made.
-
-This is a major flaw in the user experience and the application's logic.
-
-### The Definitive, Professional Solution
-
-The solution is to introduce a proper "file processing" state. While the application is reading and processing the file content, the user **must be prevented** from sending a message, and the UI must clearly communicate this state.
-
-I have implemented the following robust fixes:
-
-1.  **UI Lock During File Processing:** As soon as you select a file, the "Send" button and the text input field are now **immediately disabled**.
-2.  **Clear Visual Feedback:**
-    *   The placeholder text in the input changes to "Processing file..."
-    *   I have added a simple, clean SVG spinner that appears next to the filename to make it obvious that a background task is running.
-3.  **Robust State Reset:** Using a `finally` block, I guarantee that the "Send" button and input field are **always re-enabled** after the processing is complete, even if the file reader encounters an error. This prevents the UI from ever getting stuck in a disabled state.
-
-These changes completely eliminate the race condition and make the file upload process reliable and transparent for the user. I have integrated these fixes into the complete `index.html` file below. All other working parts (your renderer, the mobile drag logic, etc.) remain untouched.
-
-***
-
-### Исправленный файл: `index.html`
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -590,15 +558,6 @@ These changes completely eliminate the race condition and make the file upload p
         #remove-file-btn {
             background: none; border: none; cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 0;
             color: var(--text-color);
-        }
-        .file-spinner {
-            width: 14px;
-            height: 14px;
-            border: 2px solid var(--scrollbar-thumb-color);
-            border-top-color: var(--text-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 4px;
         }
 
         .scroll-controls { position: fixed; right: 20px; bottom: 120px; z-index: 100; display: none; flex-direction: column; gap: 8px; }
@@ -1164,7 +1123,6 @@ These changes completely eliminate the race condition and make the file upload p
                 <div id="chat-input-area">
                     <div id="chat-form-container">
                         <div id="attached-file-info">
-                            <span id="file-spinner-container"></span>
                             <span id="attached-file-name"></span>
                             <button id="remove-file-btn" title="Remove file">&times;</button>
                         </div>
@@ -1253,7 +1211,6 @@ These changes completely eliminate the race condition and make the file upload p
             const chatHistoryList = document.getElementById('chat-history-list'),
                 chatForm = document.getElementById('chat-form'),
                 chatInput = document.getElementById('chat-input'),
-                sendBtn = document.getElementById('send-btn'), // Added for direct access
                 chatMessages = document.getElementById('chat-messages'),
                 userAvatar = document.getElementById('user-avatar'),
                 sidebar = document.getElementById('sidebar'),
@@ -1264,7 +1221,6 @@ These changes completely eliminate the race condition and make the file upload p
                 fileUploadInput = document.getElementById('file-upload-input'),
                 attachedFileInfo = document.getElementById('attached-file-info'),
                 attachedFileName = document.getElementById('attached-file-name'),
-                fileSpinnerContainer = document.getElementById('file-spinner-container'),
                 removeFileBtn = document.getElementById('remove-file-btn'),
                 editorModalOverlay = document.getElementById('editor-modal-overlay'),
                 editorFilename = document.getElementById('editor-filename'),
@@ -1709,7 +1665,6 @@ These changes completely eliminate the race condition and make the file upload p
                 } 
             });
 
-            // --- DEFINITIVE FILE UPLOAD HANDLER WITH RACE CONDITION FIX ---
             fileUploadInput.addEventListener('change', async (e) => {
                 if (!e.target.files || e.target.files.length === 0) return;
                 const file = e.target.files[0];
@@ -1720,16 +1675,11 @@ These changes completely eliminate the race condition and make the file upload p
                     return;
                 }
 
-                // --- UI LOCK & FEEDBACK ---
-                sendBtn.disabled = true;
-                chatInput.disabled = true;
-                chatInput.placeholder = 'Processing file...';
-                attachedFileInfo.style.display = 'flex';
-                fileSpinnerContainer.innerHTML = `<div class="file-spinner"></div>`;
-                attachedFileName.textContent = file.name;
-
+                let fileContent = '';
                 try {
-                    let fileContent = '';
+                    attachedFileName.textContent = `Reading ${file.name}...`;
+                    attachedFileInfo.style.display = 'flex';
+
                     if (file.type === 'application/pdf') {
                         const arrayBuffer = await file.arrayBuffer();
                         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
@@ -1758,20 +1708,13 @@ These changes completely eliminate the race condition and make the file upload p
                         name: file.name,
                         content: fileContent.trim()
                     };
+                    attachedFileName.textContent = file.name;
                     chatInput.placeholder = "Message AI about the file...";
 
                 } catch (error) {
                     console.error("Error reading file:", error);
                     alert('Sorry, there was an error processing that file.');
-                    resetAttachedFile(); // Clear UI on error
-                } finally {
-                    // --- ROBUST UI UNLOCK ---
-                    sendBtn.disabled = false;
-                    chatInput.disabled = false;
-                    fileSpinnerContainer.innerHTML = ''; // Remove spinner
-                    if (!attachedFile) { // If there was an error
-                        chatInput.placeholder = "Message AI...";
-                    }
+                    resetAttachedFile();
                 }
             });
 
@@ -1779,7 +1722,6 @@ These changes completely eliminate the race condition and make the file upload p
                 attachedFile = null;
                 attachedFileInfo.style.display = 'none';
                 attachedFileName.textContent = '';
-                fileSpinnerContainer.innerHTML = '';
                 chatInput.placeholder = "Message AI...";
             }
             removeFileBtn.addEventListener('click', resetAttachedFile);
@@ -2101,6 +2043,7 @@ These changes completely eliminate the race condition and make the file upload p
                 if (!document.body.classList.contains('is-mobile')) return;
                 if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list, pre, .file-content-body')) return;
 
+                // BUG FIX: Correctly reference the first touch point.
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
@@ -2117,6 +2060,7 @@ These changes completely eliminate the race condition and make the file upload p
             const dragMove = (e) => {
                 if (!isDragging) return;
 
+                // BUG FIX: Correctly reference the first touch point.
                 const t = e.type === 'touchmove' ? e.touches[0] : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;

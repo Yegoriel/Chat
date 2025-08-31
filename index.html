@@ -330,11 +330,15 @@
             color: var(--text-secondary);
             font-size: 0.8rem;
             font-weight: 500;
-            transition: background-color 0.2s, border-color 0.2s;
+            transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
         }
-        #expand-history-btn:hover {
+        #expand-history-btn:hover:not(:disabled) {
             background-color: var(--sidebar-hover-bg);
             border-color: var(--scrollbar-thumb-hover-color);
+        }
+        #expand-history-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
@@ -1200,6 +1204,7 @@
             let paginationCursor = null; // { timestamp: number, key: string }
             let allChatsLoaded = false;
             let isLoadingChats = false;
+            let initialHistoryLoaded = false; // **BUG FIX**: State to prevent duplication race condition.
 
 
             // --- DOM ELEMENTS ---
@@ -1233,69 +1238,71 @@
                 }, 0);
             };
             
-            // --- OPTIMIZED SMOOTH RENDERER (UNCHANGED) ---
-            class OptimizedSmoothRenderer {
+            // --- DEFINITIVE RENDERER: PROFESSIONAL, SMOOTH, AND RELIABLE ---
+            class ProfessionalRenderer {
                 constructor(container) {
                     this.container = container;
-                    this.textBuffer = '';
                     this.queue = [];
-                    this.isRendering = false;
+                    this.displayedBuffer = '';
                     this.animationFrameId = null;
-                    this.isInsideCodeBlock = false;
-                    this.lastRenderTime = 0;
-                    this.RENDER_INTERVAL_MS = 40;
-                    this.charsToAdd = 0;
-                    this.lastTimestamp = 0;
+                    this.isFinishing = false;
                     this.container.innerHTML = '';
                     this.animationLoop = this.animationLoop.bind(this);
                 }
+
                 update(chunk) {
                     this.queue.push(...chunk.split(''));
-                    if (!this.isRendering) this.start();
+                    if (!this.animationFrameId) {
+                        this.start();
+                    }
                 }
+
                 start() {
-                    if (this.isRendering) return;
-                    this.isRendering = true;
-                    this.lastTimestamp = performance.now();
                     this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
+
                 stop() {
-                    if (!this.isRendering) return;
-                    this.isRendering = false;
-                    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+                    if (this.animationFrameId) {
+                        cancelAnimationFrame(this.animationFrameId);
+                        this.animationFrameId = null;
+                    }
                 }
-                animationLoop(timestamp) {
-                    if (!this.isRendering) { this.render(); return; }
-                    if (this.queue.length === 0) { this.finish(); return; }
-                    const deltaTime = timestamp - this.lastTimestamp;
-                    this.lastTimestamp = timestamp;
-                    const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 ? 3000 : 100;
-                    this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
-                    const charsToProcess = Math.floor(this.charsToAdd);
-                    if (charsToProcess > 0) {
-                        const chunk = this.queue.splice(0, charsToProcess).join('');
-                        this.textBuffer += chunk;
-                        this.charsToAdd -= charsToProcess;
-                        const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
-                        this.isInsideCodeBlock = codeBlockCount % 2 === 1;
+
+                animationLoop() {
+                    if (this.queue.length === 0) {
+                        if (this.isFinishing) {
+                            this.stop();
+                            return;
+                        }
+                        this.animationFrameId = requestAnimationFrame(this.animationLoop);
+                        return;
                     }
-                    if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
-                        this.render();
-                        this.lastRenderTime = timestamp;
+
+                    // Adaptive Batching: Smoothly accelerate when the queue is long or when finishing.
+                    let batchSize = 1;
+                    if (this.isFinishing) {
+                        batchSize = 25; // Drain the queue quickly
+                    } else if (this.queue.length > 100) {
+                        batchSize = Math.min(10, 1 + Math.floor(this.queue.length / 50)); // Gentle, bounded acceleration
                     }
+
+                    const chunk = this.queue.splice(0, batchSize).join('');
+                    this.displayedBuffer += chunk;
+                    this.render();
+
                     this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
+
                 render() {
-                    this.container.innerHTML = marked.parse(this.textBuffer);
-                    this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
+                    this.container.innerHTML = marked.parse(this.displayedBuffer);
+                    this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => {
+                        hljs.highlightElement(el);
+                    });
                     finalizeMessageFormatting(this.container);
                 }
+
                 finish() {
-                    this.stop();
-                    if (this.queue.length > 0) {
-                        this.textBuffer += this.queue.splice(0, this.queue.length).join('');
-                    }
-                    this.render();
+                    this.isFinishing = true;
                 }
             }
 
@@ -1306,7 +1313,7 @@
                     currentUser = user;
                     document.body.classList.add('logged-in');
                     userAvatar.src = currentUser.photoURL || '';
-                    loadChatHistory(false); // Initial chat history load
+                    loadChatHistory(false);
                     const lastChatId = localStorage.getItem('lastChatId');
                     loadChat(lastChatId || null);
                 } else {
@@ -1315,6 +1322,7 @@
                     document.body.classList.add('initial-state');
                     chatHistoryList.innerHTML = '';
                     expandHistoryContainer.style.display = 'none';
+                    initialHistoryLoaded = false; // Reset on logout
                     chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
                     document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
@@ -1441,12 +1449,7 @@
                     thinkingBubble.classList.remove('is-thinking');
                 }
                 
-                try {
-                    renderer.finish();
-                } catch (e) {
-                    console.error("Error during final render:", e);
-                    renderer.container.innerText = finalText;
-                }
+                renderer.finish();
 
                 setStreamingState(false);
                 
@@ -1551,7 +1554,7 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new OptimizedSmoothRenderer(contentBlock);
+                const renderer = new ProfessionalRenderer(contentBlock);
                 
                 fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
@@ -1599,8 +1602,7 @@
                                 try {
                                     const jsonStr = line.substring(5).trim();
                                     const parsed = JSON.parse(jsonStr);
-                                    // **DEFINITIVE BUG FIX**: The one and only correct parsing path.
-                                   const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                                     processChunk(textPart);
                                 } catch (parseError) { /* Ignore incomplete JSON */ }
                             }
@@ -1793,20 +1795,29 @@
             }
 
             function prependChatHistoryItem(chat) {
+                // **BUG FIX**: Only prepend if the initial history is already loaded to prevent duplication.
+                if (!initialHistoryLoaded) return;
+                // **BUG FIX**: Add a guard clause to prevent duplicate chat items in the UI.
+                if (document.querySelector(`.chat-history-item[data-chat-id="${chat.id}"]`)) return;
                 const itemEl = createChatHistoryItemElement(chat);
                 chatHistoryList.prepend(itemEl);
             }
 
             async function loadChatHistory(loadMore = false) {
-                if (!currentUser || isLoadingChats || (loadMore && allChatsLoaded)) return;
+                if (!currentUser || (loadMore && (isLoadingChats || allChatsLoaded))) return;
                 isLoadingChats = true;
-                if (loadMore) expandHistoryBtn.textContent = 'Loading...';
+                
+                if (loadMore) {
+                    expandHistoryBtn.textContent = 'Loading...';
+                    expandHistoryBtn.disabled = true;
+                }
 
                 let query = db.ref(`chats/${currentUser.uid}`).orderByChild('timestamp');
 
                 if (loadMore && paginationCursor) {
                     query = query.endBefore(paginationCursor.timestamp, paginationCursor.key).limitToLast(CHATS_PER_PAGE);
                 } else {
+                    initialHistoryLoaded = false; // Mark that the first load is in progress
                     chatHistoryList.innerHTML = '';
                     allChatsLoaded = false;
                     paginationCursor = null;
@@ -1846,15 +1857,20 @@
                     console.error("Error loading chat history:", error);
                 } finally {
                     isLoadingChats = false;
-                    expandHistoryBtn.textContent = 'Expand History';
+                    if (!loadMore) {
+                        initialHistoryLoaded = true; // **BUG FIX**: Mark that the first load is complete.
+                    }
+                    if (loadMore) {
+                        expandHistoryBtn.textContent = 'Expand History';
+                        expandHistoryBtn.disabled = false;
+                    }
                 }
             }
             
             expandHistoryBtn.addEventListener('click', () => loadChatHistory(true));
 
-            // **ROBUST EVENT HANDLING**: Use event delegation.
             chatHistoryList.addEventListener('click', (e) => {
-                if (isLoadingChats || isRenaming) return;
+                if (isRenaming) return;
 
                 const item = e.target.closest('.chat-history-item');
                 if (!item) return;
@@ -1994,6 +2010,7 @@
                 }
             }
             
+            // --- PRESERVED MOBILE DRAG LOGIC ---
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
             const dragThreshold = 10;
 
@@ -2001,7 +2018,7 @@
                 if (!document.body.classList.contains('is-mobile')) return;
                 if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list, pre, .file-content-body')) return;
 
-                const t = e.type === 'touchstart' ? e.touches : e;
+                const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
                 if (!isOpen && t.clientX > (window.innerWidth / 3)) return;
@@ -2017,7 +2034,7 @@
             const dragMove = (e) => {
                 if (!isDragging) return;
 
-                const t = e.type === 'touchmove' ? e.touches : e;
+                const t = e.type === 'touchmove' ? e.touches[0] : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;
 

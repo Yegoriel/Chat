@@ -1238,71 +1238,106 @@
                 }, 0);
             };
             
-            // --- DEFINITIVE RENDERER: PROFESSIONAL, SMOOTH, AND RELIABLE ---
-            class ProfessionalRenderer {
+            // --- REVERTED TO USER'S PREFERRED RENDERER ---
+            class OptimizedSmoothRenderer {
                 constructor(container) {
                     this.container = container;
+                    this.textBuffer = '';
                     this.queue = [];
-                    this.displayedBuffer = '';
+                    this.isRendering = false;
                     this.animationFrameId = null;
-                    this.isFinishing = false;
+                    this.isInsideCodeBlock = false;
+
+                    this.lastRenderTime = 0;
+                    this.RENDER_INTERVAL_MS = 40; // ~25 FPS for DOM updates
+                    
+                    this.charsToAdd = 0;
+                    this.lastTimestamp = 0;
+
                     this.container.innerHTML = '';
                     this.animationLoop = this.animationLoop.bind(this);
                 }
 
                 update(chunk) {
                     this.queue.push(...chunk.split(''));
-                    if (!this.animationFrameId) {
+                    if (!this.isRendering) {
                         this.start();
                     }
                 }
 
                 start() {
+                    if (this.isRendering) return;
+                    this.isRendering = true;
+                    this.lastTimestamp = performance.now();
                     this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
 
                 stop() {
+                    if (!this.isRendering) return;
+                    this.isRendering = false;
                     if (this.animationFrameId) {
                         cancelAnimationFrame(this.animationFrameId);
-                        this.animationFrameId = null;
                     }
                 }
 
-                animationLoop() {
-                    if (this.queue.length === 0) {
-                        if (this.isFinishing) {
-                            this.stop();
-                            return;
-                        }
-                        this.animationFrameId = requestAnimationFrame(this.animationLoop);
+                animationLoop(timestamp) {
+                    if (!this.isRendering) {
+                        this.render(); // Final render
                         return;
                     }
 
-                    // Adaptive Batching: Smoothly accelerate when the queue is long or when finishing.
-                    let batchSize = 1;
-                    if (this.isFinishing) {
-                        batchSize = 25; // Drain the queue quickly
-                    } else if (this.queue.length > 100) {
-                        batchSize = Math.min(10, 1 + Math.floor(this.queue.length / 50)); // Gentle, bounded acceleration
+                    if (this.queue.length === 0) {
+                        // If the stream is finished, the finish() method handles the final state.
+                        // If not finished, just wait for more data.
+                        if (this.isFinished) {
+                           this.finish();
+                        } else {
+                           this.animationFrameId = requestAnimationFrame(this.animationLoop);
+                        }
+                        return;
                     }
+                    
+                    const deltaTime = timestamp - this.lastTimestamp;
+                    this.lastTimestamp = timestamp;
 
-                    const chunk = this.queue.splice(0, batchSize).join('');
-                    this.displayedBuffer += chunk;
-                    this.render();
+                    const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 
+                        ? 3000 // Turbo mode for code or catching up
+                        : 100;   // Smooth typing for regular text
 
+                    this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
+                    const charsToProcess = Math.floor(this.charsToAdd);
+                    
+                    if (charsToProcess > 0) {
+                        const chunk = this.queue.splice(0, charsToProcess).join('');
+                        this.textBuffer += chunk;
+                        this.charsToAdd -= charsToProcess;
+
+                        const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
+                        this.isInsideCodeBlock = codeBlockCount % 2 === 1;
+                    }
+                    
+                    if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
+                        this.render();
+                        this.lastRenderTime = timestamp;
+                    }
+                    
                     this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
 
                 render() {
-                    this.container.innerHTML = marked.parse(this.displayedBuffer);
-                    this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => {
-                        hljs.highlightElement(el);
-                    });
+                    this.container.innerHTML = marked.parse(this.textBuffer);
+                    this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
                     finalizeMessageFormatting(this.container);
                 }
 
                 finish() {
-                    this.isFinishing = true;
+                    this.isFinished = true; // Signal that the stream is done
+                    this.stop();
+                    if (this.queue.length > 0) {
+                        this.textBuffer += this.queue.splice(0, this.queue.length).join('');
+                    }
+                    // Perform one final, complete render.
+                    this.render();
                 }
             }
 
@@ -1554,7 +1589,7 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-                const renderer = new ProfessionalRenderer(contentBlock);
+                const renderer = new OptimizedSmoothRenderer(contentBlock);
                 
                 fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
@@ -1602,7 +1637,7 @@
                                 try {
                                     const jsonStr = line.substring(5).trim();
                                     const parsed = JSON.parse(jsonStr);
-                                    const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    const textPart = parsed.candidates?.?.content?.parts?.?.text;
                                     processChunk(textPart);
                                 } catch (parseError) { /* Ignore incomplete JSON */ }
                             }
@@ -1640,7 +1675,7 @@
 
             fileUploadInput.addEventListener('change', async (e) => {
                 if (!e.target.files || e.target.files.length === 0) return;
-                const file = e.target.files[0];
+                const file = e.target.files;
                 e.target.value = null;
 
                 if (file.size > 300 * 1024) {
@@ -2018,7 +2053,7 @@
                 if (!document.body.classList.contains('is-mobile')) return;
                 if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list, pre, .file-content-body')) return;
 
-                const t = e.type === 'touchstart' ? e.touches[0] : e;
+                const t = e.type === 'touchstart' ? e.touches : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
                 if (!isOpen && t.clientX > (window.innerWidth / 3)) return;
@@ -2034,7 +2069,7 @@
             const dragMove = (e) => {
                 if (!isDragging) return;
 
-                const t = e.type === 'touchmove' ? e.touches[0] : e;
+                const t = e.type === 'touchmove' ? e.touches : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;
 

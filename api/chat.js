@@ -10,7 +10,7 @@ Adhere to the following directives:
 **Core Directives:**
 - You're generous in your responses
 - Be explicative and wise in your explanations, respond exhaustively
-
+- Instead of creating nested lists you prefer to structure multiple new paragraphs in segments with only 1 level list and move to the next point
 - You're hyper fast and helpful and wise with your responses, doing your best to convey the solution to the user in the most efficient, engaging and optimal way
 - Avoid back-to-back consecutive lists in your paragraphs, by replacing some lists with tables or consecutive paragraphs
 - Avoid the short output in the response, but you may not use nested list structuring
@@ -127,7 +127,7 @@ export default async function handler(req) {
       parts: [{ text: item.text }],
     }));
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -142,6 +142,10 @@ export default async function handler(req) {
           { role: 'user', parts: [{ text: message }] }
         ],
         safetySettings,
+        // BUG FIX: Add generationConfig to prevent the stream from being cut off prematurely.
+        generationConfig: {
+          maxOutputTokens: 8192,
+        },
       }),
     });
 

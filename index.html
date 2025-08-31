@@ -131,7 +131,7 @@
             --text-color: #0d0d0d;
             --text-secondary: #5d5d5d;
             --primary-accent: #1a1a1a;
-            --sidebar-bg: #f9f9fa;
+            --sidebar-bg: #fbfbfc;
             --sidebar-hover-bg: #ececf1;
             --border-color: #e5e5e5;
             --user-msg-bg: #f0f2f5;
@@ -153,7 +153,7 @@
             --text-color: #e5e5e5;
             --text-secondary: #a0a0a0;
             --primary-accent: #f5f5f5;
-            --sidebar-bg: #2a2a2e;
+            --sidebar-bg: #2c2d30;
             --sidebar-hover-bg: #38383c;
             --border-color: #3a3a3a;
             --user-msg-bg: #3a3a3a;
@@ -204,22 +204,13 @@
             transition: background-color 0.3s, border-color 0.3s, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; transition: border-color 0.3s; }
-        .sidebar-header h2 { margin: 0; font-size: 1.1rem; user-select: none; -webkit-user-select: none; white-space: nowrap; }
-        .sidebar-header-actions { display: flex; align-items: center; gap: 0.25rem; }
+        .sidebar-header { padding: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: flex-end; align-items: center; transition: border-color 0.3s; }
+        .sidebar-header h2 { display: none; }
+        .sidebar-header-actions { display: flex; align-items: center; gap: 0.25rem; width: 100%; justify-content: flex-end; }
+        .is-desktop #sidebar:not(.is-collapsed) .sidebar-header-actions { justify-content: space-between; }
         .sidebar-action-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--text-color); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; transition: color 0.3s, background-color 0.2s; }
         .sidebar-action-btn:hover { background-color: rgba(0,0,0,0.05); }
         body.dark-theme .sidebar-action-btn:hover { background-color: rgba(255,255,255,0.05); }
-
-        #new-chat-item {
-            margin: 0 0.5rem 0.5rem 0.5rem;
-            border-radius: 8px;
-        }
-        #new-chat-item .item-icon {
-            width: 20px;
-            height: 20px;
-            margin-right: 0.75rem;
-        }
 
         #pin-sidebar-btn .pin-icon, #pin-sidebar-btn .unpin-icon { display: none; }
         #sidebar.is-pinned #pin-sidebar-btn .unpin-icon, #sidebar:not(.is-pinned) #pin-sidebar-btn .pin-icon { display: block; }
@@ -233,11 +224,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.75rem;
             cursor: pointer;
             white-space: nowrap;
             font-size: 0.875rem;
-            margin: 0 0.5rem;
+            margin: 0.1rem 0.5rem;
             border-radius: 8px;
             transition: background-color 0.2s ease;
         }
@@ -301,11 +292,10 @@
         #chat-header, #menu-toggle, #sidebar-close-btn, #pin-sidebar-btn { display: none; }
 
         .is-desktop #sidebar { width: var(--sidebar-width); }
-        .is-desktop #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); }
+        .is-desktop #sidebar.is-collapsed { width: var(--sidebar-collapsed-width); background-color: var(--background-color); }
 
         .is-desktop #chat-area.sidebar-collapsed { --thread-width: var(--chat-content-expanded-width); }
 
-        .sidebar-header h2,
         .chat-title-container,
         #logout-text,
         .chat-actions-btn {
@@ -317,13 +307,34 @@
             transition-delay: 0.1s;
         }
 
-        .is-desktop #sidebar.is-collapsed .sidebar-header h2,
         .is-desktop #sidebar.is-collapsed .chat-title-container,
         .is-desktop #sidebar.is-collapsed #logout-text,
-        .is-desktop #sidebar.is-collapsed .chat-actions-btn {
+        .is-desktop #sidebar.is-collapsed .chat-actions-btn,
+        .is-desktop #sidebar.is-collapsed #expand-history-container {
             opacity: 0;
             pointer-events: none;
             transition-delay: 0s;
+        }
+
+        #expand-history-container {
+            padding: 0.5rem;
+            display: none;
+        }
+        #expand-history-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        #expand-history-btn:hover {
+            background-color: var(--sidebar-hover-bg);
+            border-color: var(--scrollbar-thumb-hover-color);
         }
 
         .is-desktop #chat-area { margin-left: var(--sidebar-width); }
@@ -1062,8 +1073,10 @@
         <div id="sidebar-overlay"></div>
         <aside id="sidebar">
             <div class="sidebar-header">
-                <h2>Chat History</h2>
                 <div class="sidebar-header-actions">
+                    <button id="new-chat-btn" class="sidebar-action-btn" title="New Chat">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.293 2.293a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1 0 1.414l-13 13A1 1 0 0 1 8 21H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 .293-.707l13-13zM15 6l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
                     <button id="pin-sidebar-btn" class="sidebar-action-btn" title="Pin Sidebar">
                         <span class="pin-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 3H8C6.34315 3 5 4.34315 5 6V14C5 15.6569 6.34315 17 8 17H16C17.6569 17 19 15.6569 19 14V6C19 4.34315 17.6569 3 16 3ZM12 17V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -1076,10 +1089,10 @@
                 </div>
             </div>
             <div id="chat-history-list">
-                <div id="new-chat-item" class="chat-history-item">
-                    <svg class="item-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <div class="chat-title-container">New Chat</div>
-                </div>
+                <!-- Chat history items will be populated by JavaScript -->
+            </div>
+            <div id="expand-history-container">
+                <button id="expand-history-btn">Expand History</button>
             </div>
             <div class="sidebar-footer">
                 <button id="logout-btn">
@@ -1178,10 +1191,16 @@
             const db = firebase.database();
 
             // --- STATE MANAGEMENT ---
-            let currentUser = null, currentChatId = null, localChatHistory = [], chatHistoryListener = null;
+            let currentUser = null, currentChatId = null, localChatHistory = [];
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
             let attachedFile = null;
             let activeFileBlockForEdit = null;
+            // State for chat history pagination
+            const CHATS_PER_PAGE = 12;
+            let lastLoadedChatTimestamp = null;
+            let allChatsLoaded = false;
+            let isLoadingChats = false;
+
 
             // --- DOM ELEMENTS ---
             const chatHistoryList = document.getElementById('chat-history-list'),
@@ -1192,7 +1211,7 @@
                 sidebar = document.getElementById('sidebar'),
                 chatArea = document.getElementById('chat-area'),
                 sidebarOverlay = document.getElementById('sidebar-overlay'),
-                newChatItem = document.getElementById('new-chat-item'),
+                newChatBtn = document.getElementById('new-chat-btn'),
                 stopBtn = document.getElementById('stop-btn'),
                 fileUploadInput = document.getElementById('file-upload-input'),
                 attachedFileInfo = document.getElementById('attached-file-info'),
@@ -1203,7 +1222,9 @@
                 editorTextarea = document.getElementById('editor-textarea'),
                 editorSaveBtn = document.getElementById('editor-save-btn'),
                 editorCancelBtn = document.getElementById('editor-cancel-btn'),
-                editorDownloadBtn = document.getElementById('editor-download-btn');
+                editorDownloadBtn = document.getElementById('editor-download-btn'),
+                expandHistoryContainer = document.getElementById('expand-history-container'),
+                expandHistoryBtn = document.getElementById('expand-history-btn');
 
             // --- UTILITIES ---
             const scrollToBottom = () => {
@@ -1317,26 +1338,19 @@
             // --- AUTH & UI ---
             const updateUIForAuthState = (user) => {
                 if (user) {
-                    // FIX: Proactively clear the chat area to prevent login button flash
                     chatMessages.innerHTML = '';
                     currentUser = user;
                     document.body.classList.add('logged-in');
                     userAvatar.src = currentUser.photoURL || '';
-                    if (!chatHistoryListener) {
-                        attachChatHistoryListener();
-                    }
+                    loadChatHistory(false); // Initial chat history load
                     const lastChatId = localStorage.getItem('lastChatId');
                     loadChat(lastChatId || null);
                 } else {
-                    if (chatHistoryListener && currentUser) {
-                        db.ref(`chats/${currentUser.uid}`).off('value', chatHistoryListener);
-                        chatHistoryListener = null;
-                    }
                     currentUser = null;
                     document.body.classList.remove('logged-in');
                     document.body.classList.add('initial-state');
-                    chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
-                    // This is the definitive "logged out" state
+                    chatHistoryList.innerHTML = '';
+                    expandHistoryContainer.style.display = 'none';
                     chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
                     document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
@@ -1511,9 +1525,9 @@
             async function handleSendMessage(e) {
                 e.preventDefault();
                 const welcomeMessage = document.querySelector('.welcome-message');
-    if (welcomeMessage) {
-        welcomeMessage.remove(); // Немедленно удаляем сообщение
-    }
+                if (welcomeMessage) {
+                    welcomeMessage.remove();
+                }
                 document.body.classList.remove('initial-state');
                 if (document.body.classList.contains('is-streaming') || !currentUser) return;
                 
@@ -1558,11 +1572,12 @@
                 localChatHistory.push(userMessageData);
                 
                 if (isNewChat) {
-                    db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
+                    await db.ref(`chats/${currentUser.uid}/${currentChatId}`).set({
                         title: userMessageText.substring(0, 35) + "..." || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     });
+                    await loadChatHistory(false); // Refresh history list
                 }
 
                 const aiMsgContainer = addMessageToUI('ai');
@@ -1581,7 +1596,6 @@
                 let sseBuffer = '';
 
                 const processChunk = (textPart) => {
-                    // CRITICAL BUG FIX: Ensure only valid, non-empty text is processed
                     if (textPart && typeof textPart === 'string' && textPart.length > 0) {
                         const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
                         if (thinkingBubble) {
@@ -1620,8 +1634,7 @@
                                 try {
                                     const jsonStr = line.substring(5).trim();
                                     const parsed = JSON.parse(jsonStr);
-                                    // THIS IS THE CORRECT, ORIGINAL LINE - RESTORED
-                                    const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    const textPart = parsed.candidates?.?.content?.parts?.?.text;
                                     processChunk(textPart);
                                 } catch (parseError) { /* Ignore incomplete JSON */ }
                             }
@@ -1645,7 +1658,7 @@
             });
 
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-            newChatItem.addEventListener('click', () => startNewChat());
+            newChatBtn.addEventListener('click', () => startNewChat());
             chatForm.addEventListener('submit', handleSendMessage);
             chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = `${Math.min(chatInput.scrollHeight, 150)}px`; });
             chatInput.addEventListener('keydown', (e) => { 
@@ -1662,17 +1675,16 @@
                 if (!e.target.files || e.target.files.length === 0) {
                     return;
                 }
-                const file = e.target.files[0]; // Corrected: Get the first file
-                e.target.value = null; // Reset input to allow re-uploading the same file
+                const file = e.target.files;
+                e.target.value = null;
 
-                if (file.size > 300 * 1024) { // Corrected: 300KB limit
+                if (file.size > 300 * 1024) {
                     alert('File is too large. Please select a file smaller than 300 KB.');
                     return;
                 }
 
                 let fileContent = '';
                 try {
-                    // Set a loading state
                     attachedFileName.textContent = `Reading ${file.name}...`;
                     attachedFileInfo.style.display = 'flex';
 
@@ -1692,7 +1704,6 @@
                         const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
                         fileContent = result.value;
                     } else {
-                        // Default to reading as plain text
                         fileContent = await new Promise((resolve, reject) => {
                             const reader = new FileReader();
                             reader.onload = (event) => resolve(event.target.result);
@@ -1701,7 +1712,6 @@
                         });
                     }
 
-                    // Successfully read the file content
                     attachedFile = {
                         name: file.name,
                         content: fileContent.trim()
@@ -1712,7 +1722,7 @@
                 } catch (error) {
                     console.error("Error reading file:", error);
                     alert('Sorry, there was an error processing that file.');
-                    resetAttachedFile(); // Clear UI on error
+                    resetAttachedFile();
                 }
             });
             // === END: MODIFIED FILE UPLOAD HANDLER ===
@@ -1798,51 +1808,93 @@
                 }
             });
 
-            // --- The rest of your existing JS functions (unchanged) ---
+            // --- CHAT HISTORY & PAGINATION ---
 
-            function attachChatHistoryListener() {
-                if (chatHistoryListener) chatHistoryListener.off();
-                if (!currentUser) return;
-                const chatsRef = db.ref(`chats/${currentUser.uid}`).orderByChild('timestamp');
-                chatHistoryListener = chatsRef.on('value', snapshot => {
-                    if (isRenaming) return;
-                    const chatsData = [];
-                    snapshot.forEach(child => { chatsData.push({ id: child.key, ...child.val() }); });
-                    chatsData.reverse();
+            async function loadChatHistory(loadMore = false) {
+                if (!currentUser || isLoadingChats || (loadMore && allChatsLoaded)) return;
+                isLoadingChats = true;
+                if (loadMore) expandHistoryBtn.textContent = 'Loading...';
 
-                    const fragment = document.createDocumentFragment();
+                let query = db.ref(`chats/${currentUser.uid}`).orderByChild('timestamp');
 
-                    chatsData.forEach(chat => {
-                        const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
-                        const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.[0]?.fileName}` || 'New Chat';
-                        
-                        const itemEl = document.createElement('div');
-                        itemEl.className = 'chat-history-item';
-                        itemEl.dataset.chatId = chat.id;
-                        itemEl.innerHTML = `
-                            <div class="chat-title-container">${titleText}</div>
-                            <button class="chat-actions-btn" data-chat-id="${chat.id}">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                            </button>
-                            <div class="actions-dropdown">
-                                <button class="rename-action">✏️ Rename</button>
-                                <button class="delete-action">🗑️ Delete</button>
-                            </div>
-                        `;
-                        itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
-                        itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
-                        fragment.appendChild(itemEl);
-                    });
-                    
-                    chatHistoryList.querySelectorAll('.chat-history-item:not(#new-chat-item)').forEach(el => el.remove());
-                    chatHistoryList.appendChild(fragment);
-                    
-                    updateActiveChatSelection(currentChatId);
+                if (loadMore && lastLoadedChatTimestamp) {
+                    // Fetch N+1 items ending at the last known timestamp to get the next page.
+                    query = query.endAt(lastLoadedChatTimestamp).limitToLast(CHATS_PER_PAGE + 1);
+                } else {
+                    // Initial load: clear list and get the first page.
+                    chatHistoryList.innerHTML = '';
+                    allChatsLoaded = false;
+                    lastLoadedChatTimestamp = null;
+                    query = query.limitToLast(CHATS_PER_PAGE);
+                }
+
+                const snapshot = await query.once('value');
+                isLoadingChats = false;
+                expandHistoryBtn.textContent = 'Expand History';
+
+                if (!snapshot.exists()) {
+                    allChatsLoaded = true;
+                    expandHistoryContainer.style.display = 'none';
+                    return;
+                }
+
+                const chatsData = [];
+                snapshot.forEach(child => {
+                    chatsData.push({ id: child.key, ...child.val() });
                 });
+                chatsData.reverse(); // Newest first
+
+                if (loadMore) {
+                    chatsData.shift(); // Remove the overlapping item from the previous page.
+                }
+
+                if (chatsData.length === 0) {
+                    allChatsLoaded = true;
+                    expandHistoryContainer.style.display = 'none';
+                    return;
+                }
+
+                lastLoadedChatTimestamp = chatsData[chatsData.length - 1].timestamp;
+
+                if (chatsData.length < CHATS_PER_PAGE) {
+                    allChatsLoaded = true;
+                    expandHistoryContainer.style.display = 'none';
+                } else {
+                    allChatsLoaded = false;
+                    expandHistoryContainer.style.display = 'block';
+                }
+
+                const fragment = document.createDocumentFragment();
+                chatsData.forEach(chat => {
+                    const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
+                    const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.[0]?.fileName}` || 'New Chat';
+                    
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'chat-history-item';
+                    itemEl.dataset.chatId = chat.id;
+                    itemEl.innerHTML = `
+                        <div class="chat-title-container">${titleText}</div>
+                        <button class="chat-actions-btn" data-chat-id="${chat.id}">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                        </button>
+                        <div class="actions-dropdown">
+                            <button class="rename-action">✏️ Rename</button>
+                            <button class="delete-action">🗑️ Delete</button>
+                        </div>
+                    `;
+                    itemEl.querySelector('.rename-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleRenameChat(chat.id, itemEl.querySelector('.chat-title-container')); });
+                    itemEl.querySelector('.delete-action').addEventListener('click', (e) => { e.stopPropagation(); activeDropdown.style.display = 'none'; activeDropdown = null; handleDeleteChat(chat.id); });
+                    fragment.appendChild(itemEl);
+                });
+                
+                chatHistoryList.appendChild(fragment);
+                updateActiveChatSelection(currentChatId);
             }
             
+            expandHistoryBtn.addEventListener('click', () => loadChatHistory(true));
+
             chatHistoryList.addEventListener('click', (e) => {
-                const item = e.target.closest('.chat-history-item:not(#new-chat-item)');
+                const item = e.target.closest('.chat-history-item');
                 if (!item) return;
                 const actionsBtn = e.target.closest('.chat-actions-btn');
                 if (actionsBtn) {
@@ -1857,7 +1909,16 @@
                 loadChat(item.dataset.chatId);
             });
 
-            function handleDeleteChat(chatId) { if (!currentUser || !chatId) return; if (confirm('Are you sure you want to delete this chat forever?')) { db.ref(`chats/${currentUser.uid}/${chatId}`).remove().then(() => { if (chatId === currentChatId) startNewChat(); }).catch(error => console.error("Error deleting chat:", error)); } }
+            function handleDeleteChat(chatId) {
+                if (!currentUser || !chatId) return;
+                if (confirm('Are you sure you want to delete this chat forever?')) {
+                    db.ref(`chats/${currentUser.uid}/${chatId}`).remove().then(() => {
+                        if (chatId === currentChatId) startNewChat();
+                        loadChatHistory(false); // Refresh the list
+                    }).catch(error => console.error("Error deleting chat:", error));
+                }
+            }
+
             function cancelAllRenames() { isRenaming = false; const input = document.querySelector('.rename-input'); if (!input) return;
                 const titleContainer = input.parentElement;
                 if (titleContainer) {
@@ -1869,7 +1930,10 @@
                     isRenaming = false;
                     const newTitle = input.value.trim();
                     if (newTitle && newTitle !== originalTitle) {
-                        db.ref(`chats/${currentUser.uid}/${chatId}`).update({ title: newTitle });
+                        db.ref(`chats/${currentUser.uid}/${chatId}`).update({ title: newTitle })
+                          .then(() => {
+                              titleContainer.textContent = newTitle;
+                          });
                     } else {
                         titleContainer.textContent = originalTitle;
                     }
@@ -1886,7 +1950,6 @@
                 if(document.body.classList.contains('is-mobile') && document.body.classList.contains('sidebar-open')) closeSidebar();
                 localChatHistory = []; 
                 currentChatId = null;
-                // FIX: Show a proper welcome message for logged-in users
                 if (currentUser) {
                     chatMessages.innerHTML = '<div class="message-container welcome-message"><p>How can I help you today?</p></div>';
                 } else {
@@ -1903,7 +1966,6 @@
                 currentChatId = activeId; 
                 localStorage.setItem('lastChatId', activeId || '');
                 document.querySelectorAll('.chat-history-item').forEach(item => { item.classList.toggle('active', item.dataset.chatId === activeId); }); 
-                newChatItem.classList.toggle('active', activeId === null); 
             }
             
             const openSidebar = () => { document.body.classList.add('sidebar-open'); sidebar.style.transform = ''; sidebarOverlay.style.opacity = ''; };
@@ -1964,7 +2026,7 @@
                 if (!document.body.classList.contains('is-mobile')) return;
                 if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list, pre, .file-content-body')) return;
 
-                const t = e.type === 'touchstart' ? e.touches[0] : e;
+                const t = e.type === 'touchstart' ? e.touches : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
                 if (!isOpen && t.clientX > (window.innerWidth / 3)) return;
@@ -1980,7 +2042,7 @@
             const dragMove = (e) => {
                 if (!isDragging) return;
 
-                const t = e.type === 'touchmove' ? e.touches[0] : e;
+                const t = e.type === 'touchmove' ? e.touches : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;
 

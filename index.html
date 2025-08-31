@@ -1436,7 +1436,13 @@
                 
                 updateActiveChatSelection(chatId);
             }
-
+            function moveChatToTop(chatId) {
+                if (!chatId) return;
+                const chatItem = document.querySelector(`.chat-history-item[data-chat-id="${chatId}"]`);
+                if (chatItem) {
+                    chatHistoryList.prepend(chatItem);
+                }
+            }
             function saveChat(finalText) {
                 if (!currentUser || !currentChatId) return;
                 
@@ -1463,6 +1469,7 @@
 
                 db.ref(`chats/${currentUser.uid}/${currentChatId}`).update(updates);
                 localChatHistory = historyToSave;
+                moveChatToTop(currentChatId);
             }
             
             function setStreamingState(isStreaming) {

@@ -1238,7 +1238,7 @@
                 }, 0);
             };
             
-            // --- REVERTED TO USER'S PREFERRED RENDERER ---
+            // --- RESTORED: YOUR ORIGINAL, STABLE RENDERER ---
             class OptimizedSmoothRenderer {
                 constructor(container) {
                     this.container = container;
@@ -1287,13 +1287,7 @@
                     }
 
                     if (this.queue.length === 0) {
-                        // If the stream is finished, the finish() method handles the final state.
-                        // If not finished, just wait for more data.
-                        if (this.isFinished) {
-                           this.finish();
-                        } else {
-                           this.animationFrameId = requestAnimationFrame(this.animationLoop);
-                        }
+                        this.finish();
                         return;
                     }
                     
@@ -1331,12 +1325,10 @@
                 }
 
                 finish() {
-                    this.isFinished = true; // Signal that the stream is done
                     this.stop();
                     if (this.queue.length > 0) {
                         this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     }
-                    // Perform one final, complete render.
                     this.render();
                 }
             }
@@ -1830,9 +1822,7 @@
             }
 
             function prependChatHistoryItem(chat) {
-                // **BUG FIX**: Only prepend if the initial history is already loaded to prevent duplication.
                 if (!initialHistoryLoaded) return;
-                // **BUG FIX**: Add a guard clause to prevent duplicate chat items in the UI.
                 if (document.querySelector(`.chat-history-item[data-chat-id="${chat.id}"]`)) return;
                 const itemEl = createChatHistoryItemElement(chat);
                 chatHistoryList.prepend(itemEl);
@@ -1852,7 +1842,7 @@
                 if (loadMore && paginationCursor) {
                     query = query.endBefore(paginationCursor.timestamp, paginationCursor.key).limitToLast(CHATS_PER_PAGE);
                 } else {
-                    initialHistoryLoaded = false; // Mark that the first load is in progress
+                    initialHistoryLoaded = false;
                     chatHistoryList.innerHTML = '';
                     allChatsLoaded = false;
                     paginationCursor = null;
@@ -1893,7 +1883,7 @@
                 } finally {
                     isLoadingChats = false;
                     if (!loadMore) {
-                        initialHistoryLoaded = true; // **BUG FIX**: Mark that the first load is complete.
+                        initialHistoryLoaded = true;
                     }
                     if (loadMore) {
                         expandHistoryBtn.textContent = 'Expand History';
@@ -2045,7 +2035,7 @@
                 }
             }
             
-            // --- PRESERVED MOBILE DRAG LOGIC ---
+            // --- PRESERVED & FIXED MOBILE DRAG LOGIC ---
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
             const dragThreshold = 10;
 
@@ -2053,7 +2043,8 @@
                 if (!document.body.classList.contains('is-mobile')) return;
                 if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list, pre, .file-content-body')) return;
 
-                const t = e.type === 'touchstart' ? e.touches : e;
+                // BUG FIX: Correctly reference the first touch point.
+                const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
                 if (!isOpen && t.clientX > (window.innerWidth / 3)) return;
@@ -2069,7 +2060,8 @@
             const dragMove = (e) => {
                 if (!isDragging) return;
 
-                const t = e.type === 'touchmove' ? e.touches : e;
+                // BUG FIX: Correctly reference the first touch point.
+                const t = e.type === 'touchmove' ? e.touches[0] : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;
 

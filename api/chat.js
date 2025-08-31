@@ -127,7 +127,7 @@ export default async function handler(req) {
       parts: [{ text: item.text }],
     }));
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -144,7 +144,7 @@ export default async function handler(req) {
         safetySettings,
         // BUG FIX: Add generationConfig to prevent the stream from being cut off prematurely.
         generationConfig: {
-          maxOutputTokens: 8192,
+          maxOutputTokens: 65,536,
         },
       }),
     });

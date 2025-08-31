@@ -144,7 +144,7 @@ export default async function handler(req) {
         safetySettings,
         // BUG FIX: Add generationConfig to prevent the stream from being cut off prematurely.
         generationConfig: {
-          maxOutputTokens: 64,000,
+          maxOutputTokens: 65,536
         },
       }),
     });

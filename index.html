@@ -1237,7 +1237,7 @@
                 }, 0);
             };
             
-            // *** ГЛАВНОЕ ИСПРАВЛЕНИЕ: РЕНДЕРЕР С НУЛЕВОЙ ЗАДЕРЖКОЙ И ПЛАВНОЙ АНИМАЦИЕЙ ***
+             // --- OPTIMIZED SMOOTH RENDERER (FINAL & STABLE) ---
             class OptimizedSmoothRenderer {
                 constructor(container) {
                     this.container = container;
@@ -1246,6 +1246,10 @@
                     this.isRendering = false;
                     this.animationFrameId = null;
                     this.isInsideCodeBlock = false;
+
+                    this.lastRenderTime = 0;
+                    this.RENDER_INTERVAL_MS = 40; // ~25 кадров в секунду для обновления DOM
+                    
                     this.charsToAdd = 0;
                     this.lastTimestamp = 0;
 
@@ -1264,8 +1268,7 @@
                     if (this.isRendering) return;
                     this.isRendering = true;
                     this.lastTimestamp = performance.now();
-                    // Немедленно запускаем первый кадр, не дожидаясь следующего цикла событий
-                    this.animationLoop(this.lastTimestamp);
+                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
 
                 stop() {
@@ -1277,6 +1280,12 @@
                 }
 
                 animationLoop(timestamp) {
+                    if (!this.isRendering) {
+                        this.render(); // Выполняем финальный рендер
+                        return;
+                    }
+
+                    // Если очередь пуста, останавливаемся
                     if (this.queue.length === 0) {
                         this.finish();
                         return;
@@ -1285,11 +1294,12 @@
                     const deltaTime = timestamp - this.lastTimestamp;
                     this.lastTimestamp = timestamp;
 
-                    // Адаптивная и плавная скорость
+                    // Адаптивная скорость: очень быстро для кода, плавно для текста
                     const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 
-                        ? 3000 // Турбо-режим для кода
-                        : 300;   // Плавная и быстрая скорость печати
-                    
+                        ? 3000 // Турбо-режим для кода или если сильно отстаем
+                        : 100;   // Плавная скорость печати для обычного текста
+
+                    // Рассчитываем, сколько символов нужно добавить за прошедшее время
                     this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
                     const charsToProcess = Math.floor(this.charsToAdd);
                     
@@ -1298,15 +1308,18 @@
                         this.textBuffer += chunk;
                         this.charsToAdd -= charsToProcess;
 
+                        // Проверяем, не изменился ли контекст (код/текст)
                         const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
                         this.isInsideCodeBlock = codeBlockCount % 2 === 1;
                     }
                     
-                    this.render();
-                    
-                    if (this.isRendering) {
-                       this.animationFrameId = requestAnimationFrame(this.animationLoop);
+                    // **КЛЮЧЕВОЕ ИЗМЕНЕНИЕ**: Обновляем DOM только если прошло достаточно времени
+                    if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
+                        this.render();
+                        this.lastRenderTime = timestamp;
                     }
+                    
+                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
 
                 render() {
@@ -1317,10 +1330,12 @@
 
                 finish() {
                     this.stop();
+                    // Добавляем все оставшиеся символы из очереди
                     if (this.queue.length > 0) {
                         this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     }
-                    this.render(); // Финальная отрисовка
+                    // Выполняем финальный рендер, чтобы гарантировать полное отображение
+                    this.render();
                 }
             }
 

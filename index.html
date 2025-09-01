@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +37,7 @@
             --text-sm: .875rem;
             --text-sm--line-height: 1.42857;
             --text-base: 1rem;
-            --text-base--line-height: 1.7;
+            --text-base--line-height: 1.75;
             --line-height-body: 1.75;
             --text-lg: 1.125rem;
             --text-lg--line-height: 1.55556;
@@ -124,8 +125,8 @@
             --text-caption-regular--font-weight: 400;
             /* === END: NEW TYPOGRAPHY SYSTEM === */
 
-            --chat-content-narrow-width: 42rem;
-            --chat-content-expanded-width: 50rem;
+            --chat-content-narrow-width: 43rem;
+            --chat-content-expanded-width: 51rem;
             --thread-width: var(--chat-content-narrow-width);
             --background-color: #ffffff;
             --text-color: #0d0d0d;
@@ -177,8 +178,8 @@
             color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-size: 0.975rem;
-            letter-spacing: 0.01em;
+            font-size: 1rem;
+            
             transition: background-color 0.3s, color 0.3s;
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
@@ -651,7 +652,7 @@
             font-weight: var(--font-weight-semibold);
         }
         .message-container.ai ul {
-            padding-inline-start: 1.8em;
+            padding-inline-start: 1.625em;
         }
         .message-container.ai ol {
             padding-inline-start: 1.625em;
@@ -668,7 +669,7 @@
             margin: 0;
         }
         .message-container.ai li > ul, .message-container.ai li > ol {
-            margin-top: 0.3em;
+            margin-top: 0.25em;
             margin-bottom: 0;
         }
         .message-container.ai ul li::marker,
@@ -679,7 +680,7 @@
         }
         .message-container.ai blockquote {
             padding: 0.25em 0 0.25em 1.25em;
-            border-left: 3px solid var(--border-color);
+            border-left: 2px solid var(--border-color);
             color: var(--text-color);
             opacity: 0.85;
         }
@@ -709,6 +710,8 @@
             font-size: 0.875rem;
             line-height: 1.6;
             margin: 0;
+            -moz-tab-size: 4; /* Для поддержки Firefox */
+            tab-size: 4;  
         }
         .message-container.ai pre code.hljs {
             padding: 0;
@@ -920,8 +923,10 @@
             background-color: transparent;
             color: var(--text-color);
             font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 0.9rem;
-            line-height: 1.7;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            -moz-tab-size: 4; /* Для поддержки Firefox */
+            tab-size: 4;  
         }
         .editor-footer {
             padding: 0.75rem 1.5rem;
@@ -1008,18 +1013,14 @@
 
         @media (max-width: 768px) {
             .ai-content-block, #chat-form-container { max-width: 100%; }
-            .message-container.ai .ai-content-block, .message-container.user { font-size: 1.05rem; }
+            .message-container.ai .ai-content-block, .message-container.user { font-size: 0.975rem; }
             .message-container.ai h1 { font-size: 1.6rem; }
-            .message-container.ai h2 { font-size: 1.3rem; }
-            .message-container.ai h3 { font-size: 1.15rem; }
+            .message-container.ai h2 { font-size: 1.35rem; }
+            .message-container.ai h3 { font-size: 1.25rem; }
             .message-container.ai h4 { font-size: 1.05rem; }
         }
 
-        @media (min-width: 769px) {
-            #chat-messages {
-                padding-left: calc((100% - var(--thread-width)) / 2);
-                padding-right: calc((100% - var(--thread-width)) / 2);
-            }
+        
             .ai-content-block,
             .welcome-message {
                 max-width: 100%;
@@ -1199,13 +1200,11 @@
             let isRenaming = false, activeDropdown = null, currentStreamController = null;
             let attachedFile = null;
             let activeFileBlockForEdit = null;
-            // State for chat history pagination
             const CHATS_PER_PAGE = 12;
-            let paginationCursor = null; // { timestamp: number, key: string }
+            let paginationCursor = null; 
             let allChatsLoaded = false;
             let isLoadingChats = false;
-            let initialHistoryLoaded = false; // **BUG FIX**: State to prevent duplication race condition.
-
+            let initialHistoryLoaded = false; 
 
             // --- DOM ELEMENTS ---
             const chatHistoryList = document.getElementById('chat-history-list'),
@@ -1238,7 +1237,7 @@
                 }, 0);
             };
             
-            // --- RESTORED: YOUR ORIGINAL, STABLE RENDERER ---
+            // *** ГЛАВНОЕ ИСПРАВЛЕНИЕ: РЕНДЕРЕР С НУЛЕВОЙ ЗАДЕРЖКОЙ И ПЛАВНОЙ АНИМАЦИЕЙ ***
             class OptimizedSmoothRenderer {
                 constructor(container) {
                     this.container = container;
@@ -1247,10 +1246,6 @@
                     this.isRendering = false;
                     this.animationFrameId = null;
                     this.isInsideCodeBlock = false;
-
-                    this.lastRenderTime = 0;
-                    this.RENDER_INTERVAL_MS = 40; // ~25 FPS for DOM updates
-                    
                     this.charsToAdd = 0;
                     this.lastTimestamp = 0;
 
@@ -1269,7 +1264,8 @@
                     if (this.isRendering) return;
                     this.isRendering = true;
                     this.lastTimestamp = performance.now();
-                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
+                    // Немедленно запускаем первый кадр, не дожидаясь следующего цикла событий
+                    this.animationLoop(this.lastTimestamp);
                 }
 
                 stop() {
@@ -1281,11 +1277,6 @@
                 }
 
                 animationLoop(timestamp) {
-                    if (!this.isRendering) {
-                        this.render(); // Final render
-                        return;
-                    }
-
                     if (this.queue.length === 0) {
                         this.finish();
                         return;
@@ -1294,10 +1285,11 @@
                     const deltaTime = timestamp - this.lastTimestamp;
                     this.lastTimestamp = timestamp;
 
+                    // Адаптивная и плавная скорость
                     const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 
-                        ? 3000 // Turbo mode for code or catching up
-                        : 100;   // Smooth typing for regular text
-
+                        ? 3000 // Турбо-режим для кода
+                        : 300;   // Плавная и быстрая скорость печати
+                    
                     this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
                     const charsToProcess = Math.floor(this.charsToAdd);
                     
@@ -1310,12 +1302,11 @@
                         this.isInsideCodeBlock = codeBlockCount % 2 === 1;
                     }
                     
-                    if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
-                        this.render();
-                        this.lastRenderTime = timestamp;
-                    }
+                    this.render();
                     
-                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
+                    if (this.isRendering) {
+                       this.animationFrameId = requestAnimationFrame(this.animationLoop);
+                    }
                 }
 
                 render() {
@@ -1329,7 +1320,7 @@
                     if (this.queue.length > 0) {
                         this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     }
-                    this.render();
+                    this.render(); // Финальная отрисовка
                 }
             }
 
@@ -1349,7 +1340,7 @@
                     document.body.classList.add('initial-state');
                     chatHistoryList.innerHTML = '';
                     expandHistoryContainer.style.display = 'none';
-                    initialHistoryLoaded = false; // Reset on logout
+                    initialHistoryLoaded = false;
                     chatMessages.innerHTML = `<div class="message-container welcome-message"><p>Welcome! Login to start.</p><button id="login-btn">Login with Google</button></div>`;
                     document.getElementById('login-btn').addEventListener('click', () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()));
                 }
@@ -1357,9 +1348,6 @@
 
             auth.onAuthStateChanged(user => {
                 updateUIForAuthState(user);
-                // --- THIS IS THE FIX ---
-                // No matter if the user is logged in or out, the check is complete.
-                // Remove the class to reveal the UI in its correct state.
                 document.body.classList.remove('is-authenticating');
             });
 
@@ -1571,8 +1559,7 @@
                 let isNewChat = false;
                 if (!currentChatId) {
                     isNewChat = true;
-                    const newChatRef = db.ref(`chats/${currentUser.uid}`).push();
-                    currentChatId = newChatRef.key;
+                    currentChatId = db.ref(`chats/${currentUser.uid}`).push().key;
                     updateActiveChatSelection(currentChatId);
                 }
 
@@ -1604,14 +1591,13 @@
                 let sseBuffer = '';
 
                 const processChunk = (textPart) => {
-                    if (textPart && typeof textPart === 'string' && textPart.length > 0) {
+                    if (textPart !== undefined && textPart !== null) {
                         const thinkingBubble = document.querySelector('.message-container.user.is-thinking');
                         if (thinkingBubble) {
                             thinkingBubble.classList.remove('is-thinking');
                         }
                         renderer.update(textPart);
                         accumulatedResponseText += textPart;
-                        localStorage.setItem(`pendingGen_${currentChatId}`, accumulatedResponseText);
                     }
                 };
 
@@ -1641,10 +1627,12 @@
                             if (line.trim().startsWith('data:')) {
                                 try {
                                     const jsonStr = line.substring(5).trim();
-                                    const parsed = JSON.parse(jsonStr);
-                                    const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                                    processChunk(textPart);
-                                } catch (parseError) { /* Ignore incomplete JSON */ }
+                                    if (jsonStr) {
+                                        const parsed = JSON.parse(jsonStr);
+                                        const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                                        processChunk(textPart);
+                                    }
+                                } catch (parseError) { /* Incomplete JSON is expected, ignore */ }
                             }
                         }
                     }
@@ -1678,6 +1666,7 @@
                 } 
             });
 
+            // *** ВОССТАНОВЛЕН ИСХОДНЫЙ КОД ДЛЯ ЗАГРУЗКИ ФАЙЛОВ ***
             fileUploadInput.addEventListener('change', async (e) => {
                 if (!e.target.files || e.target.files.length === 0) return;
                 const file = e.target.files[0];
@@ -1812,7 +1801,7 @@
                 }
             });
 
-            // --- RE-ARCHITECTED CHAT HISTORY & PAGINATION ---
+            // --- CHAT HISTORY & PAGINATION ---
 
             function createChatHistoryItemElement(chat) {
                 const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
@@ -2048,7 +2037,7 @@
                 }
             }
             
-            // --- PRESERVED & FIXED MOBILE DRAG LOGIC ---
+            // *** ВОССТАНОВЛЕН ИСХОДНЫЙ КОД ДЛЯ MOBILE DRAG ***
             let isDragging = false, startX = 0, startY = 0, currentTranslate = 0, dragDirection = null;
             const dragThreshold = 10;
 
@@ -2056,7 +2045,6 @@
                 if (!document.body.classList.contains('is-mobile')) return;
                 if (e.target.closest('.code-block-wrapper, .table-wrapper, #chat-history-list, pre, .file-content-body')) return;
 
-                // BUG FIX: Correctly reference the first touch point.
                 const t = e.type === 'touchstart' ? e.touches[0] : e;
                 const isOpen = document.body.classList.contains('sidebar-open');
                 
@@ -2073,7 +2061,6 @@
             const dragMove = (e) => {
                 if (!isDragging) return;
 
-                // BUG FIX: Correctly reference the first touch point.
                 const t = e.type === 'touchmove' ? e.touches[0] : e;
                 const deltaX = t.clientX - startX;
                 const deltaY = t.clientY - startY;

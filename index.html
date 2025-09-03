@@ -1600,6 +1600,21 @@
                 
                 fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
+                         // *** ИЗМЕНЕНИЕ: Добавлено проактивное подключение ***
+                function initializeProactiveConnection() {
+                    const wakeUp = () => {
+                        if (auth.currentUser) {
+                            // console.log("Waking up Firebase connection...");
+                            db.goOnline();
+                        }
+                    };
+                    // "Просыпаемся" при любом действии пользователя
+                    window.addEventListener('focus', wakeUp);
+                    window.addEventListener('click', wakeUp);
+                    window.addEventListener('keydown', wakeUp);
+                }
+            
+                initializeProactiveConnection(); // Вызываем новую функцию
             
             async function fetchAndProcessStream(message, history, renderer) {
                 let accumulatedResponseText = '';

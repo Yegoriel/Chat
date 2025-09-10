@@ -10,10 +10,11 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="AI Chat App">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon-120.png">
+    <link rel="apple-touch-icon" href="symmetrical-logo-for-ai-future--blazon-modern-embl (4).svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="symmetrical-logo-for-ai-future--blazon-modern-embl (4).svg">
+    <link rel="apple-touch-icon" sizes="167x167" href="symmetrical-logo-for-ai-future--blazon-modern-embl (4).svg">
+    <link rel="apple-touch-icon" sizes="152x152" href="symmetrical-logo-for-ai-future--blazon-modern-embl (4).svg">
+    <link rel="apple-touch-icon" sizes="120x120" href="symmetrical-logo-for-ai-future--blazon-modern-embl (4).svg">
 
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
@@ -463,6 +464,8 @@
             left: 0;
             right: 0;
             transform: translateZ(0);
+            width: 100%;
+            box-sizing: border-box;
         }
         #chat-form-container {
             width: 100%;
@@ -473,6 +476,7 @@
             padding-right: max(env(safe-area-inset-right), 12px);
             padding-top: 0;
             padding-bottom: 0;
+            box-sizing: border-box;
         }
         #chat-form {
             display: flex; align-items: flex-end; gap: 0.75rem; width: 100%; box-sizing: border-box;
@@ -851,7 +855,7 @@
             white-space: pre-wrap;
             color: var(--text-color);
             line-height: 1.6;
-            transition: max-height: 0.4s ease-in-out;
+            transition: max-height 0.4s ease-in-out;
         }
         .file-content-block.is-expanded .file-content-body {
             max-height: 600px;
@@ -1014,22 +1018,26 @@
             .message-container.ai h2 { font-size: 1.35rem; }
             .message-container.ai h3 { font-size: 1.25rem; }
             .message-container.ai h4 { font-size: 1.05rem; }
-        }
-
-        
-            .ai-content-block,
-            .welcome-message {
-                max-width: 100%;
-                margin-left: 0;
-                margin-right: 0;
-                padding-left: 0;
-                padding-right: 0;
+            
+            /* Fix Android zoom input bar shifting */
+            #chat-input-area {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100vw;
+                padding-left: 12px;
+                padding-right: 12px;
+                padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+                box-sizing: border-box;
             }
             #chat-form-container {
-                padding-left: 0;
-                padding-right: 0;
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                padding: 0;
             }
-        
+        }
 
         body.initial-state #chat-content-wrapper {
             justify-content: flex-end;

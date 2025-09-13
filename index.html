@@ -1632,7 +1632,7 @@
                 currentStreamController = new AbortController();
                 const renderer = new OptimizedSmoothRenderer(contentBlock);
                 
-                fetchAndProcessStream(messageForApi, localChatHistory, renderer);
+                await fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
                          // *** ИЗМЕНЕНИЕ: Добавлено проактивное подключение ***
                 function initializeProactiveConnection() {
@@ -1650,6 +1650,29 @@
             
                 initializeProactiveConnection(); // Вызываем новую функцию
             
+            async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
+                for (let i = 0; i <= retries; i++) {
+                    try {
+                        const response = await fetch(url, options);
+                        if (response.status === 429) {
+                            throw new Error('Rate limit');
+                        }
+                        return response;
+                    } catch (error) {
+                        if (error.message === 'Rate limit') {
+                            if (i === retries) {
+                                throw new Error('Rate limit exceeded after multiple retries.');
+                            }
+                            const backoff = delay * Math.pow(2, i);
+                            console.warn(`Rate limit hit. Retrying in ${backoff}ms...`);
+                            await new Promise(resolve => setTimeout(resolve, backoff));
+                        } else {
+                            throw error;
+                        }
+                    }
+                }
+            }
+
             async function fetchAndProcessStream(message, history, renderer) {
                 let accumulatedResponseText = '';
                 let sseBuffer = '';
@@ -1666,14 +1689,31 @@
                 };
 
                 try {
-                    const response = await fetch('/api/chat', {
+                    const processedHistory = history.slice(0, -1).slice(-10).map(item => {
+                        let combinedText = item.text || '';
+                        if (item.fileContent) {
+                            let fileText = item.fileContent;
+                            if (fileText.length > 2000) {
+                                fileText = fileText.substring(0, 2000) + "\n... (file content truncated) ...";
+                            }
+                            combinedText += `\n\n--- Start of File: ${item.fileName} ---\n${fileText}\n--- End of File ---`;
+                        }
+                        return {
+                            role: item.role,
+                            text: combinedText,
+                        };
+                    });
+
+                    const response = await fetchWithRetry('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: message, history: history.slice(0, -1).slice(-10) }),
+                        body: JSON.stringify({ message: message, history: processedHistory }),
                         signal: currentStreamController.signal
                     });
 
-                    if (!response.ok || !response.body) throw new Error(`API response error: ${response.status}`);
+                    if (!response.ok || !response.body) {
+                        throw new Error(`API response error: ${response.status}`);
+                    }
                     
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();

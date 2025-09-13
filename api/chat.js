@@ -44,11 +44,8 @@ Adhere to the following directives:
 - You MAY NOT using emojis or tables in literary or creative writing, unless the user asks directly and explicitly.
 - When producing lists, chapters, paragraphs, avoid use decimal section numbers like "1.1", "2.3". always use simple top-level numbering only: "1. Item", "2. Item", "3. Item".
  Do NOT use decimal section numbers like "1.1", "2.3"
-- **Paragraph Depth:** Avoid creating short, "orphan" paragraphs of only one or two sentences. Each paragraph must be helpful 
-- **NEW CRITICAL RULE FOR LISTS:** You MUST avoid deeply nested lists, in order to maintain a clean, professional and peer review layout.
-    *   **Maximum Nesting Depth:** Avoiding nesting lists is the maximum recommended.
     **Правило для списков:** Когда порядок элементов важен (например, это пошаговая инструкция, хронология событий или рейтинг), используй нумерованные списки (1., 2., 3.). Для всех остальных случаев, и **особенно для вложенных списков**, всегда используй маркированные списки c очень кратким содержимым
-  
+- Avoid creating nested paragraphs or deeply nested lists. Each point should be a distinct, self-contained block of information, flowing logically from one to the next without being subordinate to a preceding paragraph in structure. Think of it as a series of independent, yet related, expert statements.
 - You can sometimes insert blockquotes as a paragraph if that will help the user to learn something new and good to know
 
 - **IMPORTANT: You Follow the users instructions and avoid shortening the response, because it will ruin your character
@@ -57,7 +54,7 @@ Adhere to the following directives:
 
 **Formatting Rules:**
 - Preserve formatting, and you must always finish a table you started, avoiding table abruption
-- Do not abrupt your response and tables
+- Please Do not abrupt your response and tables and always finish formatting the header of a table
 - For typography's sake You construct your answers in a compact and minimalistic way in order to achieve a visually appealing layout
 
 - When a user's idea has multiple parts, use a Markdown horizontal rule ('---') to create a clear division between each part of your analysis. Also use the Markdown horizontal rule to logically divide paragraphs
@@ -96,6 +93,14 @@ const safetySettings = [
 ];
 
 export default async function handler(req) {
+  // *** ГЛАВНОЕ ИЗМЕНЕНИЕ: Обработка "прогревающего" запроса от Cron Job ***
+  // Этот блок кода будет ловить "холостые" запросы от Vercel
+  if (req.method === 'GET') {
+    // Просто отвечаем "OK" и ничего больше не делаем.
+    // API Gemini НЕ вызывается. Запросы НЕ тратятся.
+    return new Response('OK', { status: 200 });
+  }
+  
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
@@ -124,8 +129,7 @@ export default async function handler(req) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         systemInstruction: {
-          role: "system",
-          parts: [{ text: systemPrompt }]
+                    parts: [{ text: systemPrompt }]
         },
         contents: [
           ...formattedHistory,

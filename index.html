@@ -1348,9 +1348,15 @@
                 }
 
                 render() {
-                    this.container.innerHTML = marked.parse(this.textBuffer);
-                    this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
-                    finalizeMessageFormatting(this.container);
+                    try {
+                        this.container.innerHTML = marked.parse(this.textBuffer);
+                        this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
+                        finalizeMessageFormatting(this.container);
+                    } catch (e) {
+                        console.error("Markdown rendering error:", e);
+                        // As a fallback, just display the plain text.
+                        this.container.innerText = this.textBuffer;
+                    }
                 }
 
                 finish() {
@@ -1413,10 +1419,13 @@
                     wrapper.appendChild(btn);
                 });
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'table-wrapper';
-                    table.parentNode.insertBefore(wrapper, table);
-                    wrapper.appendChild(table);
+                    // Defensive check for a complete table
+                    if (table.querySelector('thead') && table.querySelector('tbody')) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'table-wrapper';
+                        table.parentNode.insertBefore(wrapper, table);
+                        wrapper.appendChild(table);
+                    }
                 });
             }
 

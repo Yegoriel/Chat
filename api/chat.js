@@ -122,7 +122,7 @@ export default async function handler(req) {
       parts: [{ text: item.text }],
     }));
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-thinking:streamGenerateContent?key=${geminiApiKey}&alt=sse`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',

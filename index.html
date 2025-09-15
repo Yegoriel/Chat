@@ -132,12 +132,14 @@
             --text-color: #0d0d0d;
             --text-secondary: #5d5d5d;
             --primary-accent: #1a1a1a;
-            --sidebar-bg: #ffffff;
+            --sidebar-bg: #F9F9F9;
             --sidebar-hover-bg: #f0f0f0;
-            --border-color: #e5e5e5;
+            --border-color: #0d0d0d0d;
+            --border-medium: #00000026;
+            --border-light: #0d0d0d0d;
             --user-msg-bg: #f0f2f5;
             --ai-msg-bg: transparent;
-            --code-bg: #f7f7f8;
+            --code-bg: #ececec;
             --code-text-color: #383a42;
             --scroll-btn-bg: var(--background-color);
             --scroll-btn-color: #555;
@@ -151,21 +153,41 @@
 
         body.dark-theme {
             --background-color: #212121;
-            --text-color: #e5e5e5;
+            --text-color: #FFFFFF;
             --text-secondary: #a0a0a0;
             --primary-accent: #f5f5f5;
             --sidebar-bg: #2c2d30;
             --sidebar-hover-bg: #38383c;
             --border-color: #3a3a3a;
+            --border-medium: #8a8a8a;
+            --border-light: #3a3a3a;
             --user-msg-bg: #3a3a3a;
             --ai-msg-bg: transparent;
-            --code-bg: #2c2c2c;
+            --code-bg: #424242;
             --code-text-color: #abb2bf;
             --scroll-btn-bg: #2c2c2c;
             --scroll-btn-color: #e0e0e0;
             --scroll-btn-hover-bg: #3a3a3a;
             --scrollbar-thumb-color: #555;
             --scrollbar-thumb-hover-color: #777;
+        }
+
+        body.dark-theme ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        body.dark-theme ::-webkit-scrollbar-track {
+            background: #212121;
+        }
+
+        body.dark-theme ::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 20px;
+            border: 3px solid #2c2d30;
+        }
+
+        body.dark-theme ::-webkit-scrollbar-thumb:hover {
+            background-color: #777;
         }
 
         html { scroll-behavior: smooth; }
@@ -580,11 +602,11 @@
             margin: 0.5em 0;
         }
         .message-container.ai hr {
-            margin: 2em 0;
+            margin: 1.875em 0;
             border: 0;
             height: 1px;
-            background-color: var(--border-color);
-        }
+            background-color: var(--border-light);
+                    }
         .message-container.ai h1, .message-container.ai h2, .message-container.ai h3, .message-container.ai h4, .message-container.ai h5, .message-container.ai h6 {
             font-weight: var(--font-weight-semibold);
             letter-spacing: var(--tracking-normal);
@@ -649,7 +671,7 @@
         .message-container.ai ol li::marker {
             font-weight: 700;
             color: var(--text-secondary);
-            opacity: 0.6;
+            opacity: 0.5;
         }
         .message-container.ai blockquote {
             padding: 0.25em 0 0.25em 1.25em;
@@ -673,7 +695,7 @@
             -webkit-overflow-scrolling: touch;
         }
         .message-container.ai pre {
-            background-color: var(--code-bg);
+            background-color: var(--sidebar-bg);
             color: var(--code-text-color);
             padding: 1rem;
             border-radius: 8px;
@@ -736,7 +758,7 @@
         .message-container.ai thead th {
             font-weight: 600;
             background-color: transparent;
-            border-bottom-width: 2px;
+            border-bottom: 1px solid var(--border-medium);
         }
         .message-container.ai td {
             font-weight: 400;
@@ -1273,7 +1295,7 @@
                     this.isInsideCodeBlock = false;
 
                     this.lastRenderTime = 0;
-                    this.RENDER_INTERVAL_MS = 40; // ~25 кадров в секунду для обновления DOM
+                    this.RENDER_INTERVAL_MS = 40; // ~25 frames per second for DOM updates
                     
                     this.charsToAdd = 0;
                     this.lastTimestamp = 0;
@@ -1306,11 +1328,11 @@
 
                 animationLoop(timestamp) {
                     if (!this.isRendering) {
-                        this.render(); // Выполняем финальный рендер
+                        this.render(); // Performing final render
                         return;
                     }
 
-                    // Если очередь пуста, останавливаемся
+                    // If the queue is empty, stop
                     if (this.queue.length === 0) {
                         this.finish();
                         return;
@@ -1319,12 +1341,12 @@
                     const deltaTime = timestamp - this.lastTimestamp;
                     this.lastTimestamp = timestamp;
 
-                    // Адаптивная скорость: очень быстро для кода, плавно для текста
+                    // Adaptive speed: very fast for code, smooth for text
                     const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 
-                        ? 3000 // Турбо-режим для кода или если сильно отстаем
-                        : 100;   // Плавная скорость печати для обычного текста
+                        ? 3000 // Turbo mode for code or if we are far behind
+                        : 100;   // Smooth typing speed for plain text
 
-                    // Рассчитываем, сколько символов нужно добавить за прошедшее время
+                    // Calculating how many characters to add over the past time
                     this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
                     const charsToProcess = Math.floor(this.charsToAdd);
                     
@@ -1333,12 +1355,12 @@
                         this.textBuffer += chunk;
                         this.charsToAdd -= charsToProcess;
 
-                        // Проверяем, не изменился ли контекст (код/текст)
+                        // Check if the context has changed (code/text)
                         const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
                         this.isInsideCodeBlock = codeBlockCount % 2 === 1;
                     }
                     
-                    // **КЛЮЧЕВОЕ ИЗМЕНЕНИЕ**: Обновляем DOM только если прошло достаточно времени
+                    // **KEY CHANGE**: Update the DOM only if enough time has passed
                     if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
                         this.render();
                         this.lastRenderTime = timestamp;
@@ -1361,11 +1383,11 @@
 
                 finish() {
                     this.stop();
-                    // Добавляем все оставшиеся символы из очереди
+                    // Adding all remaining characters from the queue
                     if (this.queue.length > 0) {
                         this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     }
-                    // Выполняем финальный рендер, чтобы гарантировать полное отображение
+                    // Performing a final render to ensure full display
                     this.render();
                 }
             }
@@ -1577,7 +1599,6 @@
                 
                 const userMessageText = chatInput.value.trim();
                 if (!userMessageText && !attachedFile) {
-                    chatInput.value = '';
                     return;
                 }
 
@@ -1590,7 +1611,11 @@
 
                 if (attachedFile) {
                     addFileBlockToUI(attachedFile.name, attachedFile.content);
-                    const fileContext = `\n\n--- Start of File: ${attachedFile.name} ---\n${attachedFile.content}\n--- End of File ---`;
+                    const fileContext = `
+
+--- Start of File: ${attachedFile.name} ---
+${attachedFile.content}
+--- End of File ---`;
                     messageForApi = userMessageText + fileContext;
                     
                     userMessageData.fileName = attachedFile.name;
@@ -1616,7 +1641,7 @@
                 
                 if (isNewChat) {
                     const newChatData = {
-                        title: userMessageText.substring(0, 35) || `Chat with ${userMessageData.fileName || 'file'}`,
+                        title: userMessageText.substring(0, 35) || (userMessageData.fileName ? `Chat with ${userMessageData.fileName}` : 'New Chat'),
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     };
@@ -1634,7 +1659,7 @@
                 
                 await fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
-                         // *** ИЗМЕНЕНИЕ: Добавлено проактивное подключение ***
+                         // *** CHANGE: Added proactive connection ***
                 function initializeProactiveConnection() {
                     const wakeUp = () => {
                         if (auth.currentUser) {
@@ -1642,13 +1667,13 @@
                             db.goOnline();
                         }
                     };
-                    // "Просыпаемся" при любом действии пользователя
+                    // "Wake up" on any user action
                     window.addEventListener('focus', wakeUp);
                     window.addEventListener('click', wakeUp);
                     window.addEventListener('keydown', wakeUp);
                 }
             
-                initializeProactiveConnection(); // Вызываем новую функцию
+                initializeProactiveConnection(); // Calling a new function
             
             async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
                 for (let i = 0; i <= retries; i++) {
@@ -1770,7 +1795,7 @@
                 } 
             });
 
-            // *** ВОССТАНОВЛЕН ИСХОДНЫЙ КОД ДЛЯ ЗАГРУЗКИ ФАЙЛОВ ***
+            // *** RESTORED ORIGINAL CODE FOR FILE UPLOAD ***
             fileUploadInput.addEventListener('change', async (e) => {
                 if (!e.target.files || e.target.files.length === 0) return;
                 const file = e.target.files[0];
@@ -1909,7 +1934,7 @@
 
             function createChatHistoryItemElement(chat) {
                 const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
-                const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.[0]?.fileName}` || 'New Chat';
+                const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.find(m => m.fileName)?.fileName}` || 'New Chat';
                 
                 const itemEl = document.createElement('div');
                 itemEl.className = 'chat-history-item';

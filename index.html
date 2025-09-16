@@ -1295,7 +1295,7 @@
                     this.isInsideCodeBlock = false;
 
                     this.lastRenderTime = 0;
-                    this.RENDER_INTERVAL_MS = 40; // ~25 frames per second for DOM updates
+                    this.RENDER_INTERVAL_MS = 40; // ~25 кадров в секунду для обновления DOM
                     
                     this.charsToAdd = 0;
                     this.lastTimestamp = 0;
@@ -1328,11 +1328,11 @@
 
                 animationLoop(timestamp) {
                     if (!this.isRendering) {
-                        this.render(); // Performing final render
+                        this.render(); // Выполняем финальный рендер
                         return;
                     }
 
-                    // If the queue is empty, stop
+                    // Если очередь пуста, останавливаемся
                     if (this.queue.length === 0) {
                         this.finish();
                         return;
@@ -1341,12 +1341,12 @@
                     const deltaTime = timestamp - this.lastTimestamp;
                     this.lastTimestamp = timestamp;
 
-                    // Adaptive speed: very fast for code, smooth for text
+                    // Адаптивная скорость: очень быстро для кода, плавно для текста
                     const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 
-                        ? 3000 // Turbo mode for code or if we are far behind
-                        : 100;   // Smooth typing speed for plain text
+                        ? 3000 // Турбо-режим для кода или если сильно отстаем
+                        : 100;   // Плавная скорость печати для обычного текста
 
-                    // Calculating how many characters to add over the past time
+                    // Рассчитываем, сколько символов нужно добавить за прошедшее время
                     this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
                     const charsToProcess = Math.floor(this.charsToAdd);
                     
@@ -1355,12 +1355,12 @@
                         this.textBuffer += chunk;
                         this.charsToAdd -= charsToProcess;
 
-                        // Check if the context has changed (code/text)
+                        // Проверяем, не изменился ли контекст (код/текст)
                         const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
                         this.isInsideCodeBlock = codeBlockCount % 2 === 1;
                     }
                     
-                    // **KEY CHANGE**: Update the DOM only if enough time has passed
+                    // **КЛЮЧЕВОЕ ИЗМЕНЕНИЕ**: Обновляем DOM только если прошло достаточно времени
                     if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
                         this.render();
                         this.lastRenderTime = timestamp;
@@ -1383,11 +1383,11 @@
 
                 finish() {
                     this.stop();
-                    // Adding all remaining characters from the queue
+                    // Добавляем все оставшиеся символы из очереди
                     if (this.queue.length > 0) {
                         this.textBuffer += this.queue.splice(0, this.queue.length).join('');
                     }
-                    // Performing a final render to ensure full display
+                    // Выполняем финальный рендер, чтобы гарантировать полное отображение
                     this.render();
                 }
             }
@@ -1599,6 +1599,7 @@
                 
                 const userMessageText = chatInput.value.trim();
                 if (!userMessageText && !attachedFile) {
+                    chatInput.value = '';
                     return;
                 }
 
@@ -1611,11 +1612,7 @@
 
                 if (attachedFile) {
                     addFileBlockToUI(attachedFile.name, attachedFile.content);
-                    const fileContext = `
-
---- Start of File: ${attachedFile.name} ---
-${attachedFile.content}
---- End of File ---`;
+                    const fileContext = `\n\n--- Start of File: ${attachedFile.name} ---\n${attachedFile.content}\n--- End of File ---`;
                     messageForApi = userMessageText + fileContext;
                     
                     userMessageData.fileName = attachedFile.name;
@@ -1641,7 +1638,7 @@ ${attachedFile.content}
                 
                 if (isNewChat) {
                     const newChatData = {
-                        title: userMessageText.substring(0, 35) || (userMessageData.fileName ? `Chat with ${userMessageData.fileName}` : 'New Chat'),
+                        title: userMessageText.substring(0, 35) || `Chat with ${userMessageData.fileName || 'file'}`,
                         messages: localChatHistory,
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     };
@@ -1657,9 +1654,9 @@ ${attachedFile.content}
                 currentStreamController = new AbortController();
                 const renderer = new OptimizedSmoothRenderer(contentBlock);
                 
-                await fetchAndProcessStream(messageForApi, localChatHistory, renderer);
+                fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
-                         // *** CHANGE: Added proactive connection ***
+                         // *** ИЗМЕНЕНИЕ: Добавлено проактивное подключение ***
                 function initializeProactiveConnection() {
                     const wakeUp = () => {
                         if (auth.currentUser) {
@@ -1667,13 +1664,13 @@ ${attachedFile.content}
                             db.goOnline();
                         }
                     };
-                    // "Wake up" on any user action
+                    // "Просыпаемся" при любом действии пользователя
                     window.addEventListener('focus', wakeUp);
                     window.addEventListener('click', wakeUp);
                     window.addEventListener('keydown', wakeUp);
                 }
             
-                initializeProactiveConnection(); // Calling a new function
+                initializeProactiveConnection(); // Вызываем новую функцию
             
             async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
                 for (let i = 0; i <= retries; i++) {
@@ -1714,25 +1711,10 @@ ${attachedFile.content}
                 };
 
                 try {
-                    const processedHistory = history.slice(0, -1).slice(-10).map(item => {
-                        let combinedText = item.text || '';
-                        if (item.fileContent) {
-                            let fileText = item.fileContent;
-                            if (fileText.length > 2000) {
-                                fileText = fileText.substring(0, 2000) + "\n... (file content truncated) ...";
-                            }
-                            combinedText += `\n\n--- Start of File: ${item.fileName} ---\n${fileText}\n--- End of File ---`;
-                        }
-                        return {
-                            role: item.role,
-                            text: combinedText,
-                        };
-                    });
-
                     const response = await fetchWithRetry('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: message, history: processedHistory }),
+                        body: JSON.stringify({ message: message, history: history.slice(0, -1).slice(-10) }),
                         signal: currentStreamController.signal
                     });
 
@@ -1795,7 +1777,7 @@ ${attachedFile.content}
                 } 
             });
 
-            // *** RESTORED ORIGINAL CODE FOR FILE UPLOAD ***
+            // *** ВОССТАНОВЛЕН ИСХОДНЫЙ КОД ДЛЯ ЗАГРУЗКИ ФАЙЛОВ ***
             fileUploadInput.addEventListener('change', async (e) => {
                 if (!e.target.files || e.target.files.length === 0) return;
                 const file = e.target.files[0];
@@ -1934,7 +1916,7 @@ ${attachedFile.content}
 
             function createChatHistoryItemElement(chat) {
                 const firstUserMessage = chat.messages?.find(m => m.role === 'user' && m.text);
-                const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.find(m => m.fileName)?.fileName}` || 'New Chat';
+                const titleText = chat.title || firstUserMessage?.text.substring(0, 35) || `Chat with ${chat.messages?.[0]?.fileName}` || 'New Chat';
                 
                 const itemEl = document.createElement('div');
                 itemEl.className = 'chat-history-item';

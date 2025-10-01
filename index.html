@@ -1317,271 +1317,77 @@
                 }
             }
             
-            // Typing Effect Implementation
-        class TypingEffect {
-            constructor() {
-                this.typingSpeed = 15; // milliseconds per character
-                this.minDelay = 30; // minimum delay between chunks
-                this.maxDelay = 100; // maximum delay between chunks
-                this.punctuationDelay = 200; // extra delay after punctuation
-                this.isTyping = false;
-                this.currentElement = null;
-                this.currentText = '';
-                this.currentIndex = 0;
-                this.timeoutId = null;
-                this.cursorElement = null;
-                this.contentBuffer = '';
-                this.isPaused = false;
-                this.chunkSize = 3; // characters to type at once
-            }
-
-            startTyping(element, content) {
-                if (this.isTyping) {
-                    this.stopTyping();
+            // --- NEW FEATURE: The improved ChatGPT-like renderer ---
+            class OptimizedSmoothRenderer {
+                constructor(container) {
+                    this.container = container;
+                    this.textBuffer = '';
+                    this.queue = [];
+                    this.isRendering = false;
+                    this.animationFrameId = null;
+                    this.isInsideCodeBlock = false;
+                    this.lastRenderTime = 0;
+                    this.RENDER_INTERVAL_MS = 40; // ~25 FPS for DOM updates
+                    this.charsToAdd = 0;
+                    this.lastTimestamp = 0;
+                    this.container.innerHTML = '';
+                    this.animationLoop = this.animationLoop.bind(this);
                 }
-
-                this.isTyping = true;
-                this.currentElement = element;
-                this.contentBuffer = content;
-                this.currentIndex = 0;
-                
-                // Create cursor element
-                this.cursorElement = document.createElement('span');
-                this.cursorElement.className = 'typing-cursor';
-                
-                // Start the typing effect
-                this.typeNextChunk();
-            }
-
-            typeNextChunk() {
-                if (!this.isTyping || this.currentIndex >= this.contentBuffer.length) {
-                    this.finishTyping();
-                    return;
+                update(chunk) {
+                    this.queue.push(...chunk.split(''));
+                    if (!this.isRendering) this.start();
                 }
-
-                // Determine how many characters to type in this chunk
-                let chunkEnd = Math.min(this.currentIndex + this.chunkSize, this.contentBuffer.length);
-                
-                // Check if we're at a word boundary
-                while (chunkEnd < this.contentBuffer.length && 
-                       this.contentBuffer[chunkEnd] !== ' ' && 
-                       this.contentBuffer[chunkEnd] !== '\n' &&
-                       chunkEnd - this.currentIndex < this.chunkSize * 2) {
-                    chunkEnd++;
+                start() {
+                    if (this.isRendering) return;
+                    this.isRendering = true;
+                    this.lastTimestamp = performance.now();
+                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
-                
-                // Extract the chunk
-                const chunk = this.contentBuffer.substring(this.currentIndex, chunkEnd);
-                
-                // Append the chunk to the element
-                this.currentElement.innerHTML += chunk;
-                this.currentIndex = chunkEnd;
-                
-                // Add cursor if we're not done
-                if (this.currentIndex < this.contentBuffer.length) {
-                    this.currentElement.appendChild(this.cursorElement);
+                stop() {
+                    if (!this.isRendering) return;
+                    this.isRendering = false;
+                    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
                 }
-                
-                // Calculate delay for next chunk
-                let delay = this.calculateDelay(chunk);
-                
-                // Schedule the next chunk
-                this.timeoutId = setTimeout(() => {
-                    this.typeNextChunk();
-                }, delay);
-            }
-
-            calculateDelay(chunk) {
-                // Base delay
-                let delay = this.minDelay + Math.random() * (this.maxDelay - this.minDelay);
-                
-                // Add extra delay for punctuation
-                const lastChar = chunk[chunk.length - 1];
-                if (lastChar === '.' || lastChar === '!' || lastChar === '?') {
-                    delay += this.punctuationDelay;
-                } else if (lastChar === ',' || lastChar === ';' || lastChar === ':') {
-                    delay += this.punctuationDelay / 2;
+                animationLoop(timestamp) {
+                    if (!this.isRendering) { this.render(); return; }
+                    if (this.queue.length === 0) { this.finish(); return; }
+                    const deltaTime = timestamp - this.lastTimestamp;
+                    this.lastTimestamp = timestamp;
+                    const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 ? 3000 : 100;
+                    this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
+                    const charsToProcess = Math.floor(this.charsToAdd);
+                    if (charsToProcess > 0) {
+                        const chunk = this.queue.splice(0, charsToProcess).join('');
+                        this.textBuffer += chunk;
+                        this.charsToAdd -= charsToProcess;
+                        const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
+                        this.isInsideCodeBlock = codeBlockCount % 2 === 1;
+                    }
+                    if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
+                        this.render();
+                        this.lastRenderTime = timestamp;
+                    }
+                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
                 }
-                
-                // Add slight randomness for natural feel
-                delay *= (0.9 + Math.random() * 0.2);
-                
-                return delay;
-            }
-
-            addContent(content) {
-                if (!this.isTyping) {
-                    return;
+                render() {
+                    try {
+                        this.container.innerHTML = marked.parse(this.textBuffer);
+                        this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
+                        finalizeMessageFormatting(this.container);
+                        renderMath(this.container); // Manual call to render math
+                    } catch (e) {
+                        console.error("Rendering error:", e);
+                        this.container.innerText = this.textBuffer;
+                    }
                 }
-                
-                this.contentBuffer += content;
-                
-                // If we're paused, resume typing
-                if (this.isPaused) {
-                    this.isPaused = false;
-                    this.typeNextChunk();
+                finish() {
+                    this.stop();
+                    if (this.queue.length > 0) {
+                        this.textBuffer += this.queue.splice(0, this.queue.length).join('');
+                    }
+                    this.render();
                 }
             }
-
-            pauseTyping() {
-                this.isPaused = true;
-                if (this.timeoutId) {
-                    clearTimeout(this.timeoutId);
-                    this.timeoutId = null;
-                }
-            }
-
-            resumeTyping() {
-                if (this.isPaused) {
-                    this.isPaused = false;
-                    this.typeNextChunk();
-                }
-            }
-
-            stopTyping() {
-                this.isTyping = false;
-                this.isPaused = false;
-                
-                if (this.timeoutId) {
-                    clearTimeout(this.timeoutId);
-                    this.timeoutId = null;
-                }
-                
-                // Remove cursor
-                if (this.cursorElement && this.cursorElement.parentNode) {
-                    this.cursorElement.parentNode.removeChild(this.cursorElement);
-                }
-                
-                // If we have buffered content, display it all at once
-                if (this.currentElement && this.contentBuffer && this.currentIndex < this.contentBuffer.length) {
-                    this.currentElement.innerHTML = this.contentBuffer;
-                }
-            }
-
-            finishTyping() {
-                this.isTyping = false;
-                
-                // Remove cursor
-                if (this.cursorElement && this.cursorElement.parentNode) {
-                    this.cursorElement.parentNode.removeChild(this.cursorElement);
-                }
-                
-                // Trigger custom event to notify completion
-                if (this.currentElement) {
-                    const event = new CustomEvent('typingComplete', { 
-                        bubbles: true, 
-                        detail: { element: this.currentElement } 
-                    });
-                    this.currentElement.dispatchEvent(event);
-                }
-            }
-        }
-
-        // Initialize typing effect
-        const typingEffect = new TypingEffect();
-
-        // Enhanced message display function with typing effect
-        function displayAIMessage(content, messageElement) {
-            const aiContentBlock = messageElement.querySelector('.ai-content-block');
-            if (!aiContentBlock) return;
-            
-            // Clear any existing content
-            aiContentBlock.innerHTML = '';
-            
-            // Add typing container
-            const typingContainer = document.createElement('div');
-            typingContainer.className = 'typing-container';
-            aiContentBlock.appendChild(typingContainer);
-            
-            // Start typing effect
-            typingEffect.startTyping(typingContainer, content);
-            
-            // Listen for typing completion
-            aiContentBlock.addEventListener('typingComplete', function(e) {
-                // Process the content for markdown, code highlighting, etc.
-                processContentAfterTyping(aiContentBlock, content);
-            });
-        }
-
-        // Process content after typing is complete
-        function processContentAfterTyping(element, rawContent) {
-            // Store the raw content
-            element.dataset.rawContent = rawContent;
-            
-            // Process markdown
-            const htmlContent = marked.parse(rawContent);
-            
-            // Set the processed HTML
-            element.innerHTML = htmlContent;
-            
-            // Process code blocks
-            element.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
-                
-                // Add copy button
-                const wrapper = block.parentElement;
-                if (!wrapper.querySelector('.copy-btn')) {
-                    const copyBtn = document.createElement('button');
-                    copyBtn.className = 'copy-btn';
-                    copyBtn.textContent = 'Copy';
-                    copyBtn.addEventListener('click', () => {
-                        navigator.clipboard.writeText(block.textContent).then(() => {
-                            copyBtn.textContent = 'Copied!';
-                            setTimeout(() => {
-                                copyBtn.textContent = 'Copy';
-                            }, 2000);
-                        });
-                    });
-                    wrapper.style.position = 'relative';
-                    wrapper.appendChild(copyBtn);
-                }
-            });
-            
-            // Process math formulas
-            element.querySelectorAll('.math').forEach((mathElement) => {
-                katex.render(mathElement.textContent, mathElement, {
-                    throwOnError: false
-                });
-            });
-        }
-
-        // Enhanced streaming function
-        function streamAIMessage(messageElement, streamGenerator) {
-            const aiContentBlock = messageElement.querySelector('.ai-content-block');
-            if (!aiContentBlock) return;
-            
-            // Clear any existing content
-            aiContentBlock.innerHTML = '';
-            
-            // Add typing container
-            const typingContainer = document.createElement('div');
-            typingContainer.className = 'typing-container';
-            aiContentBlock.appendChild(typingContainer);
-            
-            let accumulatedContent = '';
-            
-            // Start the typing effect with initial empty content
-            typingEffect.startTyping(typingContainer, '');
-            
-            // Process the stream
-            streamGenerator({
-                onChunk: (chunk) => {
-                    accumulatedContent += chunk;
-                    typingEffect.addContent(chunk);
-                },
-                onComplete: () => {
-                    // When streaming is complete, make sure all content is displayed
-                    typingEffect.stopTyping();
-                    processContentAfterTyping(aiContentBlock, accumulatedContent);
-                },
-                onError: (error) => {
-                    console.error('Streaming error:', error);
-                    typingEffect.stopTyping();
-                    aiContentBlock.innerHTML = `<p>Error: ${error.message}</p>`;
-                }
-            });
-        }
-
 
             // --- AUTH & UI ---
             const updateUIForAuthState = (user) => {
@@ -1825,7 +1631,8 @@
                 const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                 
                 currentStreamController = new AbortController();
-               
+                const renderer = new OptimizedSmoothRenderer(contentBlock);
+                
                 fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
                          // *** ИЗМЕНЕНИЕ: Добавлено проактивное подключение ***

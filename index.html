@@ -6,12 +6,20 @@
     <title>AI Chat App</title>
     <link rel="icon" href="symmetrical-logo-for-ai-future--blazon-modern-embl (4).svg" type="image/svg+xml">
 
+    <!-- Styling for Code Blocks and Themes -->
     <link id="hljs-theme-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
     <link id="hljs-theme-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" disabled>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
-  
+    <!-- Styling for KaTeX Math Formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+
+    <!-- JAVASCRIPT LIBRARIES (Loaded in order, non-blocking) -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Core KaTeX Library (auto-render script has been REMOVED) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    
     <style>
         :root {
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -1217,7 +1225,7 @@
             </div>
         </div>
     </div>
-    
+        
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -1228,6 +1236,7 @@
     <!-- END: Libraries for PDF and DOCX processing -->
 
     <script>
+        // We are restoring your original, stable DOMContentLoaded wrapper
         document.addEventListener('DOMContentLoaded', () => {
             const firebaseConfig = {
                  apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
@@ -1284,111 +1293,138 @@
                 }, 0);
             };
             
-             // --- OPTIMIZED SMOOTH RENDERER (FINAL & STABLE) ---
+            // --- NEW FEATURE: Function to manually render math formulas ---
+            function renderMath(element) {
+                if (window.katex) {
+                    element.querySelectorAll('p, li, th, td').forEach(el => {
+                        // This regex finds $...$ and $$...$$ that are not escaped
+                        const content = el.innerHTML;
+                        const newContent = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+                            try {
+                                return katex.renderToString(formula, { displayMode: true, throwOnError: false });
+                            } catch (e) { return match; }
+                        }).replace(/(?<!\\)\$([^$]+?)(?<!\\)\$/g, (match, formula) => {
+                            // Avoid rendering things like $50.
+                            if (formula.match(/^\d+(\.\d+)?$/)) return match;
+                            try {
+                                return katex.renderToString(formula, { displayMode: false, throwOnError: false });
+                            } catch (e) { return match; }
+                        });
+                        if (content !== newContent) {
+                            el.innerHTML = newContent;
+                        }
+                    });
+                }
+            }
+            
+            // --- NEW: ADVANCED STREAMING RENDERER WITH TYPEWRITER --- 
             class OptimizedSmoothRenderer {
                 constructor(container) {
                     this.container = container;
-                    this.textBuffer = '';
-                    this.queue = [];
-                    this.isRendering = false;
-                    this.animationFrameId = null;
-                    this.isInsideCodeBlock = false;
-
-                    this.lastRenderTime = 0;
-                    this.RENDER_INTERVAL_MS = 40; // ~25 кадров в секунду для обновления DOM
-                    
-                    this.charsToAdd = 0;
-                    this.lastTimestamp = 0;
-
+                    this.buffer = '';
+                    this.isTyping = false;
+                    this.isRenderingBlock = false;
                     this.container.innerHTML = '';
-                    this.animationLoop = this.animationLoop.bind(this);
+                    this.processBuffer = this.debounce(this.processBuffer, 60); // Debounce to avoid rapid-fire processing
+                    this.typewriterSpeed = 10; // ms per character
                 }
 
                 update(chunk) {
-                    this.queue.push(...chunk.split(''));
-                    if (!this.isRendering) {
-                        this.start();
+                    this.buffer += chunk;
+                    this.processBuffer();
+                }
+
+                debounce(func, delay) {
+                    let timeout;
+                    return (...args) => {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => func.apply(this, args), delay);
+                    };
+                }
+
+                processBuffer() {
+                    if (this.isTyping || this.isRenderingBlock) return;
+
+                    // Heuristic: Look for a natural break to render a block. Code blocks and double newlines are good separators.
+                    const codeBlockEnd = this.buffer.lastIndexOf('\n```\n');
+                    const paragraphEnd = this.buffer.lastIndexOf('\n\n');
+                    const splitPoint = Math.max(codeBlockEnd, paragraphEnd);
+
+                    if (splitPoint > -1) {
+                        this.isRenderingBlock = true;
+                        const processable = this.buffer.substring(0, splitPoint);
+                        this.buffer = this.buffer.substring(splitPoint).trimStart();
+                        this.renderBlock(processable, () => {
+                            this.isRenderingBlock = false;
+                            this.processBuffer(); // Check if there's more to process
+                        });
+                    } else {
+                        // If no block separators are found, it's likely inline text to be typed.
+                        this.typewriter();
                     }
                 }
 
-                start() {
-                    if (this.isRendering) return;
-                    this.isRendering = true;
-                    this.lastTimestamp = performance.now();
-                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
-                }
-
-                stop() {
-                    if (!this.isRendering) return;
-                    this.isRendering = false;
-                    if (this.animationFrameId) {
-                        cancelAnimationFrame(this.animationFrameId);
-                    }
-                }
-
-                animationLoop(timestamp) {
-                    if (!this.isRendering) {
-                        this.render(); // Выполняем финальный рендер
+                renderBlock(markdown, callback) {
+                    if (!markdown) {
+                        if (callback) callback();
                         return;
                     }
-
-                    // Если очередь пуста, останавливаемся
-                    if (this.queue.length === 0) {
-                        this.finish();
-                        return;
-                    }
+                    const html = marked.parse(markdown);
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
                     
-                    const deltaTime = timestamp - this.lastTimestamp;
-                    this.lastTimestamp = timestamp;
-
-                    // Адаптивная скорость: очень быстро для кода, плавно для текста
-                    const targetCharsPerSecond = this.isInsideCodeBlock || this.queue.length > 200 
-                        ? 3000 // Турбо-режим для кода или если сильно отстаем
-                        : 100;   // Плавная скорость печати для обычного текста
-
-                    // Рассчитываем, сколько символов нужно добавить за прошедшее время
-                    this.charsToAdd += (targetCharsPerSecond * deltaTime) / 1000;
-                    const charsToProcess = Math.floor(this.charsToAdd);
-                    
-                    if (charsToProcess > 0) {
-                        const chunk = this.queue.splice(0, charsToProcess).join('');
-                        this.textBuffer += chunk;
-                        this.charsToAdd -= charsToProcess;
-
-                        // Проверяем, не изменился ли контекст (код/текст)
-                        const codeBlockCount = (this.textBuffer.match(/```/g) || []).length;
-                        this.isInsideCodeBlock = codeBlockCount % 2 === 1;
-                    }
-                    
-                    // **КЛЮЧЕВОЕ ИЗМЕНЕНИЕ**: Обновляем DOM только если прошло достаточно времени
-                    if (timestamp - this.lastRenderTime >= this.RENDER_INTERVAL_MS) {
-                        this.render();
-                        this.lastRenderTime = timestamp;
-                    }
-                    
-                    this.animationFrameId = requestAnimationFrame(this.animationLoop);
+                    const elements = Array.from(tempDiv.childNodes);
+                    elements.forEach(el => {
+                        this.container.appendChild(el);
+                        // Your working math rendering and my formatting are both called here
+                        finalizeMessageFormatting(el);
+                        renderMath(el);
+                        el.querySelectorAll('pre code:not(.hljs)').forEach(codeEl => hljs.highlightElement(codeEl));
+                    });
+                    scrollToBottom();
+                    if (callback) callback();
                 }
 
-                render() {
-                    try {
-                        this.container.innerHTML = marked.parse(this.textBuffer);
-                        this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
-                        finalizeMessageFormatting(this.container);
-                    } catch (e) {
-                        console.error("Markdown rendering error:", e);
-                        // As a fallback, just display the plain text.
-                        this.container.innerText = this.textBuffer;
+                typewriter() {
+                    if (this.isTyping || this.buffer.length === 0) return;
+
+                    this.isTyping = true;
+                    const textToType = this.buffer;
+                    this.buffer = '';
+
+                    // Find or create a paragraph to type into.
+                    let p = this.container.querySelector('p:last-of-type');
+                    if (!p || p.closest('.code-block-wrapper') || p.closest('blockquote')) {
+                        p = document.createElement('p');
+                        this.container.appendChild(p);
                     }
+
+                    let i = 0;
+                    const type = () => {
+                        if (i < textToType.length) {
+                            const char = textToType[i];
+                            const span = document.createElement('span');
+                            span.className = 'typed-char';
+                            span.textContent = char;
+                            p.appendChild(span);
+                            i++;
+                            scrollToBottom();
+                            setTimeout(type, this.typewriterSpeed);
+                        } else {
+                            this.isTyping = false;
+                            // After typing, re-process the buffer for any new blocks that arrived.
+                            this.processBuffer(); 
+                        }
+                    };
+                    type();
                 }
 
                 finish() {
-                    this.stop();
-                    // Добавляем все оставшиеся символы из очереди
-                    if (this.queue.length > 0) {
-                        this.textBuffer += this.queue.splice(0, this.queue.length).join('');
+                    // Instantly render any remaining markdown in the buffer.
+                    if (this.buffer.length > 0) {
+                        this.renderBlock(this.buffer);
+                        this.buffer = '';
                     }
-                    // Выполняем финальный рендер, чтобы гарантировать полное отображение
-                    this.render();
                 }
             }
 
@@ -1441,7 +1477,6 @@
                     wrapper.appendChild(btn);
                 });
                 container.querySelectorAll('table:not(.table-wrapper table)').forEach(table => {
-                    // Defensive check for a complete table
                     if (table.querySelector('thead') && table.querySelector('tbody')) {
                         const wrapper = document.createElement('div');
                         wrapper.className = 'table-wrapper';
@@ -1453,52 +1488,35 @@
 
             async function loadChat(chatId) {
                 if (currentStreamController) currentStreamController.abort();
-                
-                if (!chatId) {
-                    startNewChat();
-                    return;
-                }
-                
+                if (!chatId) { startNewChat(); return; }
                 document.body.classList.remove('initial-state');
-
                 if (!currentUser || (currentChatId === chatId && !document.body.classList.contains('is-streaming'))) return;
                 if(document.body.classList.contains('is-mobile')) closeSidebar();
                 cancelAllRenames();
-                
                 const chatRef = db.ref(`chats/${currentUser.uid}/${chatId}`);
                 const snapshot = await chatRef.get();
                 if (!snapshot.exists()) { startNewChat(); return; }
-                
                 const chat = snapshot.val();
                 localChatHistory = chat.messages || [];
-                
                 chatMessages.innerHTML = '';
                 chatMessages.classList.add('is-loading-history');
-
                 localChatHistory.forEach(msg => {
                     if (msg.role === 'user') {
-                        if (msg.fileContent) {
-                            addFileBlockToUI(msg.fileName, msg.fileContent);
-                        }
-                        if (msg.text) {
-                            addMessageToUI('user', msg.text);
-                        }
+                        if (msg.fileContent) addFileBlockToUI(msg.fileName, msg.fileContent);
+                        if (msg.text) addMessageToUI('user', msg.text);
                     } else if (msg.role === 'model') {
                         const aiMsgContainer = addMessageToUI('ai', `<div class="ai-content-block"></div>`, true);
                         const contentBlock = aiMsgContainer.querySelector('.ai-content-block');
                         contentBlock.innerHTML = marked.parse(msg.text || "");
-                        contentBlock.querySelectorAll('pre code').forEach(el => {
-                            hljs.highlightElement(el);
-                        });
+                        contentBlock.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
                         finalizeMessageFormatting(contentBlock);
+                        renderMath(contentBlock); // Manual call to render math for historical messages
                     }
                 });
-                
                 requestAnimationFrame(() => {
                     chatMessages.classList.remove('is-loading-history');
                     scrollToBottom();
                 });
-                
                 updateActiveChatSelection(chatId);
             }
             function moveChatToTop(chatId) {
@@ -2302,7 +2320,7 @@
             initializeTheme();
             window.addEventListener('resize', initializeSidebar);
             document.addEventListener('click', (e) => { if (activeDropdown && !e.target.closest('.actions-dropdown')) { activeDropdown.style.display = 'none'; activeDropdown = null; } if (!e.target.closest('.rename-input')) cancelAllRenames(); });
-        });
+         });
     </script>
 </body>
 </html>

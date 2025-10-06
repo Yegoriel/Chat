@@ -660,7 +660,6 @@
         }
         .code-block-wrapper {
             max-width: 100%;
-            overflow: hidden; /* Hide main scrollbar, pre will handle it */
             position: relative;
             touch-action: auto;
             -webkit-overflow-scrolling: touch;
@@ -1302,7 +1301,7 @@
                 }, 0);
             };
             
-            class OptimizedSmoothRenderer {
+            class ChatGPTLikeRenderer {
                 constructor(container) {
                     this.container = container;
                     this.textBuffer = '';
@@ -1311,38 +1310,33 @@
                     this.lastRenderedHTML = '';
                     this.charsToAdd = 0;
                     this.lastTimestamp = 0;
-                    this.RENDER_INTERVAL_MS = 35; 
-                    this.container.innerHTML = '';
+                    this.RENDER_INTERVAL_MS = 28; // approx 35 fps updates
                     this.animationFrameId = null;
                     this.streamComplete = false;
                     this.onComplete = null;
-                    this.MIN_SPEED = 120; // Slower, more natural base speed
-                    this.MAX_SPEED = 3000; // Fast "catch-up" speed
-                    this.ACCELERATION_THRESHOLD = 50; // Buffer size to start speeding up
-                    this.MAX_SPEED_THRESHOLD = 600; // Buffer size to reach max speed
+                    // Typing speed controls (chars per second)
+                    this.BASE_SPEED = 160;    // steady, natural base speed for prose
+                    this.CODE_SPEED = 600;    // faster for code blocks
+                    this.MAX_SPEED = 1400;    // cap to avoid huge bursts
+                    this.ACCEL_THRESHOLD = 120; // buffer size to start gentle acceleration
                     this.animationLoop = this.animationLoop.bind(this);
                 }
 
-                setOnComplete(callback) {
-                    this.onComplete = callback;
-                }
+                setOnComplete(cb){ this.onComplete = cb; }
 
                 update(chunk) {
                     if (!chunk) return;
-                    const wasEmpty = this.textBuffer.length === 0;
+                    const wasEmpty = this.textBuffer.length === 0 && this.visibleCharCount === 0;
                     this.textBuffer += String(chunk);
-                   
+                    // Reveal the very first character immediately (no perceptible delay)
                     if (wasEmpty && this.textBuffer.length > 0) {
                         this.visibleCharCount = 1;
-                        this.renderPartial(); 
+                        try { this.renderPartial(); } catch(e) { console.warn('Immediate render failed', e); }
                     }
-
                     if (!this.isRendering) this.start();
                 }
 
-                signalStreamEnd() {
-                    this.streamComplete = true;
-                }
+                signalStreamEnd() { this.streamComplete = true; }
 
                 start() {
                     if (this.isRendering) return;
@@ -1357,6 +1351,72 @@
                     if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
                 }
 
+                _isLikelyCode(slice) {
+                    if (!slice) return false;
+                    // If there is an unclosed fenced code block in the slice, treat as code.
+                    const fences = (slice.match(/```/g) || []).length;
+                    if (fences % 2 === 1) return true;
+                    // Also if there are many newlines and backticks or common code patterns, treat as code.
+                    const lines = slice.split('\n');
+                    if (lines.length > 6 && /[{;}=>]|function\s|\bconst\b|\blet\b|\bvar\b/.test(slice)) return true;
+                    return false;
+                }
+
+                _safeMarkdownSlice(text) {
+                    if (!text || text.length < 6) return text;
+                    // For fenced code blocks, prefer to keep the opening fence and show the in-progress code as-is,
+                    // because hiding the content between fence start and current position makes code invisible during streaming.
+                    let t = String(text);
+                    const fences = (t.match(/```/g) || []).length;
+                    if (fences % 2 === 1) {
+                        // There is an unclosed fenced code block; do not trim — allow the renderer to show the opening fence and code.
+                        return t;
+                    }
+                    // For inline code/backtick and other inline markdown tokens, trim trailing unclosed tokens to avoid premature formatting.
+                    const backtickMatches = t.match(/`/g) || [];
+                    if (backtickMatches.length % 2 === 1) {
+                        const lastBacktick = t.lastIndexOf('`');
+                        if (lastBacktick > 0) return t.slice(0, lastBacktick);
+                    }
+                    const dblStarMatches = t.match(/\*\*/g) || [];
+                    if (dblStarMatches.length % 2 === 1) {
+                        const lastDbl = t.lastIndexOf('**');
+                        if (lastDbl > 0) return t.slice(0, lastDbl);
+                    }
+                    if (t.endsWith('*') || t.endsWith('_')) return t.slice(0, -1);
+                    return t;
+                }
+                _decodeEntities(container) {
+                    try {
+                        const map = {'&amp;lt;':'<','&lt;':'<','&amp;gt;':'>','&gt;':'>','&amp;':'&'};
+                        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+                        const nodes = [];
+                        while (walker.nextNode()) nodes.push(walker.currentNode);
+                        nodes.forEach(n => {
+                            if (!n || !n.nodeValue) return;
+                            // skip code/pre parents
+                            let p = n.parentNode, skip=false;
+                            while (p) { if (p.tagName && (p.tagName.toLowerCase()==='code' || p.tagName.toLowerCase()==='pre')) { skip=true; break;} p = p.parentNode; }
+                            if (skip) return;
+                            let v = n.nodeValue;
+                            if (v.indexOf('&') === -1) return;
+                            for (const k in map) if (v.indexOf(k)!==-1) v = v.split(k).join(map[k]);
+                            if (v !== n.nodeValue) n.nodeValue = v;
+                        });
+                    } catch(e){ console.warn('decodeEntities failed', e); }
+                }
+
+                _cleanKatexErrors(container) {
+                    try {
+                        const errs = container.querySelectorAll && container.querySelectorAll('.katex-error');
+                        if (!errs || errs.length === 0) return;
+                        errs.forEach(el => {
+                            const txt = document.createTextNode(el.textContent || '');
+                            el.parentNode && el.parentNode.replaceChild(txt, el);
+                        });
+                    } catch(e){}
+                }
+
                 animationLoop(timestamp) {
                     if (!this.isRendering) return;
                     if (this.streamComplete && this.visibleCharCount >= this.textBuffer.length) {
@@ -1366,24 +1426,30 @@
                         return;
                     }
 
-                    const deltaTime = Math.max(0, timestamp - this.lastTimestamp);
+                    const delta = Math.max(0, timestamp - this.lastTimestamp);
                     this.lastTimestamp = timestamp;
 
-                    const remainingBuffer = this.textBuffer.length - this.visibleCharCount;
-                    let rate;
-                    if (remainingBuffer < this.ACCELERATION_THRESHOLD) {
-                        rate = this.MIN_SPEED;
-                    } else {
-                        const progress = Math.min(1, Math.sqrt((remainingBuffer - this.ACCELERATION_THRESHOLD) / (this.MAX_SPEED_THRESHOLD - this.ACCELERATION_THRESHOLD)));
-                        rate = this.MIN_SPEED + (this.MAX_SPEED - this.MIN_SPEED) * progress;
+                    const remaining = Math.max(0, this.textBuffer.length - this.visibleCharCount);
+
+                    // Determine base speed (prose vs code)
+                    const slice = this.textBuffer.slice(0, Math.max(64, this.visibleCharCount));
+                    const isCode = this._isLikelyCode(slice);
+                    let speed = isCode ? this.CODE_SPEED : this.BASE_SPEED;
+
+                    // Gentle acceleration depending on remaining buffer (sqrt-based)
+                    if (remaining > this.ACCEL_THRESHOLD) {
+                        const pct = Math.min(1, Math.sqrt((remaining - this.ACCEL_THRESHOLD) / (this.ACCEL_THRESHOLD * 5)));
+                        speed = Math.min(this.MAX_SPEED, speed + pct * (this.MAX_SPEED - speed));
                     }
 
-                    this.charsToAdd += (rate * deltaTime) / 1000;
+                    // Add characters accumulated over delta time
+                    this.charsToAdd += (speed * delta) / 1000;
                     const toAdd = Math.floor(this.charsToAdd);
-
                     if (toAdd > 0) {
-                        this.visibleCharCount = Math.min(this.textBuffer.length, this.visibleCharCount + toAdd);
-                        this.charsToAdd -= toAdd;
+                        // Cap per-frame additions to avoid jank
+                        const capped = Math.min(toAdd, 120);
+                        this.visibleCharCount = Math.min(this.textBuffer.length, this.visibleCharCount + capped);
+                        this.charsToAdd -= capped;
                     }
 
                     if (timestamp - (this._lastRenderTime || 0) >= this.RENDER_INTERVAL_MS) {
@@ -1396,28 +1462,36 @@
 
                 renderPartial() {
                     try {
-                        const toParse = this.textBuffer.slice(0, this.visibleCharCount);
+                        const rawSlice = this.textBuffer.slice(0, this.visibleCharCount);
+                        const safeSlice = this._safeMarkdownSlice ? this._safeMarkdownSlice(rawSlice) : rawSlice;
+                        const toParse = (safeSlice && safeSlice.length>0) ? safeSlice : rawSlice;
                         const newHTML = marked.parse(toParse);
 
                         if (this.lastRenderedHTML && newHTML.startsWith(this.lastRenderedHTML)) {
                             const delta = newHTML.slice(this.lastRenderedHTML.length);
                             if (delta) {
                                 const range = document.createRange();
+                                range.selectNodeContents(this.container);
                                 const frag = range.createContextualFragment(delta);
                                 this.container.appendChild(frag);
-                                this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
-                                finalizeMessageFormatting(this.container);
+                                this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => { try { hljs.highlightElement(el); } catch(e){} });
+                                try { finalizeMessageFormatting(this.container); } catch(e) {}
+                                try { this._decodeEntities(this.container); } catch(e) {}
+                                try { this._cleanKatexErrors(this.container); } catch(e) {}
                                 this.lastRenderedHTML = newHTML;
                             }
                         } else {
+                            // safe full replace
                             this.container.innerHTML = newHTML;
-                            this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
-                            finalizeMessageFormatting(this.container);
+                            this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => { try { hljs.highlightElement(el); } catch(e){} });
+                            try { finalizeMessageFormatting(this.container); } catch(e) {}
+                            try { this._decodeEntities(this.container); } catch(e) {}
+                            try { this._cleanKatexErrors(this.container); } catch(e) {}
                             this.lastRenderedHTML = newHTML;
                         }
                     } catch (e) {
-                        console.error("Rendering error:", e);
-                        this.container.innerText = this.textBuffer.slice(0, this.visibleCharCount);
+                        console.error("ChatGPTLikeRenderer renderPartial error:", e);
+                        try { this.container.innerText = this.textBuffer.slice(0, this.visibleCharCount); } catch(err){}
                         this.lastRenderedHTML = this.container.innerHTML;
                     }
                 }
@@ -1426,12 +1500,14 @@
                     try {
                         const finalHTML = marked.parse(this.textBuffer);
                         this.container.innerHTML = finalHTML;
-                        this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => hljs.highlightElement(el));
-                        finalizeMessageFormatting(this.container);
+                        this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => { try { hljs.highlightElement(el); } catch(e){} });
+                        try { finalizeMessageFormatting(this.container); } catch(e) {}
+                        try { this._decodeEntities(this.container); } catch(e) {}
+                        try { this._cleanKatexErrors(this.container); } catch(e) {}
                         this.lastRenderedHTML = finalHTML;
                     } catch (e) {
-                        console.error("Final render error:", e);
-                        this.container.innerText = this.textBuffer;
+                        console.error("ChatGPTLikeRenderer final render error:", e);
+                        try { this.container.innerText = this.textBuffer; } catch(err){}
                         this.lastRenderedHTML = this.container.innerHTML;
                     }
                 }
@@ -1483,11 +1559,9 @@
             
             function finalizeMessageFormatting(container) {
                  container.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
+                    if (!pre.parentNode) return;
                     const wrapper = document.createElement('div'); 
                     wrapper.className = 'code-block-wrapper';
-                    pre.parentNode.insertBefore(wrapper, pre);
-                    
-                    if (wrapper.querySelector('.code-block-header')) return;
 
                     const codeEl = pre.querySelector('code');
                     let language = '';
@@ -1521,6 +1595,11 @@
                     
                     header.appendChild(langName);
                     header.appendChild(copyBtn);
+                    
+                    // ***** THE FIX IS HERE *****
+                    // Instead of replacing the node, we insert the wrapper before it and then move the node inside.
+                    // This is less destructive and doesn't break the renderer's diffing logic.
+                    pre.parentNode.insertBefore(wrapper, pre);
                     wrapper.appendChild(header);
                     wrapper.appendChild(pre);
                 });
@@ -2344,228 +2423,6 @@
             window.addEventListener('resize', initializeSidebar);
             document.addEventListener('click', (e) => { if (activeDropdown && !e.target.closest('.actions-dropdown')) { activeDropdown.style.display = 'none'; activeDropdown = null; } if (!e.target.closest('.rename-input')) cancelAllRenames(); });
          });
-    
-
-/* --- CHATGPT-LIKE TYPING RENDERER (Conservative, safe, append-only) --- */
-class ChatGPTLikeRenderer {
-    constructor(container) {
-        this.container = container;
-        this.textBuffer = '';
-        this.visibleCharCount = 0;
-        this.isRendering = false;
-        this.lastRenderedHTML = '';
-        this.charsToAdd = 0;
-        this.lastTimestamp = 0;
-        this.RENDER_INTERVAL_MS = 28; // approx 35 fps updates
-        this.animationFrameId = null;
-        this.streamComplete = false;
-        this.onComplete = null;
-        // Typing speed controls (chars per second)
-        this.BASE_SPEED = 160;    // steady, natural base speed for prose
-        this.CODE_SPEED = 600;    // faster for code blocks
-        this.MAX_SPEED = 1400;    // cap to avoid huge bursts
-        this.ACCEL_THRESHOLD = 120; // buffer size to start gentle acceleration
-        this.animationLoop = this.animationLoop.bind(this);
-    }
-
-    setOnComplete(cb){ this.onComplete = cb; }
-
-    update(chunk) {
-        if (!chunk) return;
-        const wasEmpty = this.textBuffer.length === 0 && this.visibleCharCount === 0;
-        this.textBuffer += String(chunk);
-        // Reveal the very first character immediately (no perceptible delay)
-        if (wasEmpty && this.textBuffer.length > 0) {
-            this.visibleCharCount = 1;
-            try { this.renderPartial(); } catch(e) { console.warn('Immediate render failed', e); }
-        }
-        if (!this.isRendering) this.start();
-    }
-
-    signalStreamEnd() { this.streamComplete = true; }
-
-    start() {
-        if (this.isRendering) return;
-        this.isRendering = true;
-        this.lastTimestamp = performance.now();
-        this.animationFrameId = requestAnimationFrame(this.animationLoop);
-    }
-
-    stop() {
-        if (!this.isRendering) return;
-        this.isRendering = false;
-        if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
-    }
-
-    _isLikelyCode(slice) {
-        if (!slice) return false;
-        // If there is an unclosed fenced code block in the slice, treat as code.
-        const fences = (slice.match(/```/g) || []).length;
-        if (fences % 2 === 1) return true;
-        // Also if there are many newlines and backticks or common code patterns, treat as code.
-        const lines = slice.split('\n');
-        if (lines.length > 6 && /[{;}=>]|function\s|\bconst\b|\blet\b|\bvar\b/.test(slice)) return true;
-        return false;
-    }
-
-    _safeMarkdownSlice(text) {
-        if (!text || text.length < 6) return text;
-        // For fenced code blocks, prefer to keep the opening fence and show the in-progress code as-is,
-        // because hiding the content between fence start and current position makes code invisible during streaming.
-        let t = String(text);
-        const fences = (t.match(/```/g) || []).length;
-        if (fences % 2 === 1) {
-            // There is an unclosed fenced code block; do not trim — allow the renderer to show the opening fence and code.
-            return t;
-        }
-        // For inline code/backtick and other inline markdown tokens, trim trailing unclosed tokens to avoid premature formatting.
-        const backtickMatches = t.match(/`/g) || [];
-        if (backtickMatches.length % 2 === 1) {
-            const lastBacktick = t.lastIndexOf('`');
-            if (lastBacktick > 0) return t.slice(0, lastBacktick);
-        }
-        const dblStarMatches = t.match(/\*\*/g) || [];
-        if (dblStarMatches.length % 2 === 1) {
-            const lastDbl = t.lastIndexOf('**');
-            if (lastDbl > 0) return t.slice(0, lastDbl);
-        }
-        if (t.endsWith('*') || t.endsWith('_')) return t.slice(0, -1);
-        return t;
-    }
-    _decodeEntities(container) {
-        try {
-            const map = {'&amp;lt;':'<','&lt;':'<','&amp;gt;':'>','&gt;':'>','&amp;':'&'};
-            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-            const nodes = [];
-            while (walker.nextNode()) nodes.push(walker.currentNode);
-            nodes.forEach(n => {
-                if (!n || !n.nodeValue) return;
-                // skip code/pre parents
-                let p = n.parentNode, skip=false;
-                while (p) { if (p.tagName && (p.tagName.toLowerCase()==='code' || p.tagName.toLowerCase()==='pre')) { skip=true; break;} p = p.parentNode; }
-                if (skip) return;
-                let v = n.nodeValue;
-                if (v.indexOf('&') === -1) return;
-                for (const k in map) if (v.indexOf(k)!==-1) v = v.split(k).join(map[k]);
-                if (v !== n.nodeValue) n.nodeValue = v;
-            });
-        } catch(e){ console.warn('decodeEntities failed', e); }
-    }
-
-    _cleanKatexErrors(container) {
-        try {
-            const errs = container.querySelectorAll && container.querySelectorAll('.katex-error');
-            if (!errs || errs.length === 0) return;
-            errs.forEach(el => {
-                const txt = document.createTextNode(el.textContent || '');
-                el.parentNode && el.parentNode.replaceChild(txt, el);
-            });
-        } catch(e){}
-    }
-
-    animationLoop(timestamp) {
-        if (!this.isRendering) return;
-        if (this.streamComplete && this.visibleCharCount >= this.textBuffer.length) {
-            this.stop();
-            this.renderFinal();
-            if (this.onComplete) this.onComplete();
-            return;
-        }
-
-        const delta = Math.max(0, timestamp - this.lastTimestamp);
-        this.lastTimestamp = timestamp;
-
-        const remaining = Math.max(0, this.textBuffer.length - this.visibleCharCount);
-
-        // Determine base speed (prose vs code)
-        const slice = this.textBuffer.slice(0, Math.max(64, this.visibleCharCount));
-        const isCode = this._isLikelyCode(slice);
-        let speed = isCode ? this.CODE_SPEED : this.BASE_SPEED;
-
-        // Gentle acceleration depending on remaining buffer (sqrt-based)
-        if (remaining > this.ACCEL_THRESHOLD) {
-            const pct = Math.min(1, Math.sqrt((remaining - this.ACCEL_THRESHOLD) / (this.ACCEL_THRESHOLD * 5)));
-            speed = Math.min(this.MAX_SPEED, speed + pct * (this.MAX_SPEED - speed));
-        }
-
-        // Add characters accumulated over delta time
-        this.charsToAdd += (speed * delta) / 1000;
-        const toAdd = Math.floor(this.charsToAdd);
-        if (toAdd > 0) {
-            // Cap per-frame additions to avoid jank
-            const capped = Math.min(toAdd, 120);
-            this.visibleCharCount = Math.min(this.textBuffer.length, this.visibleCharCount + capped);
-            this.charsToAdd -= capped;
-        }
-
-        if (timestamp - (this._lastRenderTime || 0) >= this.RENDER_INTERVAL_MS) {
-            this.renderPartial();
-            this._lastRenderTime = timestamp;
-        }
-
-        this.animationFrameId = requestAnimationFrame(this.animationLoop);
-    }
-
-    renderPartial() {
-        try {
-            const rawSlice = this.textBuffer.slice(0, this.visibleCharCount);
-            const safeSlice = this._safeMarkdownSlice ? this._safeMarkdownSlice(rawSlice) : rawSlice;
-            const toParse = (safeSlice && safeSlice.length>0) ? safeSlice : rawSlice;
-            const newHTML = marked.parse(toParse);
-
-            if (this.lastRenderedHTML && newHTML.startsWith(this.lastRenderedHTML)) {
-                const delta = newHTML.slice(this.lastRenderedHTML.length);
-                if (delta) {
-                    const range = document.createRange();
-                    range.selectNodeContents(this.container);
-                    const frag = range.createContextualFragment(delta);
-                    this.container.appendChild(frag);
-                    this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => { try { hljs.highlightElement(el); } catch(e){} });
-                    try { finalizeMessageFormatting(this.container); } catch(e) {}
-                    try { this._decodeEntities(this.container); renderMath(this.container); } catch(e) {}
-                    try { this._cleanKatexErrors(this.container); } catch(e) {}
-                    this.lastRenderedHTML = newHTML;
-                }
-            } else {
-                // safe full replace
-                this.container.innerHTML = newHTML;
-                this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => { try { hljs.highlightElement(el); } catch(e){} });
-                try { finalizeMessageFormatting(this.container); } catch(e) {}
-                try { this._decodeEntities(this.container); renderMath(this.container); } catch(e) {}
-                try { this._cleanKatexErrors(this.container); } catch(e) {}
-                this.lastRenderedHTML = newHTML;
-            }
-        } catch (e) {
-            console.error("ChatGPTLikeRenderer renderPartial error:", e);
-            try { this.container.innerText = this.textBuffer.slice(0, this.visibleCharCount); } catch(err){}
-            this.lastRenderedHTML = this.container.innerHTML;
-        }
-    }
-
-    renderFinal() {
-        try {
-            const finalHTML = marked.parse(this.textBuffer);
-            this.container.innerHTML = finalHTML;
-            this.container.querySelectorAll('pre code:not(.hljs)').forEach(el => { try { hljs.highlightElement(el); } catch(e){} });
-            try { finalizeMessageFormatting(this.container); } catch(e) {}
-            try { this._decodeEntities(this.container); renderMath(this.container); } catch(e) {}
-            try { this._cleanKatexErrors(this.container); } catch(e) {}
-            this.lastRenderedHTML = finalHTML;
-        } catch (e) {
-            console.error("ChatGPTLikeRenderer final render error:", e);
-            try { this.container.innerText = this.textBuffer; } catch(err){}
-            this.lastRenderedHTML = this.container.innerHTML;
-        }
-    }
-
-    finish() {
-        this.visibleCharCount = this.textBuffer.length;
-        this.stop();
-        this.renderFinal();
-    }
-}
-/* --- END ChatGPTLikeRenderer --- */
-
-</script>
+    </script>
 </body>
 </html>

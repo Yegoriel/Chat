@@ -121,8 +121,8 @@
             --text-caption-regular--line-height: 1rem;
             --text-caption-regular--letter-spacing: -.00625rem;
             --text-caption-regular--font-weight: 400;
-            --chat-content-narrow-width: 41rem;
-            --chat-content-expanded-width: 49rem;
+            --chat-content-narrow-width: 42rem;
+            --chat-content-expanded-width: 50rem;
             --thread-width: var(--chat-content-narrow-width);
             --background-color: #ffffff;
             --text-color: #0d0d0d;
@@ -143,7 +143,7 @@
             --scrollbar-thumb-color: #ccc;
             --scrollbar-thumb-hover-color: #aaa;
             --sidebar-width: 260px;
-            --sidebar-collapsed-width: 64px;
+            --sidebar-collapsed-width: calc(var(--spacing) * 13);
             --input-bar-clearance: 130px;
         }
 
@@ -540,140 +540,6 @@
         .scroll-btn:hover { background-color: var(--scroll-btn-hover-bg); border-color: #ddd; transform: translateY(-1px); }
         body.dark-theme .scroll-btn:hover { border-color: #444; }
         .scroll-btn svg { width: 20px; height: 20px; }
-
-        /* Web Search Toggle Styles */
-        #search-toggle-btn {
-            background-color: transparent;
-            color: var(--text-color);
-            border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex-shrink: 0;
-            position: relative;
-            border: 2px solid transparent;
-        }
-        #search-toggle-btn:hover {
-            background-color: var(--sidebar-hover-bg);
-            border-color: var(--border-color);
-        }
-        #search-toggle-btn.enabled {
-            background-color: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-        }
-        #search-toggle-btn.enabled:hover {
-            background-color: #45a049;
-            border-color: #45a049;
-        }
-        #search-toggle-btn.searching {
-            background-color: #FF9800;
-            color: white;
-            border-color: #FF9800;
-            animation: pulse 1s infinite;
-        }
-        #search-toggle-btn svg {
-            width: 18px;
-            height: 18px;
-            transition: transform 0.2s;
-        }
-        #search-toggle-btn.searching svg {
-            animation: spin 1s linear infinite;
-        }
-        #search-toggle-btn .search-indicator {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #4CAF50;
-            border: 2px solid var(--background-color);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        #search-toggle-btn.enabled .search-indicator {
-            opacity: 1;
-        }
-
-        /* Search Results Styles */
-        .search-results-container {
-            margin: 0.5rem 0;
-            padding: 0.75rem;
-            background-color: var(--sidebar-bg);
-            border-radius: 8px;
-            border-left: 3px solid #4CAF50;
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-        .search-results-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .search-results-header svg {
-            width: 16px;
-            height: 16px;
-            color: #4CAF50;
-        }
-        .search-result-item {
-            margin-bottom: 0.5rem;
-            padding: 0.25rem 0;
-        }
-        .search-result-item:last-child {
-            margin-bottom: 0;
-        }
-        .search-result-title {
-            font-weight: 600;
-            color: var(--primary-accent);
-            text-decoration: none;
-            display: block;
-            margin-bottom: 0.25rem;
-            transition: color 0.2s;
-        }
-        .search-result-title:hover {
-            color: #4CAF50;
-        }
-        .search-result-snippet {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            line-height: 1.4;
-        }
-        .search-result-count {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.5rem;
-            background-color: var(--background-color);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            margin-left: auto;
-        }
-        .search-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .search-status.searching {
-            color: #FF9800;
-        }
-        .search-status.error {
-            color: #f44336;
-        }
-
-        /* Animation for search status */
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
 
         #chat-history-list::-webkit-scrollbar { width: 5px; }
         #chat-history-list::-webkit-scrollbar-track { background: transparent; }
@@ -1136,10 +1002,6 @@
             .message-container.ai h2 { font-size: 1.35rem; }
             .message-container.ai h3 { font-size: 1.25rem; }
             .message-container.ai h4 { font-size: 1.05rem; }
-            #search-toggle-btn {
-                width: 36px;
-                height: 36px;
-            }
         }
             .ai-content-block,
             .welcome-message {
@@ -1326,10 +1188,6 @@
                                 </label>
                                 <input type="file" id="file-upload-input" accept=".txt,.js,.py,.html,.css,.json,.md,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
                                 <textarea id="chat-input" placeholder="Message AI..."></textarea>
-                                <button type="button" id="search-toggle-btn" title="Toggle Web Search">
-                                    <div class="search-indicator"></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-                                </button>
                                 <button type="submit" id="send-btn" title="Send Message">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.4013 11.0312L23.4013 2.1875L1.00132 12L10.0013 14L11.8138 23.0312L13.4013 11.0312Z"/></svg>
                                 </button>
@@ -1374,223 +1232,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.18/mammoth.browser.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Web Search Service
-            class WebSearchService {
-                constructor() {
-                    this.apiKey = ''; // Will be set from environment variables
-                    this.searchEngineId = ''; // Will be set from environment variables
-                    this.searchCache = new Map();
-                    this.searchTimeout = null;
-                    
-                    // Initialize from environment variables if available
-                    if (typeof window !== 'undefined') {
-                        this.apiKey = window.GOOGLE_API_KEY || '';
-                        this.searchEngineId = window.GOOGLE_SEARCH_ENGINE_ID || '';
-                    }
-                }
-
-                async search(query, limit = 3) {
-                    if (!this.apiKey || !this.searchEngineId) {
-                        // Silent fallback if no credentials configured
-                        return [];
-                    }
-
-                    // Check cache first
-                    const cacheKey = `${query}-${limit}`;
-                    if (this.searchCache.has(cacheKey)) {
-                        return this.searchCache.get(cacheKey);
-                    }
-
-                    try {
-                        const url = `https://www.googleapis.com/customsearch/v1?key=${this.apiKey}&cx=${this.searchEngineId}&q=${encodeURIComponent(query)}&num=${limit}`;
-                        const response = await fetch(url);
-                        
-                        if (!response.ok) {
-                            throw new Error(`Search API error: ${response.status}`);
-                        }
-
-                        const data = await response.json();
-                        const results = (data.items || []).map(item => ({
-                            title: item.title,
-                            link: item.link,
-                            snippet: item.snippet
-                        }));
-
-                        // Cache for 5 minutes
-                        this.searchCache.set(cacheKey, results);
-                        setTimeout(() => this.searchCache.delete(cacheKey), 5 * 60 * 1000);
-
-                        return results;
-                    } catch (error) {
-                        console.error('Search error:', error);
-                        return [];
-                    }
-                }
-
-                formatForAI(searchResults) {
-                    if (!searchResults || searchResults.length === 0) return '';
-                    
-                    const formatted = searchResults.map((result, index) => 
-                        `[${index + 1}] ${result.title}\n    URL: ${result.link}\n    Summary: ${result.snippet}`
-                    ).join('\n\n');
-                    
-                    return `Web Search Results:\n${formatted}`;
-                }
-
-                formatForDisplay(searchResults) {
-                    if (!searchResults || searchResults.length === 0) return '';
-                    
-                    return searchResults.map(result => 
-                        `<div class="search-result-item">
-                            <a href="${result.link}" target="_blank" class="search-result-title">${result.title}</a>
-                            <div class="search-result-snippet">${result.snippet}</div>
-                        </div>`
-                    ).join('');
-                }
-            }
-
-            // Web Search Manager
-            class WebSearchManager {
-                constructor() {
-                    this.searchService = new WebSearchService();
-                    this.isEnabled = localStorage.getItem('webSearchEnabled') === 'true';
-                    this.isSearching = false;
-                    this.updateToggleUI();
-                    this.initializeEventListeners();
-                }
-
-                initializeEventListeners() {
-                    document.addEventListener('DOMContentLoaded', () => {
-                        const searchToggleBtn = document.getElementById('search-toggle-btn');
-                        if (searchToggleBtn) {
-                            searchToggleBtn.addEventListener('click', () => {
-                                this.toggle();
-                            });
-                        }
-                    });
-                }
-
-                toggle() {
-                    this.isEnabled = !this.isEnabled;
-                    localStorage.setItem('webSearchEnabled', this.isEnabled.toString());
-                    this.updateToggleUI();
-                }
-
-                updateToggleUI() {
-                    const searchToggleBtn = document.getElementById('search-toggle-btn');
-                    if (searchToggleBtn) {
-                        const hasCredentials = this.searchService.apiKey && this.searchService.searchEngineId;
-                        if (!hasCredentials) {
-                            searchToggleBtn.title = 'Web Search: Configure API Key';
-                            searchToggleBtn.style.opacity = '0.5';
-                            searchToggleBtn.style.cursor = 'not-allowed';
-                        } else {
-                            searchToggleBtn.style.opacity = '1';
-                            searchToggleBtn.style.cursor = 'pointer';
-                            searchToggleBtn.classList.toggle('enabled', this.isEnabled);
-                            searchToggleBtn.title = this.isEnabled ? 'Web Search: ON' : 'Web Search: OFF';
-                        }
-                    }
-                }
-
-                async performSearchIfEnabled(query) {
-                    if (!this.isEnabled || this.isSearching) {
-                        return null;
-                    }
-
-                    this.setSearchingState(true);
-                    
-                    try {
-                        const searchResults = await this.searchService.search(query, 3);
-                        return searchResults;
-                    } catch (error) {
-                        console.error('Search failed:', error);
-                        return null;
-                    } finally {
-                        this.setSearchingState(false);
-                    }
-                }
-
-                setSearchingState(searching) {
-                    this.isSearching = searching;
-                    const searchToggleBtn = document.getElementById('search-toggle-btn');
-                    if (searchToggleBtn) {
-                        searchToggleBtn.classList.toggle('searching', searching);
-                        searchToggleBtn.title = searching ? 'Searching web...' : (this.isEnabled ? 'Web Search: ON' : 'Web Search: OFF');
-                    }
-                }
-
-                formatSearchResultsContainer(searchResults, query) {
-                    if (!searchResults || searchResults.length === 0) return '';
-                    
-                    return `<div class="search-results-container">
-                        <div class="search-results-header">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <path d="m21 21-4.35-4.35"></path>
-                            </svg>
-                            <span>Web Search Results for "${query}"</span>
-                            <span class="search-result-count">${searchResults.length}</span>
-                        </div>
-                        ${this.searchService.formatForDisplay(searchResults)}
-                    </div>`;
-                }
-            }
-
-            // Initialize Web Search Manager
-            const webSearchManager = new WebSearchManager();
-
-            // Environment variables configuration for web search
-            // These will be set in Vercel environment variables
-            window.GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || '';
-            window.GOOGLE_SEARCH_ENGINE_ID = process.env.GOOGLE_SEARCH_ENGINE_ID || '';
-
-            // Update web search service with API credentials
-            webSearchManager.searchService.apiKey = window.GOOGLE_API_KEY;
-            webSearchManager.searchService.searchEngineId = window.GOOGLE_SEARCH_ENGINE_ID;
-
-            // Configuration Manager for future MCP integration
-            class ConfigurationManager {
-                constructor() {
-                    this.config = {
-                        webSearch: {
-                            enabled: webSearchManager.isEnabled,
-                            apiKey: window.GOOGLE_API_KEY,
-                            searchEngineId: window.GOOGLE_SEARCH_ENGINE_ID,
-                            cacheTimeout: 300000, // 5 minutes
-                            maxResults: 3
-                        },
-                        // Future MCP settings
-                        mcp: {
-                            enabled: false,
-                            servers: []
-                        },
-                        ui: {
-                            searchIndicator: true,
-                            searchResultsInChat: true
-                        }
-                    };
-                }
-
-                getConfig() {
-                    return this.config;
-                }
-
-                updateConfig(section, key, value) {
-                    if (this.config[section]) {
-                        this.config[section][key] = value;
-                    }
-                }
-
-                // Method for future MCP integration
-                addMCPServer(serverConfig) {
-                    this.config.mcp.servers.push(serverConfig);
-                    this.config.mcp.enabled = true;
-                }
-            }
-
-            const configManager = new ConfigurationManager();
-
             const firebaseConfig = {
                  apiKey: "AIzaSyDDdaUMgPSmlkRfjaBDm9SrylWyX7wC2oE",
                 authDomain: "ai-chatbot-b38da.firebaseapp.com",
@@ -2168,22 +1809,6 @@
                     prependChatHistoryItem({ id: currentChatId, ...newChatData });
                 }
 
-                // Perform web search if enabled (parallel with AI processing)
-                let searchResults = null;
-                if (userMessageText && webSearchManager.isEnabled) {
-                    try {
-                        searchResults = await webSearchManager.performSearchIfEnabled(userMessageText);
-                        if (searchResults && searchResults.length > 0) {
-                            // Add search results display to user message
-                            const searchContainer = addMessageToUI('user');
-                            searchContainer.innerHTML = webSearchManager.formatSearchResultsContainer(searchResults, userMessageText);
-                            scrollToBottom();
-                        }
-                    } catch (error) {
-                        console.error('Search processing error:', error);
-                    }
-                }
-
                 const aiMsgContainer = addMessageToUI('ai');
                 aiMsgContainer.innerHTML = `<div class="ai-content-block"></div>`;
                 scrollToBottom();
@@ -2193,15 +1818,8 @@
                 const renderer = new ChatGPTLikeRenderer(contentBlock);
                 activeRenderer = renderer; 
 
-                // Enhance message with search context if search is enabled
-                let enhancedMessageForApi = messageForApi;
-                if (userMessageText && webSearchManager.isEnabled && searchResults && searchResults.length > 0) {
-                    const searchContext = webSearchManager.searchService.formatForAI(searchResults);
-                    enhancedMessageForApi = `${messageForApi}\n\n${searchContext}\n\nPlease use the web search results above to provide an accurate and up-to-date response. Include relevant citations with numbered references.`;
-                }
-
                 renderer.setOnComplete(() => cleanUpStream(renderer));
-                fetchAndProcessStream(enhancedMessageForApi, localChatHistory, renderer);
+                fetchAndProcessStream(messageForApi, localChatHistory, renderer);
             }
             
             function initializeProactiveConnection() {
